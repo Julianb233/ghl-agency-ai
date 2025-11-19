@@ -13,15 +13,14 @@ import { Spinner } from './ui/spinner';
 import { Alert, AlertDescription } from './ui/alert';
 import { Play, Pause, SkipBack, SkipForward } from 'lucide-react';
 
-// PLACEHOLDER: Import when rrweb-player is installed
-// import rrwebPlayer from 'rrweb-player';
-// import 'rrweb-player/dist/style.css';
+import rrwebPlayer from 'rrweb-player';
+import 'rrweb-player/dist/style.css';
 
 interface SessionReplayPlayerProps {
   sessionId: string;
   events?: any[]; // rrweb events
-  width?: number;
-  height?: number;
+  width?: number | string;
+  height?: number | string;
   autoPlay?: boolean;
   skipInactive?: boolean;
   showController?: boolean;
@@ -47,15 +46,23 @@ export function SessionReplayPlayer({
       return;
     }
 
+    // Cleanup previous player instance
+    if (playerRef.current.innerHTML !== '') {
+      playerRef.current.innerHTML = '';
+    }
+
     try {
-      // PLACEHOLDER: Initialize rrweb player when package is installed
-      /*
+      // Calculate actual dimensions if strings are provided
+      const containerWidth = typeof width === 'number' ? width : playerRef.current.offsetWidth;
+      const containerHeight = typeof height === 'number' ? height : playerRef.current.offsetHeight;
+
+      // Initialize rrweb player
       const rrwebPlayerInstance = new rrwebPlayer({
         target: playerRef.current,
         props: {
           events,
-          width,
-          height,
+          width: containerWidth,
+          height: containerHeight,
           skipInactive,
           showController,
           autoPlay,
@@ -81,12 +88,9 @@ export function SessionReplayPlayer({
       setPlayer(rrwebPlayerInstance);
 
       return () => {
-        rrwebPlayerInstance.destroy();
+        // Cleanup is handled by clearing innerHTML above or we can try to destroy if method exists
+        // rrwebPlayerInstance.destroy(); 
       };
-      */
-
-      // Mock for now
-      console.log('SessionReplayPlayer mounted with', events.length, 'events');
     } catch (err) {
       console.error('Failed to initialize rrweb player:', err);
       setError(err instanceof Error ? err.message : 'Failed to load replay');
@@ -95,25 +99,19 @@ export function SessionReplayPlayer({
 
   const handlePlay = () => {
     if (player) {
-      // PLACEHOLDER: Implement when rrweb-player is installed
-      // player.play();
-      console.log('Play clicked');
+      player.play();
     }
   };
 
   const handlePause = () => {
     if (player) {
-      // PLACEHOLDER: Implement when rrweb-player is installed
-      // player.pause();
-      console.log('Pause clicked');
+      player.pause();
     }
   };
 
   const handleJumpTo = (time: number) => {
     if (player) {
-      // PLACEHOLDER: Implement when rrweb-player is installed
-      // player.goto(time);
-      console.log('Jump to', time);
+      player.goto(time);
     }
   };
 
@@ -153,25 +151,16 @@ export function SessionReplayPlayer({
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {/* PLACEHOLDER: rrweb player container */}
         <div
           ref={playerRef}
           className="border rounded-lg overflow-hidden bg-gray-50"
-          style={{ width: `${width}px`, height: `${height}px` }}
-        >
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground mb-4">
-                PLACEHOLDER: Install rrweb-player to display session replay
-              </p>
-              <code className="text-xs bg-gray-100 px-2 py-1 rounded">
-                pnpm add rrweb-player rrweb
-              </code>
-            </div>
-          </div>
-        </div>
+          style={{
+            width: typeof width === 'number' ? `${width}px` : width,
+            height: typeof height === 'number' ? `${height}px` : height
+          }}
+        />
 
-        {/* Custom playback controls */}
+        {/* Custom playback controls if default controller is hidden */}
         {!showController && (
           <div className="flex items-center gap-2 mt-4">
             <Button
@@ -207,17 +196,13 @@ export function SessionReplayPlayer({
             >
               <SkipForward className="h-4 w-4" />
             </Button>
-
-            <span className="text-xs text-muted-foreground ml-auto">
-              {currentTime}ms
-            </span>
           </div>
         )}
 
         <Alert className="mt-4">
           <AlertDescription className="text-xs">
             <strong>Note:</strong> Session replays are designed for single-tab workflows only.
-            Multi-tab recordings may be unreliable. Some sites (Opentable, Salesforce) disable recordings.
+            Multi-tab recordings may be unreliable.
           </AlertDescription>
         </Alert>
       </CardContent>

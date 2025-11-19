@@ -26,13 +26,13 @@ export const TerminalLog: React.FC<TerminalLogProps> = ({ logs }) => {
 
   return (
     <GlassPane title="Execution Log" className="h-full">
-      <div className="p-4 font-mono text-xs h-full overflow-y-auto space-y-2 bg-white/20">
+      <div className="p-2 sm:p-4 font-mono text-[10px] sm:text-xs h-full overflow-y-auto space-y-2 bg-white/20">
         {logs.length === 0 && <span className="text-slate-400 italic">Waiting for agent start...</span>}
-        
+
         {logs.map((log) => (
-          <div key={log.id} className="flex items-start gap-2 group hover:bg-white/40 p-2 rounded-lg transition-colors">
-            <span className="text-slate-400 shrink-0 text-[10px] pt-0.5">[{log.timestamp}]</span>
-            <span className={`shrink-0 font-bold uppercase px-1.5 py-0.5 rounded text-[10px] border ${getColor(log.level)}`}>
+          <div key={log.id} className="flex items-start gap-2 group hover:bg-white/40 p-1.5 sm:p-2 rounded-lg transition-colors">
+            <span className="text-slate-400 shrink-0 text-[9px] sm:text-[10px] pt-0.5">[{log.timestamp}]</span>
+            <span className={`shrink-0 font-bold uppercase px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] border ${getColor(log.level)}`}>
               {log.level}
             </span>
             <div className="flex flex-col min-w-0">

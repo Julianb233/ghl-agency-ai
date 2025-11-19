@@ -3,14 +3,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Textarea } from './ui/textarea';
 import { Badge } from './ui/badge';
 import { Spinner } from './ui/spinner';
 import { SessionReplayPlayer } from './SessionReplayPlayer';
-import { Globe, Zap, Eye, Play, Code, Database, RefreshCw } from 'lucide-react';
+import { Globe, Zap, Eye, Play, Code, Database, RefreshCw, Monitor, Terminal, FileText, Video, ChevronDown, ChevronUp, Key } from 'lucide-react';
 import { useAIChat, useObservePage, useExtractData, useSessionReplay, useListSessions } from '@/hooks/useAI';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
 
 interface AIBrowserPanelProps {
   onLog?: (message: string) => void;
@@ -23,7 +23,6 @@ export const AIBrowserPanel: React.FC<AIBrowserPanelProps> = ({ onLog }) => {
   const extractHook = useExtractData();
   const sessionsQuery = useListSessions();
 
-  const [activeTab, setActiveTab] = useState<'execute' | 'observe' | 'extract' | 'sessions'>('execute');
   const [result, setResult] = useState<any>(null);
 
   // Execute form state
@@ -32,6 +31,7 @@ export const AIBrowserPanel: React.FC<AIBrowserPanelProps> = ({ onLog }) => {
   const [geoCity, setGeoCity] = useState('');
   const [geoState, setGeoState] = useState('');
   const [geoCountry, setGeoCountry] = useState('US');
+  const [onePasswordEmail, setOnePasswordEmail] = useState('');
 
   // Observe form state
   const [observeUrl, setObserveUrl] = useState('');
@@ -45,6 +45,12 @@ export const AIBrowserPanel: React.FC<AIBrowserPanelProps> = ({ onLog }) => {
   // Session replay state
   const [sessionId, setSessionId] = useState('');
   const replayQuery = useSessionReplay(sessionId);
+
+  // Collapsible sections state
+  const [controlsOpen, setControlsOpen] = useState(true);
+  const [logsOpen, setLogsOpen] = useState(false);
+  const [replayOpen, setReplayOpen] = useState(false);
+  const [sessionsOpen, setSessionsOpen] = useState(false);
 
   // Computed loading state from all hooks
   const isLoading = chatHook.isLoading || observeHook.isLoading || extractHook.isLoading || replayQuery.isLoading || sessionsQuery.isLoading;
@@ -127,91 +133,175 @@ export const AIBrowserPanel: React.FC<AIBrowserPanelProps> = ({ onLog }) => {
   };
 
   return (
-    <div className="h-full space-y-2 sm:space-y-4 p-2 sm:p-0">
-      <Card>
-        <CardHeader className="p-4 sm:p-6">
-          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-            <Globe className="h-4 w-4 sm:h-5 sm:w-5" />
-            AI Browser Automation
-          </CardTitle>
-          <CardDescription className="text-xs sm:text-sm">
-            Execute browser actions, observe pages, extract data, and view session replays
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-2 sm:p-6">
-          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
-            {/* Mobile: 2x2 Grid, Desktop: 1x4 Grid */}
-            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-1 h-auto">
-              <TabsTrigger value="execute" className="text-xs sm:text-sm p-2 sm:p-3">
-                <Zap className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
-                <span className="hidden sm:inline">Execute</span>
-              </TabsTrigger>
-              <TabsTrigger value="observe" className="text-xs sm:text-sm p-2 sm:p-3">
-                <Eye className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
-                <span className="hidden sm:inline">Observe</span>
-              </TabsTrigger>
-              <TabsTrigger value="extract" className="text-xs sm:text-sm p-2 sm:p-3">
-                <Database className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
-                <span className="hidden sm:inline">Extract</span>
-              </TabsTrigger>
-              <TabsTrigger value="sessions" className="text-xs sm:text-sm p-2 sm:p-3">
-                <Play className="h-3 w-3 sm:h-4 sm:w-4 sm:mr-1" />
-                <span className="hidden sm:inline">Sessions</span>
-              </TabsTrigger>
-            </TabsList>
+    <div className="h-full space-y-3 p-2 sm:p-4 max-w-7xl mx-auto">
+      {/* PROMINENT LIVE BROWSER VIEW - Always visible when active */}
+      {result?.liveViewUrl && (
+        <Card className="border-2 border-green-500 shadow-lg">
+          <CardHeader className="p-3 sm:p-4 bg-gradient-to-r from-green-50 to-emerald-50">
+            <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+              <Monitor className="h-5 w-5 text-green-600 animate-pulse" />
+              <span className="font-bold text-green-700">🔴 Live Browser View</span>
+              <Badge className="ml-auto bg-green-600">Active</Badge>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-3 sm:p-4">
+            <div className="aspect-video w-full bg-slate-100 rounded-lg overflow-hidden mb-3">
+              <iframe
+                src={result.liveViewUrl}
+                className="w-full h-full border-0"
+                title="Live Browser View"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              />
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <a
+                href={result.liveViewUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 text-xs sm:text-sm text-center bg-green-600 hover:bg-green-700 text-white py-2 px-3 rounded-lg font-medium transition"
+              >
+                Open in New Tab
+              </a>
+              {result.sessionUrl && (
+                <a
+                  href={result.sessionUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 text-xs sm:text-sm text-center bg-slate-600 hover:bg-slate-700 text-white py-2 px-3 rounded-lg font-medium transition"
+                >
+                  View Dashboard
+                </a>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-            <TabsContent value="execute" className="space-y-4">
-              <div className="space-y-4">
+      {/* CONTROLS - Collapsible */}
+      <Card>
+        <Collapsible open={controlsOpen} onOpenChange={setControlsOpen}>
+          <CollapsibleTrigger className="w-full">
+            <CardHeader className="p-3 sm:p-4 hover:bg-slate-50 cursor-pointer transition">
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+                  <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
+                  Browser Controls
+                </CardTitle>
+                {controlsOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+              </div>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="p-3 sm:p-4 space-y-4">
+              {/* Quick Action Buttons */}
+              <div className="grid grid-cols-3 gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="flex flex-col items-center gap-1 h-auto py-3"
+                  onClick={() => {
+                    setExecuteInstruction('');
+                    setObserveInstruction('');
+                    setExtractInstruction('');
+                  }}
+                >
+                  <Zap className="h-4 w-4" />
+                  <span className="text-xs">Execute</span>
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="flex flex-col items-center gap-1 h-auto py-3"
+                  onClick={() => setObserveInstruction('')}
+                >
+                  <Eye className="h-4 w-4" />
+                  <span className="text-xs">Observe</span>
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="flex flex-col items-center gap-1 h-auto py-3"
+                  onClick={() => setExtractInstruction('')}
+                >
+                  <Database className="h-4 w-4" />
+                  <span className="text-xs">Extract</span>
+                </Button>
+              </div>
+
+              {/* Execute Action Form */}
+              <div className="space-y-3 border-t pt-4">
+                <Label className="text-sm font-bold">Execute Browser Action</Label>
+
                 <div className="space-y-2">
-                  <Label htmlFor="execute-url">Start URL</Label>
+                  <Label htmlFor="execute-url" className="text-xs">Start URL</Label>
                   <Input
                     id="execute-url"
                     value={executeUrl}
                     onChange={(e) => setExecuteUrl(e.target.value)}
                     placeholder="https://example.com"
+                    className="text-sm"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="execute-instruction">Instruction</Label>
+                  <Label htmlFor="execute-instruction" className="text-xs">AI Instruction</Label>
                   <Textarea
                     id="execute-instruction"
                     value={executeInstruction}
                     onChange={(e) => setExecuteInstruction(e.target.value)}
                     placeholder="Search for React tutorials and click the first result"
                     rows={3}
+                    className="text-sm resize-none"
                   />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="geo-city" className="text-xs sm:text-sm">City (Optional)</Label>
+                {/* 1Password Integration */}
+                <div className="space-y-2 bg-blue-50 p-3 rounded-lg border border-blue-200">
+                  <Label htmlFor="onepassword-email" className="text-xs flex items-center gap-2">
+                    <Key className="h-3 w-3 text-blue-600" />
+                    1Password Authentication (Optional)
+                  </Label>
+                  <Input
+                    id="onepassword-email"
+                    value={onePasswordEmail}
+                    onChange={(e) => setOnePasswordEmail(e.target.value)}
+                    placeholder="your@email.com"
+                    className="text-sm h-9"
+                  />
+                  <p className="text-[10px] text-blue-600">
+                    Connect your 1Password account to auto-fill credentials during browser automation
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="space-y-1">
+                    <Label htmlFor="geo-city" className="text-[10px]">City</Label>
                     <Input
                       id="geo-city"
                       value={geoCity}
                       onChange={(e) => setGeoCity(e.target.value)}
                       placeholder="NEW_YORK"
-                      className="text-xs sm:text-sm h-8 sm:h-10"
+                      className="text-xs h-8"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="geo-state" className="text-xs sm:text-sm">State</Label>
+                  <div className="space-y-1">
+                    <Label htmlFor="geo-state" className="text-[10px]">State</Label>
                     <Input
                       id="geo-state"
                       value={geoState}
                       onChange={(e) => setGeoState(e.target.value)}
                       placeholder="NY"
-                      className="text-xs sm:text-sm h-8 sm:h-10"
+                      className="text-xs h-8"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="geo-country" className="text-xs sm:text-sm">Country</Label>
+                  <div className="space-y-1">
+                    <Label htmlFor="geo-country" className="text-[10px]">Country</Label>
                     <Input
                       id="geo-country"
                       value={geoCountry}
                       onChange={(e) => setGeoCountry(e.target.value)}
                       placeholder="US"
-                      className="text-xs sm:text-sm h-8 sm:h-10"
+                      className="text-xs h-8"
                     />
                   </div>
                 </div>
@@ -220,6 +310,7 @@ export const AIBrowserPanel: React.FC<AIBrowserPanelProps> = ({ onLog }) => {
                   onClick={handleExecuteAction}
                   disabled={isLoading || !executeInstruction}
                   className="w-full"
+                  size="lg"
                 >
                   {isLoading ? (
                     <>
@@ -234,28 +325,31 @@ export const AIBrowserPanel: React.FC<AIBrowserPanelProps> = ({ onLog }) => {
                   )}
                 </Button>
               </div>
-            </TabsContent>
 
-            <TabsContent value="observe" className="space-y-4">
-              <div className="space-y-4">
+              {/* Observe Page Form */}
+              <div className="space-y-3 border-t pt-4">
+                <Label className="text-sm font-bold">Observe Page</Label>
+
                 <div className="space-y-2">
-                  <Label htmlFor="observe-url">Page URL</Label>
+                  <Label htmlFor="observe-url" className="text-xs">Page URL</Label>
                   <Input
                     id="observe-url"
                     value={observeUrl}
                     onChange={(e) => setObserveUrl(e.target.value)}
                     placeholder="https://example.com/form"
+                    className="text-sm"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="observe-instruction">What to observe</Label>
+                  <Label htmlFor="observe-instruction" className="text-xs">What to observe</Label>
                   <Textarea
                     id="observe-instruction"
                     value={observeInstruction}
                     onChange={(e) => setObserveInstruction(e.target.value)}
                     placeholder="fill out all fields on the page with dummy data"
-                    rows={3}
+                    rows={2}
+                    className="text-sm resize-none"
                   />
                 </div>
 
@@ -277,24 +371,26 @@ export const AIBrowserPanel: React.FC<AIBrowserPanelProps> = ({ onLog }) => {
                   )}
                 </Button>
               </div>
-            </TabsContent>
 
-            <TabsContent value="extract" className="space-y-4">
-              <div className="space-y-4">
+              {/* Extract Data Form */}
+              <div className="space-y-3 border-t pt-4">
+                <Label className="text-sm font-bold">Extract Data</Label>
+
                 <div className="space-y-2">
-                  <Label htmlFor="extract-url">Page URL</Label>
+                  <Label htmlFor="extract-url" className="text-xs">Page URL</Label>
                   <Input
                     id="extract-url"
                     value={extractUrl}
                     onChange={(e) => setExtractUrl(e.target.value)}
                     placeholder="https://example.com/contact"
+                    className="text-sm"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="extract-type">Data Type</Label>
+                  <Label htmlFor="extract-type" className="text-xs">Data Type</Label>
                   <Select value={extractType} onValueChange={(v: any) => setExtractType(v)}>
-                    <SelectTrigger id="extract-type">
+                    <SelectTrigger id="extract-type" className="text-sm">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -306,13 +402,14 @@ export const AIBrowserPanel: React.FC<AIBrowserPanelProps> = ({ onLog }) => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="extract-instruction">Extraction Instruction</Label>
+                  <Label htmlFor="extract-instruction" className="text-xs">Extraction Instruction</Label>
                   <Textarea
                     id="extract-instruction"
                     value={extractInstruction}
                     onChange={(e) => setExtractInstruction(e.target.value)}
                     placeholder="get the contact information of the company"
-                    rows={3}
+                    rows={2}
+                    className="text-sm resize-none"
                   />
                 </div>
 
@@ -334,135 +431,176 @@ export const AIBrowserPanel: React.FC<AIBrowserPanelProps> = ({ onLog }) => {
                   )}
                 </Button>
               </div>
-            </TabsContent>
+            </CardContent>
+          </CollapsibleContent>
+        </Collapsible>
+      </Card>
 
-            <TabsContent value="sessions" className="space-y-4">
-              <div className="space-y-4">
-                <div className="flex gap-2">
-                  <Input
-                    value={sessionId}
-                    onChange={(e) => setSessionId(e.target.value)}
-                    placeholder="session_123456"
-                    className="flex-1"
-                  />
-                  <Button onClick={handleLoadReplay} disabled={isLoading || !sessionId}>
-                    {isLoading ? <Spinner className="h-4 w-4" /> : 'Load'}
-                  </Button>
-                </div>
-
-                <Button
-                  onClick={handleLoadSessions}
-                  disabled={isLoading}
-                  variant="outline"
-                  className="w-full"
-                >
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Refresh Active Sessions
-                </Button>
-
-                {sessionsQuery.sessions.length > 0 && (
+      {/* TERMINAL & LOGS - Collapsible */}
+      <Card>
+        <Collapsible open={logsOpen} onOpenChange={setLogsOpen}>
+          <CollapsibleTrigger className="w-full">
+            <CardHeader className="p-3 sm:p-4 hover:bg-slate-50 cursor-pointer transition">
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+                  <Terminal className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
+                  Terminal & Logs
+                </CardTitle>
+                {logsOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+              </div>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="p-3 sm:p-4">
+              <div className="bg-slate-900 text-green-400 p-4 rounded-lg font-mono text-xs sm:text-sm min-h-[200px] max-h-[400px] overflow-auto">
+                {result ? (
                   <div className="space-y-2">
-                    <Label>Active Sessions</Label>
-                    <div className="space-y-2 max-h-40 overflow-y-auto">
-                      {sessionsQuery.sessions.map((session) => (
-                        <div
-                          key={session.id}
-                          className="p-3 border rounded-lg cursor-pointer hover:bg-accent"
-                          onClick={() => setSessionId(session.id)}
-                        >
-                          <div className="flex items-center justify-between">
-                            <code className="text-xs">{session.id}</code>
-                            <Badge variant={session.status === 'running' ? 'default' : 'secondary'}>
-                              {session.status}
-                            </Badge>
-                          </div>
-                        </div>
-                      ))}
+                    <div className="text-blue-400"># Session Information</div>
+                    {result.sessionId && <div>$ Session ID: {result.sessionId}</div>}
+                    {result.success && <div className="text-green-500">✓ {result.message || 'Action completed successfully'}</div>}
+                    {result.error && <div className="text-red-500">✗ Error: {result.error}</div>}
+                    {result.prompt && <div className="text-yellow-400">Prompt: {result.prompt}</div>}
+                    <div className="text-slate-500 text-[10px] mt-4">
+                      Use the session ID above to view replay or check logs
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-slate-500">
+                    $ Waiting for browser action...
+                    <div className="mt-2 text-[10px]">
+                      Execute an action to see terminal output here
                     </div>
                   </div>
                 )}
+              </div>
+            </CardContent>
+          </CollapsibleContent>
+        </Collapsible>
+      </Card>
 
-                {replayQuery.replay && (
-                  <div className="w-full overflow-hidden">
+      {/* SESSION REPLAY - Collapsible */}
+      <Card>
+        <Collapsible open={replayOpen} onOpenChange={setReplayOpen}>
+          <CollapsibleTrigger className="w-full">
+            <CardHeader className="p-3 sm:p-4 hover:bg-slate-50 cursor-pointer transition">
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+                  <Video className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
+                  Session Replay
+                </CardTitle>
+                {replayOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+              </div>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="p-3 sm:p-4 space-y-3">
+              <div className="flex gap-2">
+                <Input
+                  value={sessionId}
+                  onChange={(e) => setSessionId(e.target.value)}
+                  placeholder="Enter session ID"
+                  className="flex-1 text-sm"
+                />
+                <Button onClick={handleLoadReplay} disabled={isLoading || !sessionId}>
+                  {isLoading ? <Spinner className="h-4 w-4" /> : 'Load'}
+                </Button>
+              </div>
+
+              {result?.recordingUrl && (
+                <a
+                  href={result.recordingUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block text-xs sm:text-sm text-center bg-purple-600 hover:bg-purple-700 text-white py-2 px-3 rounded-lg font-medium transition"
+                >
+                  📹 View Recording
+                </a>
+              )}
+
+              {replayQuery.replay && (
+                <div className="w-full overflow-hidden aspect-video relative border-2 border-purple-300 rounded-lg">
+                  <div className="absolute inset-0">
                     <SessionReplayPlayer
                       sessionId={replayQuery.replay.sessionId}
                       events={replayQuery.replay.events}
-                      width={window.innerWidth < 640 ? window.innerWidth - 64 : 800}
-                      height={window.innerWidth < 640 ? 300 : 450}
+                      width="100%"
+                      height="100%"
                     />
                   </div>
-                )}
-              </div>
-            </TabsContent>
-          </Tabs>
+                </div>
+              )}
 
-          {/* Result Display */}
-          {result && (
-            <Card className="mt-2 sm:mt-4">
-              <CardHeader className="p-3 sm:p-6">
-                <CardTitle className="text-xs sm:text-sm flex items-center gap-2">
-                  <Code className="h-3 w-3 sm:h-4 sm:w-4" />
-                  Result
+              {!replayQuery.replay && !result?.recordingUrl && (
+                <div className="text-center text-sm text-slate-500 py-8">
+                  <Video className="h-8 w-8 mx-auto mb-2 text-slate-300" />
+                  No replay loaded. Enter a session ID above or execute an action.
+                </div>
+              )}
+            </CardContent>
+          </CollapsibleContent>
+        </Collapsible>
+      </Card>
+
+      {/* ACTIVE SESSIONS - Collapsible */}
+      <Card>
+        <Collapsible open={sessionsOpen} onOpenChange={setSessionsOpen}>
+          <CollapsibleTrigger className="w-full">
+            <CardHeader className="p-3 sm:p-4 hover:bg-slate-50 cursor-pointer transition">
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+                  <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-orange-600" />
+                  Active Sessions
+                  {sessionsQuery.sessions.length > 0 && (
+                    <Badge variant="secondary" className="ml-2">
+                      {sessionsQuery.sessions.length}
+                    </Badge>
+                  )}
                 </CardTitle>
-              </CardHeader>
-              <CardContent className="p-2 sm:p-6 space-y-3">
-                {/* Live View URL */}
-                {result.liveViewUrl && (
-                  <div className="space-y-2">
-                    <Label className="text-xs font-bold text-green-600">🔴 Live View (Real-time)</Label>
-                    <a
-                      href={result.liveViewUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block text-xs text-blue-600 hover:text-blue-800 underline break-all bg-blue-50 p-2 rounded"
-                    >
-                      {result.liveViewUrl}
-                    </a>
-                  </div>
-                )}
+                {sessionsOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+              </div>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="p-3 sm:p-4 space-y-3">
+              <Button
+                onClick={handleLoadSessions}
+                disabled={isLoading}
+                variant="outline"
+                className="w-full"
+              >
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Refresh Sessions
+              </Button>
 
-                {/* Recording URL */}
-                {result.recordingUrl && (
-                  <div className="space-y-2">
-                    <Label className="text-xs font-bold text-purple-600">📹 Session Recording</Label>
-                    <a
-                      href={result.recordingUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block text-xs text-blue-600 hover:text-blue-800 underline break-all bg-purple-50 p-2 rounded"
+              {sessionsQuery.sessions.length > 0 ? (
+                <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                  {sessionsQuery.sessions.map((session: any) => (
+                    <div
+                      key={session.id}
+                      className="p-3 border rounded-lg cursor-pointer hover:bg-accent hover:border-purple-300 transition"
+                      onClick={() => setSessionId(session.id)}
                     >
-                      {result.recordingUrl}
-                    </a>
-                    <p className="text-[10px] text-slate-500">Note: Recording available ~30 seconds after session completes</p>
-                  </div>
-                )}
-
-                {/* Session URL */}
-                {result.sessionUrl && (
-                  <div className="space-y-2">
-                    <Label className="text-xs font-bold">Session Dashboard</Label>
-                    <a
-                      href={result.sessionUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block text-xs text-blue-600 hover:text-blue-800 underline break-all bg-slate-50 p-2 rounded"
-                    >
-                      {result.sessionUrl}
-                    </a>
-                  </div>
-                )}
-
-                {/* Full JSON Response */}
-                <details className="mt-3">
-                  <summary className="text-xs font-bold cursor-pointer hover:text-purple-600">View Full JSON Response</summary>
-                  <pre className="text-[10px] sm:text-xs bg-muted p-2 sm:p-4 rounded-lg overflow-auto max-h-40 sm:max-h-60 mt-2">
-                    {JSON.stringify(result, null, 2)}
-                  </pre>
-                </details>
-              </CardContent>
-            </Card>
-          )}
-        </CardContent>
+                      <div className="flex items-center justify-between mb-2">
+                        <code className="text-xs font-mono">{session.id}</code>
+                        <Badge variant={session.status === 'running' ? 'default' : 'secondary'}>
+                          {session.status}
+                        </Badge>
+                      </div>
+                      <div className="text-[10px] text-slate-500">
+                        Click to load replay
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center text-sm text-slate-500 py-8">
+                  <FileText className="h-8 w-8 mx-auto mb-2 text-slate-300" />
+                  No active sessions. Execute an action to create one.
+                </div>
+              )}
+            </CardContent>
+          </CollapsibleContent>
+        </Collapsible>
       </Card>
     </div>
   );

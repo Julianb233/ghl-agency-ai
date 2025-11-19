@@ -146,6 +146,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
   // Right Sidebar Tab State
   const [rightPanelTab, setRightPanelTab] = useState<'logs' | 'team' | 'resources' | 'tickets'>('tickets');
 
+  // Mobile Terminal Tab State
+  const [mobileTerminalTab, setMobileTerminalTab] = useState<'CONTEXT' | 'BROWSER' | 'LOGS'>('BROWSER');
+
   // Load settings on mount
   useEffect(() => {
     const saved = localStorage.getItem('ghl_agent_slack_config');
@@ -544,9 +547,32 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
           )}
 
           {viewMode === 'TERMINAL' && (
-            <div className="h-full grid grid-cols-1 md:grid-cols-12 gap-4 overflow-y-auto md:overflow-hidden">
+            <div className="h-full flex flex-col md:grid md:grid-cols-12 gap-4 overflow-hidden">
+
+              {/* Mobile Terminal Tabs */}
+              <div className="md:hidden flex bg-white/50 p-1 rounded-lg mb-2 shrink-0">
+                <button
+                  onClick={() => setMobileTerminalTab('CONTEXT')}
+                  className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${mobileTerminalTab === 'CONTEXT' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500'}`}
+                >
+                  Context
+                </button>
+                <button
+                  onClick={() => setMobileTerminalTab('BROWSER')}
+                  className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${mobileTerminalTab === 'BROWSER' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500'}`}
+                >
+                  Browser
+                </button>
+                <button
+                  onClick={() => setMobileTerminalTab('LOGS')}
+                  className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${mobileTerminalTab === 'LOGS' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500'}`}
+                >
+                  Logs & Tools
+                </button>
+              </div>
+
               {/* Left Sidebar: Context & Config */}
-              <div className="col-span-1 md:col-span-3 flex flex-col gap-4 min-h-[400px] md:min-h-0 order-2 md:order-1">
+              <div className={`${mobileTerminalTab === 'CONTEXT' ? 'flex' : 'hidden'} md:flex col-span-1 md:col-span-3 flex-col gap-4 h-full min-h-0 order-2 md:order-1 overflow-hidden`}>
                 <GlassPane title="Mission Context" className="shrink-0">
                   <div className="p-4 space-y-4">
                     {/* Source Selector */}
@@ -716,8 +742,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
               </div>
 
               {/* Center: Visual Command Center */}
-              <div className="col-span-1 md:col-span-6 flex flex-col-reverse md:flex-col min-h-[600px] md:min-h-0 gap-4 order-1 md:order-2">
-                <div className="h-64 md:h-auto md:flex-1 min-h-0 shrink-0">
+              <div className={`${mobileTerminalTab === 'BROWSER' ? 'flex' : 'hidden'} md:flex col-span-1 md:col-span-6 flex-col h-full min-h-0 gap-4 order-1 md:order-2 overflow-hidden`}>
+                <div className="flex-1 min-h-0 relative">
                   <BrowserPreview
                     currentStep={task?.steps.find(s => s.id === activeStepId) || null}
                     screenshotUrl={screenshot}
@@ -725,14 +751,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
                   />
                 </div>
 
-                <CommandBar
-                  onSend={handleCommand}
-                  disabled={status === AgentStatus.EXECUTING || status === AgentStatus.PLANNING}
-                />
+                <div className="shrink-0">
+                  <CommandBar
+                    onSend={handleCommand}
+                    disabled={status === AgentStatus.EXECUTING || status === AgentStatus.PLANNING}
+                  />
+                </div>
               </div>
 
               {/* Right Sidebar: Logs, Resources & Team */}
-              <div className="col-span-1 md:col-span-3 flex flex-col gap-0 min-h-[500px] md:min-h-0 glass-panel rounded-2xl overflow-hidden order-3">
+              <div className={`${mobileTerminalTab === 'LOGS' ? 'flex' : 'hidden'} md:flex col-span-1 md:col-span-3 flex-col gap-0 h-full min-h-0 glass-panel rounded-2xl overflow-hidden order-3`}>
                 {/* Tabs */}
                 <div className="flex border-b border-white/50 bg-white/30">
                   <button
@@ -798,7 +826,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
                           const user = MOCK_USERS.find(u => u.id === userId);
                           if (user) {
                             setCurrentUser(user);
-                            addLog('system', 'User Switched', `Now operating as ${user.name} (${user.role})`);
                           }
                         }}
                       />
