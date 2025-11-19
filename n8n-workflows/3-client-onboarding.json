@@ -1,0 +1,88 @@
+{
+  "name": "GHL Agent AI - Client Onboarding",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "onboard-client",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-onboard",
+      "name": "Webhook - New Client",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO clients (client_id, company_name, email, ghl_location_id, plan_tier, status, created_at) VALUES ('{{ $json.body.clientId }}', '{{ $json.body.companyName }}', '{{ $json.body.email }}', '{{ $json.body.ghlLocationId }}', '{{ $json.body.planTier }}', 'active', NOW()) RETURNING *",
+        "options": {}
+      },
+      "id": "create-client-db",
+      "name": "Create Client in Database",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [470, 300],
+      "credentials": {"postgres": {"id": "1", "name": "PostgreSQL - GHL Agent DB"}}
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.ONEPASSWORD_CONNECT_URL }}/v1/vaults/{{ $env.ONEPASSWORD_VAULT_ID }}/items",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "json",
+        "body": "={{ JSON.stringify({title: 'GHL-' + $json.client_id, vault: {id: $env.ONEPASSWORD_VAULT_ID}, category: 'LOGIN', fields: [{label: 'email', value: $('Webhook - New Client').item.json.body.ghlEmail}, {label: 'password', value: $('Webhook - New Client').item.json.body.ghlPassword}, {label: 'locationId', value: $json.ghl_location_id}]}) }}",
+        "options": {}
+      },
+      "id": "store-credentials",
+      "name": "Store Credentials in 1Password",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [690, 300],
+      "credentials": {"httpHeaderAuth": {"id": "2", "name": "1Password Connect Token"}}
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.BROWSERBASE_API_URL }}/contexts",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "json",
+        "body": "={{ JSON.stringify({projectId: $env.BROWSERBASE_PROJECT_ID, id: 'ctx_' + $('Create Client in Database').item.json.client_id}) }}",
+        "options": {}
+      },
+      "id": "create-browser-context",
+      "name": "Create Browserbase Context",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [910, 300],
+      "credentials": {"httpHeaderAuth": {"id": "3", "name": "Browserbase API Key"}}
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ {success: true, clientId: $('Create Client in Database').item.json.client_id, message: 'Client onboarded successfully'} }}",
+        "options": {}
+      },
+      "id": "respond-success",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1130, 300]
+    }
+  ],
+  "connections": {
+    "Webhook - New Client": {"main": [[{"node": "Create Client in Database", "type": "main", "index": 0}]]},
+    "Create Client in Database": {"main": [[{"node": "Store Credentials in 1Password", "type": "main", "index": 0}]]},
+    "Store Credentials in 1Password": {"main": [[{"node": "Create Browserbase Context", "type": "main", "index": 0}]]},
+    "Create Browserbase Context": {"main": [[{"node": "Respond Success", "type": "main", "index": 0}]]}
+  },
+  "active": true,
+  "settings": {"executionOrder": "v1"},
+  "versionId": "1",
+  "id": "3",
+  "tags": []
+}

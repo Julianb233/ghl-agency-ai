@@ -1,0 +1,63 @@
+{
+  "name": "GHL Agent AI - Usage Tracking & Billing",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{"field": "hours", "hoursInterval": 1}]
+        }
+      },
+      "id": "hourly-trigger",
+      "name": "Every Hour",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT client_id, COUNT(*) as task_count, SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed_count, AVG(EXTRACT(EPOCH FROM (completed_at - created_at))) as avg_duration_seconds FROM automation_tasks WHERE created_at >= NOW() - INTERVAL '1 hour' GROUP BY client_id",
+        "options": {}
+      },
+      "id": "get-hourly-usage",
+      "name": "Get Hourly Usage Stats",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [470, 300],
+      "credentials": {"postgres": {"id": "1", "name": "PostgreSQL - GHL Agent DB"}}
+    },
+    {
+      "parameters": {
+        "jsCode": "const usage = $input.item.json;\nconst costPerTask = 0.10;\nconst cost = usage.task_count * costPerTask;\n\nreturn {\n  json: {\n    client_id: usage.client_id,\n    period_start: new Date(Date.now() - 3600000).toISOString(),\n    period_end: new Date().toISOString(),\n    task_count: usage.task_count,\n    completed_count: usage.completed_count,\n    success_rate: (usage.completed_count / usage.task_count * 100).toFixed(2),\n    avg_duration_seconds: Math.round(usage.avg_duration_seconds || 0),\n    cost_usd: cost.toFixed(2)\n  }\n};"
+      },
+      "id": "calculate-costs",
+      "name": "Calculate Costs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [690, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO usage_records (client_id, period_start, period_end, task_count, completed_count, success_rate, avg_duration_seconds, cost_usd, created_at) VALUES ('{{ $json.client_id }}', '{{ $json.period_start }}', '{{ $json.period_end }}', {{ $json.task_count }}, {{ $json.completed_count }}, {{ $json.success_rate }}, {{ $json.avg_duration_seconds }}, {{ $json.cost_usd }}, NOW())",
+        "options": {}
+      },
+      "id": "save-usage-record",
+      "name": "Save Usage Record",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [910, 300],
+      "credentials": {"postgres": {"id": "1", "name": "PostgreSQL - GHL Agent DB"}}
+    }
+  ],
+  "connections": {
+    "Every Hour": {"main": [[{"node": "Get Hourly Usage Stats", "type": "main", "index": 0}]]},
+    "Get Hourly Usage Stats": {"main": [[{"node": "Calculate Costs", "type": "main", "index": 0}]]},
+    "Calculate Costs": {"main": [[{"node": "Save Usage Record", "type": "main", "index": 0}]]}
+  },
+  "active": true,
+  "settings": {"executionOrder": "v1"},
+  "versionId": "1",
+  "id": "4",
+  "tags": []
+}

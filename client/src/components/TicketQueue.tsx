@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { SupportTicket, TicketPriority, TicketSource } from '../types';
-import { analyzeSupportTicket } from '../services/geminiService';
+// Gemini service removed - will be implemented server-side via tRPC
 import { GlassPane } from './GlassPane';
 
 interface TicketQueueProps {
@@ -28,7 +28,11 @@ export const TicketQueue: React.FC<TicketQueueProps> = ({ tickets, onResolve }) 
     setIsAnalyzing(true);
     // Simulate network delay for "AI Thinking"
     setTimeout(async () => {
-      const result = await analyzeSupportTicket(ticket);
+      // Mock AI analysis - will be replaced with tRPC call
+      const result = {
+        analysis: `Ticket analysis: ${ticket.subject}. Recommended action based on priority.`,
+        command: `Fix issue for ${ticket.subject}`
+      };
       setAiRecommendation(result);
       setIsAnalyzing(false);
     }, 1200);

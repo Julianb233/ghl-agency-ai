@@ -1,6 +1,6 @@
 
 import React, { useState, useCallback, useEffect } from 'react';
-import { generateAgentPlan, analyzeError } from '../services/geminiService';
+// Gemini service removed - will be implemented server-side via tRPC
 import { executeStep } from '../services/mockAutomation';
 import { sendSlackAlert } from '../services/slackService';
 import { AgentStatus, AgentTask, AgentStep, LogEntry, IntegrationStatus, SlackConfig, ClientContext, User, TeamActivity, Asset, SeoConfig, SupportTicket, AgentInstance, SettingsTab, DriveFile } from '../types';
@@ -290,7 +290,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
     try {
       addLog('info', 'Agent is thinking...', 'Generating execution plan based on context and request.');
       
-      const plan = await generateAgentPlan(input, selectedClient);
+      // Mock plan generation - will be replaced with tRPC call
+      const plan: AgentTask = {
+        id: crypto.randomUUID(),
+        description: input,
+        subaccount: selectedClient.subaccountName,
+        clientName: selectedClient.name,
+        status: 'in-progress',
+        steps: [
+          { id: '1', action: 'Navigate to GHL', target: '.login', status: 'pending' },
+          { id: '2', action: 'Execute task', target: '.submit', status: 'pending' }
+        ]
+      };
       
       setTask(plan);
       addLog('success', 'Plan Generated', `${plan.steps.length} steps identified for subaccount: ${plan.subaccount}`);
@@ -331,7 +342,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
         if (!result.success) {
            setStatus(AgentStatus.ERROR);
            addLog('error', 'Step Failed', step.action);
-           const fixSuggestion = await analyzeError("Timeout waiting for selector", step.action);
+           const fixSuggestion = 'Retry with alternative selector or increase timeout';
            addLog('warning', 'AI Suggestion', fixSuggestion);
            
            await sendSlackAlert(slackConfig.webhookUrl, `Mission Failed at step: ${step.action}`, 'error');

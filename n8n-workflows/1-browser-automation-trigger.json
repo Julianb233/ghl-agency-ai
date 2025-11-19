@@ -1,0 +1,471 @@
+{
+  "name": "GHL Agent AI - Browser Automation Trigger",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ghl-automation",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook - Automation Request",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300],
+      "webhookId": "ghl-automation-webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract and validate request payload\nconst requestBody = JSON.parse($input.item.json.body);\n\n// Validate required fields\nconst required = ['clientId', 'taskType', 'taskData'];\nconst missing = required.filter(field => !requestBody[field]);\n\nif (missing.length > 0) {\n  return {\n    json: {\n      error: true,\n      message: `Missing required fields: ${missing.join(', ')}`,\n      statusCode: 400\n    }\n  };\n}\n\n// Extract task details\nconst { clientId, taskType, taskData, priority = 'normal', callbackUrl } = requestBody;\n\n// Generate unique task ID\nconst taskId = `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;\n\n// Prepare task object\nreturn {\n  json: {\n    taskId,\n    clientId,\n    taskType,\n    taskData,\n    priority,\n    callbackUrl,\n    status: 'pending',\n    createdAt: new Date().toISOString(),\n    error: false\n  }\n};"
+      },
+      "id": "validate-request",
+      "name": "Validate Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [470, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.error }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "check-validation",
+      "name": "Check Validation",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [690, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: false, error: $json.message, statusCode: $json.statusCode } }}",
+        "options": {
+          "responseCode": "={{ $json.statusCode }}"
+        }
+      },
+      "id": "respond-error",
+      "name": "Respond with Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [910, 180]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO automation_tasks (task_id, client_id, task_type, task_data, priority, status, callback_url, created_at) VALUES ('{{ $json.taskId }}', '{{ $json.clientId }}', '{{ $json.taskType }}', '{{ JSON.stringify($json.taskData) }}', '{{ $json.priority }}', 'pending', '{{ $json.callbackUrl }}', '{{ $json.createdAt }}')",
+        "options": {}
+      },
+      "id": "save-task-db",
+      "name": "Save Task to Database",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [910, 420],
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "PostgreSQL - GHL Agent DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.ONEPASSWORD_CONNECT_URL }}/v1/vaults/{{ $env.ONEPASSWORD_VAULT_ID }}/items",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "filter",
+              "value": "={{ 'title eq \"GHL-' + $json.clientId + '\"' }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "get-credentials",
+      "name": "Get Client Credentials from 1Password",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1130, 420],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "2",
+          "name": "1Password Connect Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract credentials from 1Password response\nconst items = $input.item.json;\n\nif (!items || items.length === 0) {\n  return {\n    json: {\n      error: true,\n      message: `No credentials found for client ${$('Validate Request').item.json.clientId}`,\n      taskId: $('Validate Request').item.json.taskId\n    }\n  };\n}\n\nconst item = items[0];\nconst credentials = {\n  ghlEmail: item.fields.find(f => f.label === 'email')?.value || '',\n  ghlPassword: item.fields.find(f => f.label === 'password')?.value || '',\n  ghlLocationId: item.fields.find(f => f.label === 'locationId')?.value || '',\n  ghlUserId: item.fields.find(f => f.label === 'userId')?.value || ''\n};\n\nreturn {\n  json: {\n    ...$ ('Validate Request').item.json,\n    credentials,\n    error: false\n  }\n};"
+      },
+      "id": "extract-credentials",
+      "name": "Extract Credentials",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1350, 420]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.BROWSERBASE_API_URL }}/sessions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "projectId",
+              "value": "={{ $env.BROWSERBASE_PROJECT_ID }}"
+            },
+            {
+              "name": "contextId",
+              "value": "={{ 'ctx_' + $json.clientId + '_' + $json.credentials.ghlUserId }}"
+            },
+            {
+              "name": "keepAlive",
+              "value": true
+            },
+            {
+              "name": "timeout",
+              "value": 300000
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "create-browser-session",
+      "name": "Create Browserbase Session",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1570, 420],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "3",
+          "name": "Browserbase API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepare automation execution payload\nconst task = $('Extract Credentials').item.json;\nconst session = $input.item.json;\n\nconst executionPayload = {\n  taskId: task.taskId,\n  sessionId: session.id,\n  sessionUrl: session.url,\n  debugUrl: session.debugUrl,\n  clientId: task.clientId,\n  taskType: task.taskType,\n  taskData: task.taskData,\n  credentials: task.credentials,\n  browserbaseApiUrl: $env.BROWSERBASE_API_URL,\n  browserbaseProjectId: $env.BROWSERBASE_PROJECT_ID\n};\n\nreturn {\n  json: executionPayload\n};"
+      },
+      "id": "prepare-execution",
+      "name": "Prepare Execution Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1790, 420]
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.AUTOMATION_WORKER_URL }}/execute",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "={{ 'Bearer ' + $env.WORKER_JWT_SECRET }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "body": "={{ JSON.stringify($json) }}",
+        "options": {
+          "timeout": 600000
+        }
+      },
+      "id": "trigger-automation-worker",
+      "name": "Trigger Automation Worker",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2010, 420],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "4",
+          "name": "Worker Auth Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE automation_tasks SET status = 'running', session_id = '{{ $('Create Browserbase Session').item.json.id }}', started_at = NOW() WHERE task_id = '{{ $('Prepare Execution Payload').item.json.taskId }}'",
+        "options": {}
+      },
+      "id": "update-task-running",
+      "name": "Update Task Status - Running",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [2230, 420],
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "PostgreSQL - GHL Agent DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: true, taskId: $('Validate Request').item.json.taskId, status: 'running', message: 'Automation task started successfully', sessionId: $('Create Browserbase Session').item.json.id, debugUrl: $('Create Browserbase Session').item.json.debugUrl } }}",
+        "options": {}
+      },
+      "id": "respond-success",
+      "name": "Respond with Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [2450, 420]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Handle automation worker response\nconst workerResponse = $input.item.json;\nconst taskId = $('Prepare Execution Payload').item.json.taskId;\n\nif (workerResponse.success) {\n  // Update task as completed\n  return {\n    json: {\n      taskId,\n      status: 'completed',\n      result: workerResponse.result,\n      completedAt: new Date().toISOString()\n    }\n  };\n} else {\n  // Update task as failed\n  return {\n    json: {\n      taskId,\n      status: 'failed',\n      error: workerResponse.error,\n      failedAt: new Date().toISOString()\n    }\n  };\n}"
+      },
+      "id": "process-worker-response",
+      "name": "Process Worker Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2230, 600]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE automation_tasks SET status = '{{ $json.status }}', result = '{{ JSON.stringify($json.result || {}) }}', error = '{{ $json.error || '' }}', completed_at = '{{ $json.completedAt || $json.failedAt }}' WHERE task_id = '{{ $json.taskId }}'",
+        "options": {}
+      },
+      "id": "update-task-final",
+      "name": "Update Task Final Status",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [2450, 600],
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "PostgreSQL - GHL Agent DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $('Process Worker Response').item.json.status }}",
+              "value2": "completed"
+            }
+          ]
+        }
+      },
+      "id": "check-callback",
+      "name": "Check if Callback URL Exists",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [2670, 600]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Validate Request').item.json.callbackUrl }}",
+        "sendBody": true,
+        "contentType": "json",
+        "body": "={{ JSON.stringify({ taskId: $('Process Worker Response').item.json.taskId, status: $('Process Worker Response').item.json.status, result: $('Process Worker Response').item.json.result }) }}",
+        "options": {}
+      },
+      "id": "send-callback",
+      "name": "Send Callback Notification",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2890, 520]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook - Automation Request": {
+      "main": [
+        [
+          {
+            "node": "Validate Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Request": {
+      "main": [
+        [
+          {
+            "node": "Check Validation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Validation": {
+      "main": [
+        [
+          {
+            "node": "Respond with Error",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Save Task to Database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Task to Database": {
+      "main": [
+        [
+          {
+            "node": "Get Client Credentials from 1Password",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Client Credentials from 1Password": {
+      "main": [
+        [
+          {
+            "node": "Extract Credentials",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Credentials": {
+      "main": [
+        [
+          {
+            "node": "Create Browserbase Session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Browserbase Session": {
+      "main": [
+        [
+          {
+            "node": "Prepare Execution Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Execution Payload": {
+      "main": [
+        [
+          {
+            "node": "Trigger Automation Worker",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trigger Automation Worker": {
+      "main": [
+        [
+          {
+            "node": "Update Task Status - Running",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Process Worker Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Task Status - Running": {
+      "main": [
+        [
+          {
+            "node": "Respond with Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Worker Response": {
+      "main": [
+        [
+          {
+            "node": "Update Task Final Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Task Final Status": {
+      "main": [
+        [
+          {
+            "node": "Check if Callback URL Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check if Callback URL Exists": {
+      "main": [
+        [
+          {
+            "node": "Send Callback Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1",
+  "meta": {
+    "instanceId": "ghl-agent-ai-instance"
+  },
+  "id": "1",
+  "tags": []
+}

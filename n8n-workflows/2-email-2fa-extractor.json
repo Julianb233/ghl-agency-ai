@@ -1,0 +1,78 @@
+{
+  "name": "GHL Agent AI - Email 2FA Code Extractor",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{"field": "seconds", "secondsInterval": 30}]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Every 30 Seconds",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM pending_2fa_requests WHERE status = 'pending' AND created_at > NOW() - INTERVAL '5 minutes' ORDER BY created_at DESC",
+        "options": {}
+      },
+      "id": "get-pending-2fa",
+      "name": "Get Pending 2FA Requests",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [470, 300],
+      "credentials": {"postgres": {"id": "1", "name": "PostgreSQL - GHL Agent DB"}}
+    },
+    {
+      "parameters": {
+        "url": "https://gmail.googleapis.com/gmail/v1/users/me/messages?q=from:noreply@gohighlevel.com+subject:verification+is:unread",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleOAuth2Api",
+        "options": {}
+      },
+      "id": "search-gmail",
+      "name": "Search Gmail for 2FA Codes",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [690, 300],
+      "credentials": {"googleOAuth2Api": {"id": "5", "name": "Google OAuth2"}}
+    },
+    {
+      "parameters": {
+        "jsCode": "const messages = $input.item.json.messages || [];\nconst codes = [];\n\nfor (const msg of messages) {\n  const match = msg.snippet.match(/\\b\\d{6}\\b/);\n  if (match) {\n    codes.push({\n      code: match[0],\n      messageId: msg.id,\n      receivedAt: new Date().toISOString()\n    });\n  }\n}\n\nreturn codes.map(c => ({ json: c }));"
+      },
+      "id": "extract-codes",
+      "name": "Extract Verification Codes",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [910, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE pending_2fa_requests SET status = 'completed', code = '{{ $json.code }}', completed_at = NOW() WHERE status = 'pending' LIMIT 1 RETURNING *",
+        "options": {}
+      },
+      "id": "update-2fa-request",
+      "name": "Update 2FA Request with Code",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1130, 300],
+      "credentials": {"postgres": {"id": "1", "name": "PostgreSQL - GHL Agent DB"}}
+    }
+  ],
+  "connections": {
+    "Every 30 Seconds": {"main": [[{"node": "Get Pending 2FA Requests", "type": "main", "index": 0}]]},
+    "Get Pending 2FA Requests": {"main": [[{"node": "Search Gmail for 2FA Codes", "type": "main", "index": 0}]]},
+    "Search Gmail for 2FA Codes": {"main": [[{"node": "Extract Verification Codes", "type": "main", "index": 0}]]},
+    "Extract Verification Codes": {"main": [[{"node": "Update 2FA Request with Code", "type": "main", "index": 0}]]}
+  },
+  "active": true,
+  "settings": {"executionOrder": "v1"},
+  "versionId": "1",
+  "id": "2",
+  "tags": []
+}

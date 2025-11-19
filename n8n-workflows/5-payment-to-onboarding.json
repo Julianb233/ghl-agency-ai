@@ -1,0 +1,538 @@
+{
+  "name": "GHL Agent AI - Payment to Onboarding (Complete)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "stripe-payment-success",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "id": "stripe-webhook",
+      "name": "Stripe Payment Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300],
+      "webhookId": "stripe-payment-webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Verify Stripe webhook signature\nconst crypto = require('crypto');\nconst sig = $input.item.headers['stripe-signature'];\nconst endpointSecret = $env.STRIPE_WEBHOOK_SECRET;\nconst payload = $input.item.json.body;\n\ntry {\n  const event = JSON.parse(payload);\n  \n  if (event.type !== 'checkout.session.completed') {\n    return {\n      json: {\n        skip: true,\n        message: 'Not a checkout completion event'\n      }\n    };\n  }\n  \n  const session = event.data.object;\n  \n  return {\n    json: {\n      skip: false,\n      customerId: session.customer,\n      customerEmail: session.customer_details.email,\n      customerName: session.customer_details.name,\n      subscriptionId: session.subscription,\n      planId: session.metadata.plan_id || 'starter',\n      amount: session.amount_total / 100,\n      currency: session.currency,\n      paymentStatus: session.payment_status\n    }\n  };\n} catch (error) {\n  return {\n    json: {\n      skip: true,\n      error: error.message\n    }\n  };\n}"
+      },
+      "id": "verify-stripe-webhook",
+      "name": "Verify Stripe Webhook",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [470, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.skip }}",
+              "value2": false
+            }
+          ]
+        }
+      },
+      "id": "check-skip",
+      "name": "Check if Should Process",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [690, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { received: true, skipped: true } }}",
+        "options": {}
+      },
+      "id": "respond-skipped",
+      "name": "Respond Skipped",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [910, 180]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generate unique client ID and JWT secret\nconst crypto = require('crypto');\nconst payment = $input.item.json;\n\nconst clientId = 'client_' + Date.now() + '_' + crypto.randomBytes(4).toString('hex');\nconst jwtSecret = crypto.randomBytes(32).toString('hex');\nconst apiKey = 'ghl_' + crypto.randomBytes(16).toString('hex');\n\nreturn {\n  json: {\n    clientId,\n    jwtSecret,\n    apiKey,\n    customerId: payment.customerId,\n    customerEmail: payment.customerEmail,\n    customerName: payment.customerName,\n    subscriptionId: payment.subscriptionId,\n    planId: payment.planId,\n    status: 'pending_credentials',\n    createdAt: new Date().toISOString()\n  }\n};"
+      },
+      "id": "generate-client-credentials",
+      "name": "Generate Client ID & JWT Secret",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [910, 420]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO clients (client_id, customer_id, customer_email, customer_name, subscription_id, plan_id, jwt_secret, api_key, status, token_balance, created_at) VALUES ('{{ $json.clientId }}', '{{ $json.customerId }}', '{{ $json.customerEmail }}', '{{ $json.customerName }}', '{{ $json.subscriptionId }}', '{{ $json.planId }}', '{{ $json.jwtSecret }}', '{{ $json.apiKey }}', 'pending_credentials', 1000, NOW()) RETURNING *",
+        "options": {}
+      },
+      "id": "create-client-neon",
+      "name": "Create Client in Neon DB",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1130, 420],
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "PostgreSQL - Neon DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO token_transactions (client_id, transaction_type, amount, balance_after, description, created_at) VALUES ('{{ $json.client_id }}', 'credit', 1000, 1000, 'Initial token grant for {{ $json.plan_id }} plan', NOW())",
+        "options": {}
+      },
+      "id": "create-initial-token-transaction",
+      "name": "Create Initial Token Transaction",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1350, 420],
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "PostgreSQL - Neon DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generate onboarding form URL with pre-filled client ID\nconst client = $('Create Client in Neon DB').item.json;\nconst formUrl = `${$env.APP_URL}/onboarding?clientId=${client.client_id}&email=${encodeURIComponent(client.customer_email)}`;\n\nreturn {\n  json: {\n    ...client,\n    onboardingFormUrl: formUrl\n  }\n};"
+      },
+      "id": "generate-onboarding-url",
+      "name": "Generate Onboarding Form URL",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1570, 420]
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $env.SMTP_FROM_EMAIL }}",
+        "toEmail": "={{ $json.customer_email }}",
+        "subject": "Welcome to GHL Agent AI - Complete Your Setup",
+        "emailType": "html",
+        "message": "={{ `<html><body style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;\"><h1 style=\"color: #4F46E5;\">Welcome to GHL Agent AI!</h1><p>Hi ${$json.customer_name},</p><p>Thank you for subscribing to GHL Agent AI. Your payment has been processed successfully.</p><div style=\"background: #F3F4F6; padding: 20px; border-radius: 8px; margin: 20px 0;\"><h2 style=\"margin-top: 0;\">Your Account Details</h2><p><strong>Client ID:</strong> ${$json.client_id}</p><p><strong>Plan:</strong> ${$json.plan_id}</p><p><strong>Initial Token Balance:</strong> 1,000 tokens</p><p><strong>API Key:</strong> ${$json.api_key}</p></div><p>To complete your setup, please provide your GoHighLevel credentials:</p><a href=\"${$json.onboardingFormUrl}\" style=\"display: inline-block; background: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0;\">Complete Setup</a><p>This secure form will collect your GHL login information, which will be encrypted and stored securely in 1Password.</p><p><strong>What happens next:</strong></p><ol><li>Fill out the onboarding form with your GHL credentials</li><li>We'll create a persistent browser session for your account</li><li>Your AI agent will be ready to automate GHL tasks</li><li>You can start making automation requests via API or dashboard</li></ol><p>If you have any questions, reply to this email or visit our support portal.</p><p>Best regards,<br>The GHL Agent AI Team</p></body></html>` }}",
+        "options": {}
+      },
+      "id": "send-welcome-email",
+      "name": "Send Welcome Email with Onboarding Link",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [1790, 420],
+      "credentials": {
+        "smtp": {
+          "id": "6",
+          "name": "SMTP Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { received: true, clientId: $('Create Client in Neon DB').item.json.client_id, message: 'Onboarding email sent' } }}",
+        "options": {}
+      },
+      "id": "respond-success-payment",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [2010, 420]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "onboarding-form-submit",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "onboarding-form-webhook",
+      "name": "Onboarding Form Submission",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 700],
+      "webhookId": "onboarding-form-webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Validate onboarding form submission\nconst body = $input.item.json.body;\nconst required = ['clientId', 'ghlEmail', 'ghlPassword', 'ghlLocationId'];\nconst missing = required.filter(f => !body[f]);\n\nif (missing.length > 0) {\n  return {\n    json: {\n      error: true,\n      message: `Missing required fields: ${missing.join(', ')}`,\n      statusCode: 400\n    }\n  };\n}\n\nreturn {\n  json: {\n    error: false,\n    clientId: body.clientId,\n    ghlEmail: body.ghlEmail,\n    ghlPassword: body.ghlPassword,\n    ghlLocationId: body.ghlLocationId,\n    ghlUserId: body.ghlUserId || '',\n    companyName: body.companyName || ''\n  }\n};"
+      },
+      "id": "validate-onboarding-form",
+      "name": "Validate Onboarding Form",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [470, 700]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.error }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "check-form-validation",
+      "name": "Check Form Validation",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [690, 700]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: false, error: $json.message } }}",
+        "options": {
+          "responseCode": "={{ $json.statusCode }}"
+        }
+      },
+      "id": "respond-form-error",
+      "name": "Respond Form Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [910, 580]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM clients WHERE client_id = '{{ $json.clientId }}' AND status = 'pending_credentials'",
+        "options": {}
+      },
+      "id": "verify-client-exists",
+      "name": "Verify Client Exists",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [910, 820],
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "PostgreSQL - Neon DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.ONEPASSWORD_CONNECT_URL }}/v1/vaults/{{ $env.ONEPASSWORD_VAULT_ID }}/items",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "body": "={{ JSON.stringify({ title: 'GHL-' + $('Validate Onboarding Form').item.json.clientId, vault: { id: $env.ONEPASSWORD_VAULT_ID }, category: 'LOGIN', fields: [ { id: 'username', type: 'STRING', label: 'email', value: $('Validate Onboarding Form').item.json.ghlEmail }, { id: 'password', type: 'CONCEALED', label: 'password', value: $('Validate Onboarding Form').item.json.ghlPassword }, { id: 'locationId', type: 'STRING', label: 'locationId', value: $('Validate Onboarding Form').item.json.ghlLocationId }, { id: 'userId', type: 'STRING', label: 'userId', value: $('Validate Onboarding Form').item.json.ghlUserId } ] }) }}",
+        "options": {}
+      },
+      "id": "store-ghl-credentials",
+      "name": "Store GHL Credentials in 1Password",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1130, 820],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "2",
+          "name": "1Password Connect Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.BROWSERBASE_API_URL }}/contexts",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "body": "={{ JSON.stringify({ projectId: $env.BROWSERBASE_PROJECT_ID, id: 'ctx_' + $('Validate Onboarding Form').item.json.clientId }) }}",
+        "options": {}
+      },
+      "id": "create-browserbase-context",
+      "name": "Create Browserbase Context",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1350, 820],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "3",
+          "name": "Browserbase API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE clients SET status = 'active', ghl_location_id = '{{ $('Validate Onboarding Form').item.json.ghlLocationId }}', company_name = '{{ $('Validate Onboarding Form').item.json.companyName }}', onboarded_at = NOW() WHERE client_id = '{{ $('Validate Onboarding Form').item.json.clientId }}'",
+        "options": {}
+      },
+      "id": "activate-client",
+      "name": "Activate Client Account",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [1570, 820],
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "PostgreSQL - Neon DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "={{ $env.SMTP_FROM_EMAIL }}",
+        "toEmail": "={{ $('Verify Client Exists').item.json[0].customer_email }}",
+        "subject": "Your GHL Agent AI is Ready!",
+        "emailType": "html",
+        "message": "={{ `<html><body style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;\"><h1 style=\"color: #10B981;\">🎉 Your GHL Agent AI is Live!</h1><p>Hi ${$('Verify Client Exists').item.json[0].customer_name},</p><p>Great news! Your account setup is complete and your AI agent is ready to automate your GoHighLevel workflows.</p><div style=\"background: #ECFDF5; border-left: 4px solid #10B981; padding: 20px; margin: 20px 0;\"><h2 style=\"margin-top: 0; color: #065F46;\">Quick Start Guide</h2><p><strong>Dashboard:</strong> <a href=\"${$env.APP_URL}/dashboard\">${$env.APP_URL}/dashboard</a></p><p><strong>API Endpoint:</strong> ${$env.N8N_WEBHOOK_URL}/ghl-automation</p><p><strong>Your API Key:</strong> <code style=\"background: #fff; padding: 4px 8px; border-radius: 4px;\">${$('Verify Client Exists').item.json[0].api_key}</code></p><p><strong>Token Balance:</strong> ${$('Verify Client Exists').item.json[0].token_balance} tokens</p></div><h3>What You Can Do Now:</h3><ul><li>Create workflows automatically</li><li>Manage contacts and campaigns</li><li>Build funnels and landing pages</li><li>Set up email and SMS campaigns</li><li>Configure calendars and appointments</li></ul><h3>Making Your First API Request:</h3><pre style=\"background: #1F2937; color: #F9FAFB; padding: 16px; border-radius: 6px; overflow-x: auto;\">curl -X POST ${$env.N8N_WEBHOOK_URL}/ghl-automation \\\n  -H \"Content-Type: application/json\" \\\n  -H \"Authorization: Bearer ${$('Verify Client Exists').item.json[0].api_key}\" \\\n  -d '{\n    \"clientId\": \"${$('Validate Onboarding Form').item.json.clientId}\",\n    \"taskType\": \"workflow_create\",\n    \"taskData\": {\n      \"workflowName\": \"Welcome Email\",\n      \"triggerType\": \"Contact Tag Added\",\n      \"emailTemplate\": \"welcome_template\"\n    }\n  }'</pre><p>Need help? Check out our <a href=\"${$env.APP_URL}/docs\">documentation</a> or reply to this email.</p><p>Happy automating!<br>The GHL Agent AI Team</p></body></html>` }}",
+        "options": {}
+      },
+      "id": "send-activation-email",
+      "name": "Send Activation Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [1790, 820],
+      "credentials": {
+        "smtp": {
+          "id": "6",
+          "name": "SMTP Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: true, message: 'Account activated successfully', clientId: $('Validate Onboarding Form').item.json.clientId, status: 'active', dashboardUrl: $env.APP_URL + '/dashboard' } }}",
+        "options": {}
+      },
+      "id": "respond-activation-success",
+      "name": "Respond Activation Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [2010, 820]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Stripe Payment Webhook": {
+      "main": [
+        [
+          {
+            "node": "Verify Stripe Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify Stripe Webhook": {
+      "main": [
+        [
+          {
+            "node": "Check if Should Process",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check if Should Process": {
+      "main": [
+        [
+          {
+            "node": "Respond Skipped",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Generate Client ID & JWT Secret",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Client ID & JWT Secret": {
+      "main": [
+        [
+          {
+            "node": "Create Client in Neon DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Client in Neon DB": {
+      "main": [
+        [
+          {
+            "node": "Create Initial Token Transaction",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Initial Token Transaction": {
+      "main": [
+        [
+          {
+            "node": "Generate Onboarding Form URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Onboarding Form URL": {
+      "main": [
+        [
+          {
+            "node": "Send Welcome Email with Onboarding Link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Welcome Email with Onboarding Link": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Onboarding Form Submission": {
+      "main": [
+        [
+          {
+            "node": "Validate Onboarding Form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Onboarding Form": {
+      "main": [
+        [
+          {
+            "node": "Check Form Validation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Form Validation": {
+      "main": [
+        [
+          {
+            "node": "Respond Form Error",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Verify Client Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify Client Exists": {
+      "main": [
+        [
+          {
+            "node": "Store GHL Credentials in 1Password",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store GHL Credentials in 1Password": {
+      "main": [
+        [
+          {
+            "node": "Create Browserbase Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Browserbase Context": {
+      "main": [
+        [
+          {
+            "node": "Activate Client Account",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Activate Client Account": {
+      "main": [
+        [
+          {
+            "node": "Send Activation Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Activation Email": {
+      "main": [
+        [
+          {
+            "node": "Respond Activation Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1",
+  "meta": {
+    "instanceId": "ghl-agent-ai-instance"
+  },
+  "id": "5",
+  "tags": []
+}
