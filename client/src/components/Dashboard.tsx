@@ -22,88 +22,89 @@ import { AdManagerPanel } from './AdManagerPanel';
 import { MarketplacePanel } from './MarketplacePanel';
 import { AIBrowserPanel } from './AIBrowserPanel';
 
-// Mock Data for Notion Integration
-const MOCK_CLIENTS: ClientContext[] = [
+// Optional demo data (used only when VITE_DEMO_MODE=1)
+const DEMO_CLIENTS: ClientContext[] = [
   {
-    id: 'c1',
-    source: 'NOTION',
-    name: 'Solar Solutions Inc.',
-    subaccountName: 'Solar Solutions - Denver',
-    subaccountId: 'loc_denver_001',
-    brandVoice: 'Professional, Eco-friendly, Urgent but reassuring',
-    primaryGoal: 'Book appointments for roof inspections',
-    website: 'solarsolutions.demo',
-    seo: { siteTitle: 'Solar Denver', metaDescription: 'Best solar', keywords: ['solar', 'denver'], robotsTxt: 'User-agent: * Allow: /' },
-    assets: []
+    id: "c1",
+    source: "NOTION",
+    name: "Solar Solutions Inc.",
+    subaccountName: "Solar Solutions - Denver",
+    subaccountId: "loc_denver_001",
+    brandVoice: "Professional, Eco-friendly, Urgent but reassuring",
+    primaryGoal: "Book appointments for roof inspections",
+    website: "solarsolutions.demo",
+    seo: {
+      siteTitle: "Solar Denver",
+      metaDescription: "Best solar",
+      keywords: ["solar", "denver"],
+      robotsTxt: "User-agent: * Allow: /",
+    },
+    assets: [],
   },
   {
-    id: 'c2',
-    source: 'NOTION',
-    name: 'Prestige Dental',
-    subaccountName: 'Prestige Dental - Main',
-    subaccountId: 'loc_dental_992',
-    brandVoice: 'Warm, Caring, Clinical Authority',
-    primaryGoal: 'Reactivate dormant patients for cleaning',
-    website: 'prestigedental.demo',
-    seo: { siteTitle: 'Prestige Dental', metaDescription: 'Gentle care', keywords: ['dentist', 'implants'], robotsTxt: 'User-agent: * Allow: /' },
-    assets: []
-  }
+    id: "c2",
+    source: "NOTION",
+    name: "Prestige Dental",
+    subaccountName: "Prestige Dental - Main",
+    subaccountId: "loc_dental_992",
+    brandVoice: "Warm, Caring, Clinical Authority",
+    primaryGoal: "Reactivate dormant patients for cleaning",
+    website: "prestigedental.demo",
+    seo: {
+      siteTitle: "Prestige Dental",
+      metaDescription: "Gentle care",
+      keywords: ["dentist", "implants"],
+      robotsTxt: "User-agent: * Allow: /",
+    },
+    assets: [],
+  },
 ];
 
-const MOCK_DRIVE_FILES: DriveFile[] = [
-  { id: 'd1', name: 'SOP_Onboarding_V2.gdoc', mimeType: 'application/vnd.google-apps.document', content: 'SOP FOR NEW CLIENTS:\n1. Create Subaccount\n2. Install Snapshot "Agency_Standard"\n3. Connect Twilio & Stripe\n4. Create "Welcome" Email Campaign.', selected: true, icon: '📝' },
-  { id: 'd2', name: 'Brand_Assets_Kit.pdf', mimeType: 'application/pdf', content: 'BRAND GUIDELINES:\nPrimary Color: #4F46E5\nSecondary: #9333EA\nFont: Inter\nTone: Innovative, Bold, Futuristic.', selected: true, icon: '🎨' },
-  { id: 'd3', name: 'Funnel_Copy_Draft.gdoc', mimeType: 'application/vnd.google-apps.document', content: 'HEADLINE: "Automate Your Agency in Minutes"\nSUBHEAD: "The first AI workforce for GHL"\nCTA: "Get Started Now"', selected: true, icon: '📄' },
-  { id: 'd4', name: 'Client_Logo_Pack.zip', mimeType: 'application/zip', content: '[Binary Data] - Contains logo files.', selected: false, icon: '📦' }
-];
-
-const MOCK_USERS: User[] = [
-  { id: 'u1', name: 'Sarah Admin', role: 'OWNER', avatarInitials: 'SA', isOnline: true },
-  { id: 'u2', name: 'John Manager', role: 'MANAGER', avatarInitials: 'JM', isOnline: true },
-  { id: 'u3', name: 'Mike VA', role: 'VA', avatarInitials: 'MV', isOnline: false },
-];
-
-const MOCK_ACTIVITIES: TeamActivity[] = [
-  { id: 'a1', userId: 'u1', userName: 'Sarah Admin', action: 'increased budget', target: 'Solar Ads', timestamp: '10m ago', type: 'modification' },
-  { id: 'a2', userId: 'u2', userName: 'John Manager', action: 'approved workflow', target: 'Dental Nurture', timestamp: '45m ago', type: 'execution' },
-  { id: 'a3', userId: 'u3', userName: 'Mike VA', action: 'fixed typo', target: 'Gym LP', timestamp: '2h ago', type: 'modification' },
-];
-
-const MOCK_AGENTS: AgentInstance[] = [
-  { id: 'ag1', clientId: 'c1', status: AgentStatus.IDLE, currentTask: 'Monitoring Lead Forms', progress: 0, lastActive: '10m ago' },
-  { id: 'ag2', clientId: 'c2', status: AgentStatus.EXECUTING, currentTask: 'Rebuilding Landing Page', progress: 45, lastActive: 'Just now' },
-];
-
-// Mock Tickets for the Queue
-const MOCK_TICKETS: SupportTicket[] = [
+const DEMO_DRIVE_FILES: DriveFile[] = [
   {
-    id: 't1',
-    source: 'VOICE',
-    subject: 'Angry Call re: Workflow Failure',
-    description: 'Client called (Twilio Rec #9928) stating that the "Birthday Offer" workflow is not triggering sms. She sounded very frustrated.',
-    priority: 'HIGH',
-    status: 'OPEN',
-    timestamp: '2m ago'
+    id: "d1",
+    name: "SOP_Onboarding_V2.gdoc",
+    mimeType: "application/vnd.google-apps.document",
+    content:
+      'SOP FOR NEW CLIENTS:\n1. Create Subaccount\n2. Install Snapshot "Agency_Standard"\n3. Connect Twilio & Stripe\n4. Create "Welcome" Email Campaign.',
+    selected: true,
+    icon: "📝",
   },
   {
-    id: 't2',
-    source: 'EMAIL',
-    subject: 'Logo Update Request',
-    description: 'Please update the header logo on the main landing page to the new PNG attached. - Sent via HelpDesk',
-    priority: 'LOW',
-    status: 'OPEN',
-    timestamp: '15m ago'
+    id: "d2",
+    name: "Brand_Assets_Kit.pdf",
+    mimeType: "application/pdf",
+    content:
+      "BRAND GUIDELINES:\nPrimary Color: #4F46E5\nSecondary: #9333EA\nFont: Inter\nTone: Innovative, Bold, Futuristic.",
+    selected: true,
+    icon: "🎨",
   },
   {
-    id: 't3',
-    source: 'WHATSAPP',
-    subject: 'Login Issues',
-    description: 'User @doctor_smith cannot login to the membership portal. Says password reset email never arrived.',
-    priority: 'MEDIUM',
-    status: 'IN_PROGRESS',
-    timestamp: '1h ago'
-  }
+    id: "d3",
+    name: "Funnel_Copy_Draft.gdoc",
+    mimeType: "application/vnd.google-apps.document",
+    content:
+      'HEADLINE: "Automate Your Agency in Minutes"\nSUBHEAD: "The first AI workforce for GHL"\nCTA: "Get Started Now"',
+    selected: true,
+    icon: "📄",
+  },
+  {
+    id: "d4",
+    name: "Client_Logo_Pack.zip",
+    mimeType: "application/zip",
+    content: "[Binary Data] - Contains logo files.",
+    selected: false,
+    icon: "📦",
+  },
 ];
+
+const DEFAULT_USER: User = {
+  id: "current-user",
+  name: "You",
+  role: "OWNER",
+  avatarInitials: "YOU",
+  isOnline: true,
+};
 
 interface DashboardProps {
   userTier: string; // 'STARTER' | 'GROWTH' | 'WHITELABEL'
@@ -111,6 +112,7 @@ interface DashboardProps {
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initialCredits }) => {
+  const isDemo = import.meta.env.VITE_DEMO_MODE === '1';
   const [viewMode, setViewMode] = useState<'GLOBAL' | 'TERMINAL' | 'EMAIL_AGENT' | 'VOICE_AGENT' | 'SETTINGS' | 'SEO' | 'ADS' | 'MARKETPLACE' | 'AI_BROWSER'>('GLOBAL');
   const [status, setStatus] = useState<AgentStatus>(AgentStatus.IDLE);
   const [task, setTask] = useState<AgentTask | null>(null);
@@ -126,14 +128,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
 
   // Drive State
   const [isDriveConnected, setIsDriveConnected] = useState(false);
-  const [driveFiles, setDriveFiles] = useState<DriveFile[]>(MOCK_DRIVE_FILES);
+  const [driveFiles, setDriveFiles] = useState<DriveFile[]>(isDemo ? DEMO_DRIVE_FILES : []);
+
+  // Client list state (demo clients when enabled, otherwise empty)
+  const [clients] = useState<ClientContext[]>(isDemo ? DEMO_CLIENTS : []);
 
   // User/Team State
-  const [currentUser, setCurrentUser] = useState<User>(MOCK_USERS[0]);
-  const [activities] = useState<TeamActivity[]>(MOCK_ACTIVITIES);
+  const [currentUser, setCurrentUser] = useState<User>(DEFAULT_USER);
+  const [activities] = useState<TeamActivity[]>([]);
 
   // Ticket State
-  const [tickets, setTickets] = useState<SupportTicket[]>(MOCK_TICKETS);
+  const [tickets, setTickets] = useState<SupportTicket[]>([]);
 
   // Settings State
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -159,8 +164,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
         console.error('Failed to load settings');
       }
     }
-    // Default select first client for demo, but view is Global
-    setSelectedClient(MOCK_CLIENTS[0]);
+    // In demo mode, default select first client for demo, but view is Global
+    if (isDemo && clients.length > 0) {
+      setSelectedClient(clients[0]);
+    }
   }, []);
 
   const handleOpenSettings = (tab: SettingsTab = 'GENERAL') => {
@@ -508,8 +515,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
 
           {viewMode === 'GLOBAL' && (
             <GlobalOps
-              clients={MOCK_CLIENTS}
-              agents={MOCK_AGENTS}
+              clients={clients}
+              agents={[]} // no real agent data yet; will be wired to backend later
               activities={activities}
               onSelectClient={(client) => {
                 setSelectedClient(client);
@@ -601,7 +608,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
                       <div>
                         <label className="block text-[10px] font-bold text-slate-400 uppercase mb-2">Select Client Profile</label>
                         <div className="space-y-2 max-h-32 overflow-y-auto pr-1">
-                          {MOCK_CLIENTS.map(client => (
+                          {clients.length === 0 && (
+                            <p className="text-xs text-slate-500">
+                              No client profiles yet. Connect a sub-account to get started.
+                            </p>
+                          )}
+                          {clients.map(client => (
                             <button
                               key={client.id}
                               onClick={() => setSelectedClient(client)}
