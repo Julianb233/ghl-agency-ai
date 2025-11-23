@@ -1,13 +1,13 @@
 import { z } from "zod";
 import { router, protectedProcedure } from "../../_core/trpc";
 import { TRPCError } from "@trpc/server";
-import { getDb } from "@/server/db";
+import { getDb } from "../../db";
 import {
   userPreferences,
   integrations,
   type UserPreference,
   type Integration,
-} from "@/drizzle/schema";
+} from "../../../drizzle/schema";
 import { eq, and, desc, count } from "drizzle-orm";
 import crypto from "crypto";
 
@@ -730,7 +730,7 @@ export const settingsRouter = router({
         const config = OAUTH_CONFIGS[input.provider];
 
         // Import OAuth state service
-        const { oauthStateService } = await import("@/server/services/oauthState.service");
+        const { oauthStateService } = await import("../../services/oauthState.service");
 
         // Generate OAuth state for CSRF protection
         const state = oauthStateService.generateState();
@@ -1221,8 +1221,8 @@ export const settingsRouter = router({
 
         let settings = preferences?.defaultWorkflowSettings
           ? (typeof preferences.defaultWorkflowSettings === "string"
-              ? JSON.parse(preferences.defaultWorkflowSettings)
-              : preferences.defaultWorkflowSettings)
+            ? JSON.parse(preferences.defaultWorkflowSettings)
+            : preferences.defaultWorkflowSettings)
           : { webhooks: [] };
 
         const webhooks = settings.webhooks || [];
