@@ -1,4 +1,4 @@
-import Browserbase from "@browserbasehq/sdk";
+import { Browserbase } from "@browserbasehq/sdk";
 
 /**
  * Browserbase SDK Service
@@ -192,7 +192,7 @@ class BrowserbaseSDKService {
         ...options,
       };
 
-      const session = await client.sessions.create(createOptions);
+      const session = await client.createSession(createOptions);
 
       console.log('[BrowserbaseSDK] Session created successfully:', session.id);
 
@@ -232,7 +232,7 @@ class BrowserbaseSDKService {
     try {
       console.log('[BrowserbaseSDK] Getting debug info for session:', sessionId);
 
-      const debugInfo = await client.sessions.debug(sessionId);
+      const debugInfo = await client.getDebugConnectionURLs(sessionId);
 
       console.log('[BrowserbaseSDK] Debug info retrieved successfully');
 
@@ -276,7 +276,7 @@ class BrowserbaseSDKService {
     try {
       console.log('[BrowserbaseSDK] Getting recording for session:', sessionId);
 
-      const recording = await client.sessions.recording.retrieve(sessionId);
+      const recording = await client.getSessionRecording(sessionId);
 
       console.log('[BrowserbaseSDK] Recording retrieved successfully');
 
@@ -318,7 +318,7 @@ class BrowserbaseSDKService {
     try {
       console.log('[BrowserbaseSDK] Getting logs for session:', sessionId);
 
-      const logs = await client.sessions.logs.list(sessionId);
+      const logs = await client.getSessionLogs(sessionId);
 
       console.log('[BrowserbaseSDK] Logs retrieved successfully');
 
@@ -349,7 +349,7 @@ class BrowserbaseSDKService {
 
   public async listSessions(): Promise<any[]> {
     const client = this.ensureClient();
-    const sessions = await client.sessions.list();
+    const sessions = await client.listSessions();
     return sessions;
   }
 
