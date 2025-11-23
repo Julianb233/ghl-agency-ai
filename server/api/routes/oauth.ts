@@ -274,7 +274,7 @@ async function handleOAuthCallback(
       .from(integrations)
       .where(
         and(
-          eq(integrations.userId, stateData.userId),
+          eq(integrations.userId, parseInt(stateData.userId)),
           eq(integrations.service, provider)
         )
       )
@@ -309,7 +309,7 @@ async function handleOAuthCallback(
       });
 
       await db.insert(integrations).values({
-        userId: stateData.userId,
+        userId: parseInt(stateData.userId),
         service: provider,
         accessToken: encryptedAccessToken,
         refreshToken: encryptedRefreshToken,
