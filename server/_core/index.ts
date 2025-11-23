@@ -7,7 +7,8 @@ import { registerOAuthRoutes } from "./oauth";
 import { registerGoogleAuthRoutes } from "./google-auth.ts";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
-import { serveStatic, setupVite } from "./vite";
+import { serveStatic } from "./serve-static";
+import { fileURLToPath } from "url";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -48,6 +49,8 @@ export async function createApp() {
   // development mode uses Vite, production mode uses static files
   if (process.env.NODE_ENV === "development") {
     const server = createServer(app);
+    // Dynamic import to avoid bundling Vite in production
+    const { setupVite } = await import("./vite");
     await setupVite(app, server);
   } else {
     serveStatic(app);
@@ -74,7 +77,8 @@ async function startServer() {
 
 // Only start the server if this file is run directly (not imported)
 // For Vercel, we'll export the app creation function instead
-if (import.meta.url === `file://${process.argv[1]}` || process.env.VERCEL !== "1") {
+const isMainModule = process.argv[1] === fileURLToPath(import.meta.url);
+if (isMainModule) {
   startServer().catch(console.error);
 }
 
