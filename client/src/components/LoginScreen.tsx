@@ -61,57 +61,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthenticated, onBac
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Email Address</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-white/50 border border-slate-200 rounded-lg px-4 py-3 text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
-                placeholder="agency@example.com"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-white/50 border border-slate-200 rounded-lg px-4 py-3 text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
-                placeholder="••••••••"
-                required
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold py-3 rounded-xl shadow-lg shadow-indigo-500/20 hover:scale-[1.02] transition-transform flex items-center justify-center gap-2"
-            >
-              {isLoading ? (
-                <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> {isSignUp ? 'Creating Account...' : 'Authenticating...'}</>
-              ) : (
-                isSignUp ? 'Create Account' : 'Access Terminal'
-              )}
-            </button>
-
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-200"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white/50 text-slate-500">Or continue with</span>
-              </div>
-            </div>
-
+          <div className="space-y-6">
             <button
               type="button"
               onClick={() => window.location.href = '/api/auth/google'}
-              className="w-full bg-white/80 border border-slate-200 text-slate-700 font-bold py-3 rounded-xl shadow-sm hover:bg-white transition-colors flex items-center justify-center gap-2"
+              className="w-full bg-white border border-slate-200 text-slate-700 font-bold py-4 rounded-xl shadow-sm hover:bg-slate-50 hover:scale-[1.02] transition-all flex items-center justify-center gap-3 text-lg"
             >
-              <svg className="w-5 h-5" viewBox="0 0 24 24">
+              <svg className="w-6 h-6" viewBox="0 0 24 24">
                 <path
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                   fill="#4285F4"
@@ -129,9 +85,47 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthenticated, onBac
                   fill="#EA4335"
                 />
               </svg>
-              Sign {isSignUp ? 'up' : 'in'} with Google
+              Sign in with Google
             </button>
-          </form>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-slate-200"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white/50 text-slate-500">Or</span>
+              </div>
+            </div>
+
+            <div className="opacity-60 pointer-events-none grayscale">
+              <form className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Email Address</label>
+                  <input
+                    type="email"
+                    disabled
+                    className="w-full bg-white/50 border border-slate-200 rounded-lg px-4 py-3 text-slate-800"
+                    placeholder="agency@example.com"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-600 uppercase mb-1">Password</label>
+                  <input
+                    type="password"
+                    disabled
+                    className="w-full bg-white/50 border border-slate-200 rounded-lg px-4 py-3 text-slate-800"
+                    placeholder="••••••••"
+                  />
+                </div>
+                <button
+                  disabled
+                  className="w-full bg-slate-200 text-slate-500 font-bold py-3 rounded-xl flex items-center justify-center gap-2"
+                >
+                  Email Login (Coming Soon)
+                </button>
+              </form>
+            </div>
+          </div>
 
           <div className="mt-6 text-center">
             <button

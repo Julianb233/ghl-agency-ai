@@ -268,28 +268,28 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
               </div>
             </div>
 
-            {/* Feature 2: AI Ad Manager */}
+            {/* Feature 2: Voice & Email AI */}
             <div className="flex flex-col lg:flex-row-reverse items-center gap-8 sm:gap-12">
               <div className="flex-1 space-y-4 sm:space-y-6 order-2">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 sm:w-14 sm:h-14 bg-gradient-to-br from-pink-500 to-rose-500 rounded-xl sm:rounded-2xl flex items-center justify-center text-white shadow-lg shadow-pink-500/30">
-                    <BarChart3 className="w-5 h-5 sm:w-7 sm:h-7" />
+                    <Phone className="w-5 h-5 sm:w-7 sm:h-7" />
                   </div>
                   <span className="inline-block bg-pink-100 text-pink-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">Agent #2</span>
                 </div>
                 <h3 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900">
-                  Ad Manager Agent:<br />Optimize. Scale. Profit.
+                  Voice & Email Agents:<br />24/7 Client Communication
                 </h3>
                 <p className="text-base sm:text-lg text-slate-700 leading-relaxed">
-                  Your AI ad manager <span className="font-bold">never sleeps, never forgets, and never misses a winning opportunity.</span> It analyzes performance 24/7 and makes data-driven decisions faster than any human team could.
+                  Your AI agents handle <span className="font-bold">inbound calls, support tickets, and cold outreach</span> with human-like fluency. They never get tired, never have an attitude, and never miss a lead.
                 </p>
 
                 <div className="space-y-3 sm:space-y-4 pt-2 sm:pt-4">
                   {[
-                    { text: "Auto-detects underperforming campaigns and suggests fixes", metric: "3.2x Avg ROAS Improvement" },
-                    { text: "Generate 50+ ad variations in 60 seconds", metric: "Used by 289 agencies" },
-                    { text: "Secure browser automation (no Meta ban risk)", metric: "0 Account Bans" },
-                    { text: "Daily performance reports sent to clients automatically", metric: "100% Client Retention" }
+                    { text: "Instant response to every lead (under 10 seconds)", metric: "3.2x Higher Conversion" },
+                    { text: "Handles complex support tickets & scheduling", metric: "Used by 289 agencies" },
+                    { text: "Seamless handoff to humans when needed", metric: "100% Client Satisfaction" },
+                    { text: "Daily performance reports sent automatically", metric: "Zero Missed Calls" }
                   ].map((benefit, i) => (
                     <div key={i} className="flex items-start gap-3 group">
                       <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-green-500 mt-0.5 flex-shrink-0 group-hover:scale-110 transition-transform" />
@@ -306,7 +306,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                     <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-pink-400 to-rose-400 flex-shrink-0"></div>
                     <div>
                       <p className="text-xs sm:text-sm text-slate-700 italic mb-2">
-                        "Our media buyer was costing us $6K/mo. This AI found $47K in wasted ad spend in the first week. ROI? Infinite."
+                        "Our response time went from 4 hours to 4 seconds. Our close rate doubled in the first week. It's unfair advantage."
                       </p>
                       <p className="text-xs sm:text-sm font-bold text-slate-900">— Sarah K., Performance Agency</p>
                     </div>
@@ -318,13 +318,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                 <div className="relative group">
                   <div className="absolute -inset-2 sm:-inset-4 bg-gradient-to-r from-pink-500 to-rose-500 rounded-xl sm:rounded-2xl opacity-20 group-hover:opacity-30 blur-2xl transition-opacity"></div>
                   <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border-2 border-white/50 bg-white/80 backdrop-blur-sm transform group-hover:scale-[1.02] transition-transform duration-300">
-                    <div className="aspect-video bg-gradient-to-br from-pink-50 to-rose-50 flex items-center justify-center">
-                      <div className="text-center p-8">
-                        <BarChart3 className="w-16 h-16 sm:w-24 sm:h-24 text-pink-400 mx-auto mb-4" />
-                        <p className="text-sm sm:text-base text-pink-600 font-bold">AI Ad Manager Dashboard</p>
-                        <p className="text-xs sm:text-sm text-slate-600 mt-2">Automated campaign optimization in real-time</p>
-                      </div>
-                    </div>
+                    <img
+                      src="/assets/demo/voice_agent_view_1763563911975.png"
+                      alt="AI Voice Agent Dashboard"
+                      className="w-full"
+                    />
                   </div>
                 </div>
               </div>
@@ -380,13 +378,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                 <div className="relative group">
                   <div className="absolute -inset-2 sm:-inset-4 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-xl sm:rounded-2xl opacity-20 group-hover:opacity-30 blur-2xl transition-opacity"></div>
                   <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border-2 border-white/50 bg-white/80 backdrop-blur-sm transform group-hover:scale-[1.02] transition-transform duration-300">
-                    <div className="aspect-video bg-gradient-to-br from-cyan-50 to-blue-50 flex items-center justify-center">
-                      <div className="text-center p-8">
-                        <Zap className="w-16 h-16 sm:w-24 sm:h-24 text-cyan-400 mx-auto mb-4" />
-                        <p className="text-sm sm:text-base text-cyan-600 font-bold">AI Browser Automation</p>
-                        <p className="text-xs sm:text-sm text-slate-600 mt-2">Extract data, automate tasks, save hours</p>
-                      </div>
-                    </div>
+                    <img
+                      src="/assets/demo/seo_view_1763563889116.png"
+                      alt="AI Browser Automation Dashboard"
+                      className="w-full"
+                    />
                   </div>
                 </div>
               </div>
