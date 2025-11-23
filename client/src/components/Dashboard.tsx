@@ -106,6 +106,24 @@ const DEFAULT_USER: User = {
   isOnline: true,
 };
 
+const MOCK_USERS: User[] = [
+  DEFAULT_USER,
+  {
+    id: "u2",
+    name: "Sarah Jenkins",
+    role: "MANAGER",
+    avatarInitials: "SJ",
+    isOnline: true,
+  },
+  {
+    id: "u3",
+    name: "Mike Ross",
+    role: "VA",
+    avatarInitials: "MR",
+    isOnline: false,
+  }
+];
+
 interface DashboardProps {
   userTier: string; // 'STARTER' | 'GROWTH' | 'WHITELABEL'
   credits: number;
@@ -388,11 +406,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
       <header className="border-b border-white/60 bg-white/40 backdrop-blur-xl sticky top-0 z-40">
         <div className="max-w-[2000px] mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20 text-white font-bold font-mono text-lg">
-              AI
-            </div>
+            <img
+              src="/assets/ghl_agency_ai_logo.png"
+              alt="GHL Agency AI Logo"
+              className="h-10 w-auto object-contain"
+            />
             <div>
-              <h1 className="font-bold text-slate-800 leading-tight">GHL Agent <span className="text-indigo-600">Command</span></h1>
+              <h1 className="font-bold text-slate-800 leading-tight">GHL Agent <span className="text-emerald-600">Command</span></h1>
               <div className="flex items-center gap-2 text-[10px] font-mono text-slate-500 uppercase tracking-wider">
                 <span className={`w-2 h-2 rounded-full ${status === AgentStatus.EXECUTING ? 'bg-amber-400 animate-pulse' : status === AgentStatus.COMPLETED ? 'bg-emerald-500' : 'bg-slate-300'}`}></span>
                 Status: {status}
