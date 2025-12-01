@@ -8,7 +8,7 @@ interface LandingPageProps {
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50/30 to-blue-50/40 flex flex-col font-sans text-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50/50 to-teal-50/40 flex flex-col font-sans text-slate-900">
       {/* Navigation */}
       <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-emerald-100/50 shadow-sm">
         <div className="container mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
@@ -20,20 +20,20 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
             />
           </div>
           <div className="hidden lg:flex items-center gap-8 text-sm font-medium text-slate-600">
-            <a href="#problem" className="hover:text-emerald-600 transition-colors">The Problem</a>
-            <a href="#solution" className="hover:text-emerald-600 transition-colors">The Solution</a>
-            <a href="#proof" className="hover:text-emerald-600 transition-colors">Proof</a>
-            <a href="#pricing" className="hover:text-emerald-600 transition-colors">Investment</a>
+            <a href="#problem" className="hover:text-blue-600 transition-colors">The Problem</a>
+            <a href="#solution" className="hover:text-blue-600 transition-colors">The Solution</a>
+            <a href="#proof" className="hover:text-blue-600 transition-colors">Proof</a>
+            <a href="#pricing" className="hover:text-blue-600 transition-colors">Investment</a>
           </div>
           <div className="flex items-center gap-2 sm:gap-4">
-            <Button variant="ghost" onClick={onLogin} className="font-semibold text-xs sm:text-sm text-slate-700 hover:text-emerald-600 px-2 sm:px-4">
+            <Button variant="ghost" onClick={onLogin} className="font-semibold text-xs sm:text-sm text-slate-700 hover:text-blue-600 px-2 sm:px-4">
               Log In
             </Button>
-            <Button onClick={onLogin} className="bg-gradient-to-r from-emerald-600 via-teal-600 to-slate-900 hover:from-emerald-700 hover:via-teal-700 hover:to-slate-800 text-white shadow-lg shadow-emerald-500/40 rounded-full px-3 sm:px-6 text-xs sm:text-sm font-bold relative overflow-hidden group">
+            <Button onClick={onLogin} className="bg-gradient-to-r from-blue-600 via-purple-600 to-teal-600 hover:from-emerald-700 hover:via-teal-700 hover:to-slate-800 text-white shadow-lg shadow-blue-500/30 rounded-full px-3 sm:px-6 text-xs sm:text-sm font-bold relative overflow-hidden group">
               <span className="relative z-10 flex items-center gap-1 sm:gap-2">
                 Start Free <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform" />
               </span>
-              <div className="absolute inset-0 bg-gradient-to-r from-slate-900 to-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-700 to-blue-700 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             </Button>
           </div>
         </div>
@@ -42,19 +42,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
       {/* Hero Section - Direct Response Style */}
       <header className="relative pt-12 sm:pt-20 pb-12 sm:pb-16 overflow-hidden">
         {/* Animated background gradient */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-emerald-100/50 via-blue-50/30 to-transparent opacity-70"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-slate-100/40 via-transparent to-transparent opacity-50"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-100/40 via-purple-50/30 to-transparent opacity-70"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-purple-100/30 via-transparent to-transparent opacity-50"></div>
 
         {/* Floating elements */}
-        <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-emerald-400/20 to-blue-400/20 rounded-full blur-3xl animate-float"></div>
-        <div className="absolute bottom-20 right-10 w-40 h-40 bg-gradient-to-br from-slate-400/20 to-emerald-400/20 rounded-full blur-3xl animate-float-delayed"></div>
+        <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-blue-400/15 to-purple-400/15 rounded-full blur-3xl animate-float"></div>
+        <div className="absolute bottom-20 right-10 w-40 h-40 bg-gradient-to-br from-purple-400/15 to-teal-400/15 rounded-full blur-3xl animate-float-delayed"></div>
 
         <div className="container mx-auto px-4 sm:px-6 relative z-10">
           {/* Attention-grabbing badge */}
           <div className="text-center mb-6 sm:mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div className="inline-flex items-center gap-2 sm:gap-3 bg-gradient-to-r from-emerald-50 to-blue-50 border-2 border-emerald-200/50 rounded-full px-3 sm:px-6 py-2 sm:py-2.5 shadow-lg shadow-emerald-500/10">
-              <Crown className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 animate-pulse" />
-              <span className="text-[10px] sm:text-sm font-bold bg-gradient-to-r from-emerald-600 to-slate-600 bg-clip-text text-transparent uppercase tracking-wide">
+            <div className="inline-flex items-center gap-2 sm:gap-3 bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200/50 rounded-full px-3 sm:px-6 py-2 sm:py-2.5 shadow-lg shadow-blue-500/10">
+              <Crown className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 animate-pulse" />
+              <span className="text-[10px] sm:text-sm font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent uppercase tracking-wide">
                 Limited Beta: First 100 Agencies Get Founder Pricing
               </span>
             </div>
@@ -65,7 +65,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
             Fire Your Entire
             <span className="block sm:inline"> Fulfillment Team.</span>
             <br className="hidden sm:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-teal-600 to-slate-900">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-teal-600">
               Keep 100% Of The Revenue.
             </span>
           </h1>
@@ -73,12 +73,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
           {/* Subheadline - The Big Claim */}
           <p className="text-base sm:text-xl md:text-2xl text-slate-700 mb-4 sm:mb-6 max-w-4xl mx-auto leading-relaxed text-center font-semibold animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
             Deploy AI agents that handle client communication, campaign management, and technical support—
-            <span className="text-emerald-600"> faster, cheaper, and without the drama.</span>
+            <span className="text-blue-600"> faster, cheaper, and without the drama.</span>
           </p>
 
           {/* Objection Handler / Proof Element */}
           <p className="text-sm sm:text-lg text-slate-600 mb-8 sm:mb-12 max-w-3xl mx-auto text-center animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
-            <span className="font-bold text-slate-800">Warning:</span> This is NOT another "AI chatbot." This is a complete workforce replacement that <span className="underline decoration-emerald-400 decoration-2">actually does the work</span>—not just talks about it.
+            <span className="font-bold text-slate-800">Warning:</span> This is NOT another "AI chatbot." This is a complete workforce replacement that <span className="underline decoration-blue-400 decoration-2">actually does the work</span>—not just talks about it.
           </p>
 
           {/* CTA Buttons - Classic Direct Response */}
@@ -86,18 +86,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
             <Button
               onClick={onLogin}
               size="lg"
-              className="w-full sm:w-auto bg-gradient-to-r from-emerald-600 via-teal-600 to-slate-900 hover:from-emerald-700 hover:via-teal-700 hover:to-slate-800 text-white shadow-2xl shadow-emerald-500/50 rounded-full px-6 sm:px-10 h-12 sm:h-16 text-base sm:text-xl font-black relative overflow-hidden group"
+              className="w-full sm:w-auto bg-gradient-to-r from-blue-600 via-purple-600 to-teal-600 hover:from-emerald-700 hover:via-teal-700 hover:to-slate-800 text-white shadow-2xl shadow-purple-500/30 rounded-full px-6 sm:px-10 h-12 sm:h-16 text-base sm:text-xl font-black relative overflow-hidden group"
             >
               <span className="relative z-10 flex items-center gap-2">
                 <Rocket className="w-5 h-5 sm:w-6 sm:h-6" />
                 Deploy Your AI Workforce Now
               </span>
-              <div className="absolute inset-0 bg-gradient-to-r from-slate-900 to-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-700 to-blue-700 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             </Button>
             <Button
               variant="outline"
               size="lg"
-              className="w-full sm:w-auto rounded-full px-6 sm:px-10 h-12 sm:h-16 text-base sm:text-xl font-bold border-2 border-emerald-300 hover:bg-emerald-50 text-slate-800 shadow-lg"
+              className="w-full sm:w-auto rounded-full px-6 sm:px-10 h-12 sm:h-16 text-base sm:text-xl font-bold border-2 border-blue-300 hover:bg-blue-50 text-slate-800 shadow-lg"
             >
               <Play className="w-5 h-5 sm:w-6 sm:h-6 mr-2" />
               Watch 3-Min Demo
@@ -113,13 +113,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
               <span className="font-bold text-slate-800 ml-1 sm:ml-2">5.0</span>
             </div>
             <p className="font-medium">
-              <span className="font-bold text-emerald-600">487 agencies</span> have already replaced their fulfillment teams
+              <span className="font-bold text-blue-600">487 agencies</span> have already replaced their fulfillment teams
             </p>
           </div>
 
           {/* Hero Dashboard Preview */}
           <div className="mt-12 sm:mt-20 relative max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-600 px-4">
-            <div className="absolute -inset-4 sm:-inset-6 bg-gradient-to-r from-emerald-500 via-teal-500 to-slate-500 rounded-2xl sm:rounded-3xl opacity-30 blur-3xl animate-pulse-slow"></div>
+            <div className="absolute -inset-4 sm:-inset-6 bg-gradient-to-r from-blue-500 via-purple-500 to-teal-500 rounded-2xl sm:rounded-3xl opacity-30 blur-3xl animate-pulse-slow"></div>
             <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border-2 border-white/50 bg-white/80 backdrop-blur-sm">
               <img
                 src="/assets/demo/global_ops_view_1763563925931.png"
@@ -180,18 +180,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
       </section>
 
       {/* Solution Section - Russell Brunson Style with Features */}
-      <section id="solution" className="py-12 sm:py-24 bg-gradient-to-br from-emerald-50/50 via-blue-50/30 to-slate-50/30 relative overflow-hidden">
+      <section id="solution" className="py-12 sm:py-24 bg-gradient-to-br from-blue-50/60 via-purple-50/40 to-teal-50/30 relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5"></div>
 
         <div className="container mx-auto px-4 sm:px-6 relative z-10">
           <div className="text-center mb-12 sm:mb-20">
-            <div className="inline-block bg-gradient-to-r from-emerald-100 to-blue-100 border border-emerald-200 rounded-full px-4 sm:px-6 py-1.5 sm:py-2 mb-4 sm:mb-6">
-              <span className="text-xs sm:text-sm font-bold text-emerald-700 uppercase tracking-wide">Introducing The Solution</span>
+            <div className="inline-block bg-gradient-to-r from-blue-100 to-purple-100 border border-blue-200 rounded-full px-4 sm:px-6 py-1.5 sm:py-2 mb-4 sm:mb-6">
+              <span className="text-xs sm:text-sm font-bold text-blue-700 uppercase tracking-wide">Introducing The Solution</span>
             </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 mb-4 sm:mb-6 max-w-4xl mx-auto leading-tight">
               Your Entire Fulfillment Team...
               <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-teal-600 to-slate-900">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-teal-600">
                 Now Runs On AI Autopilot
               </span>
             </h2>
@@ -207,10 +207,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
             <div className="flex flex-col lg:flex-row items-center gap-8 sm:gap-12">
               <div className="flex-1 space-y-4 sm:space-y-6 order-2 lg:order-1">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 sm:w-14 sm:h-14 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl sm:rounded-2xl flex items-center justify-center text-white shadow-lg shadow-emerald-500/30">
+                  <div className="w-10 h-10 sm:w-14 sm:h-14 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl sm:rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
                     <Globe className="w-5 h-5 sm:w-7 sm:h-7" />
                   </div>
-                  <span className="inline-block bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">Agent #1</span>
+                  <span className="inline-block bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">Agent #1</span>
                 </div>
                 <h3 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900">
                   Command Center:<br />See Everything. Control Everything.
@@ -238,9 +238,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                 </div>
 
                 {/* Social Proof Snippet */}
-                <div className="bg-white/80 backdrop-blur-sm p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-emerald-200/50 shadow-lg">
+                <div className="bg-white/80 backdrop-blur-sm p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-blue-200/50 shadow-lg">
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-emerald-400 to-teal-400 flex-shrink-0"></div>
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-blue-400 to-purple-400 flex-shrink-0"></div>
                     <div>
                       <p className="text-xs sm:text-sm text-slate-700 italic mb-2">
                         "We went from 8 VAs managing 47 clients to ZERO humans needed. Same quality. Better response times. And we pocketed an extra $28K/month."
@@ -253,7 +253,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
 
               <div className="flex-1 order-1 lg:order-2 w-full">
                 <div className="relative group">
-                  <div className="absolute -inset-2 sm:-inset-4 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl sm:rounded-2xl opacity-20 group-hover:opacity-30 blur-2xl transition-opacity"></div>
+                  <div className="absolute -inset-2 sm:-inset-4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl sm:rounded-2xl opacity-20 group-hover:opacity-30 blur-2xl transition-opacity"></div>
                   <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border-2 border-white/50 bg-white/80 backdrop-blur-sm transform group-hover:scale-[1.02] transition-transform duration-300">
                     <img
                       src="/assets/demo/global_ops_view_1763563925931.png"
@@ -389,10 +389,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
             <div className="flex flex-col lg:flex-row-reverse items-center gap-8 sm:gap-12">
               <div className="flex-1 space-y-4 sm:space-y-6 order-2">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 sm:w-14 sm:h-14 bg-gradient-to-br from-emerald-500 to-green-500 rounded-xl sm:rounded-2xl flex items-center justify-center text-white shadow-lg shadow-emerald-500/30">
+                  <div className="w-10 h-10 sm:w-14 sm:h-14 bg-gradient-to-br from-teal-500 to-green-500 rounded-xl sm:rounded-2xl flex items-center justify-center text-white shadow-lg shadow-teal-500/30">
                     <Rocket className="w-5 h-5 sm:w-7 sm:h-7" />
                   </div>
-                  <span className="inline-block bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">Bonus</span>
+                  <span className="inline-block bg-teal-100 text-teal-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">Bonus</span>
                 </div>
                 <h3 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900">
                   Integrated Marketplace:<br />Scale On Demand
@@ -412,7 +412,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                       <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-green-500 mt-0.5 flex-shrink-0 group-hover:scale-110 transition-transform" />
                       <div>
                         <span className="text-sm sm:text-base text-slate-800 font-medium">{benefit.text}</span>
-                        <div className="text-xs sm:text-sm text-emerald-600 font-bold mt-1">{benefit.metric}</div>
+                        <div className="text-xs sm:text-sm text-blue-600 font-bold mt-1">{benefit.metric}</div>
                       </div>
                     </div>
                   ))}
@@ -421,12 +421,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
 
               <div className="flex-1 order-1 w-full">
                 <div className="relative group">
-                  <div className="absolute -inset-2 sm:-inset-4 bg-gradient-to-r from-emerald-500 to-green-500 rounded-xl sm:rounded-2xl opacity-20 group-hover:opacity-30 blur-2xl transition-opacity"></div>
+                  <div className="absolute -inset-2 sm:-inset-4 bg-gradient-to-r from-teal-500 to-green-500 rounded-xl sm:rounded-2xl opacity-20 group-hover:opacity-30 blur-2xl transition-opacity"></div>
                   <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border-2 border-white/50 bg-white/80 backdrop-blur-sm transform group-hover:scale-[1.02] transition-transform duration-300">
-                    <div className="aspect-video bg-gradient-to-br from-emerald-50 to-green-50 flex items-center justify-center">
+                      <div className="aspect-video bg-gradient-to-br from-teal-50 to-green-50 flex items-center justify-center">
                       <div className="text-center p-8">
-                        <Rocket className="w-16 h-16 sm:w-24 sm:h-24 text-emerald-400 mx-auto mb-4" />
-                        <p className="text-sm sm:text-base text-emerald-600 font-bold">Agent Marketplace</p>
+                        <Rocket className="w-16 h-16 sm:w-24 sm:h-24 text-teal-400 mx-auto mb-4" />
+                        <p className="text-sm sm:text-base text-blue-600 font-bold">Agent Marketplace</p>
                         <p className="text-xs sm:text-sm text-slate-600 mt-2">Scale your AI workforce instantly</p>
                       </div>
                     </div>
@@ -460,8 +460,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
               { number: "24/7", label: "Uptime - Agents Never Sleep", suffix: "" }
             ].map((stat, i) => (
               <div key={i} className="text-center group">
-                <div className="bg-gradient-to-br from-emerald-50 to-blue-50 p-6 sm:p-8 rounded-2xl border-2 border-emerald-200/50 group-hover:border-emerald-400 transition-all duration-300 group-hover:shadow-xl group-hover:shadow-emerald-500/20">
-                  <div className="text-3xl sm:text-5xl font-black bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent mb-2">
+                <div className="bg-gradient-to-br from-blue-50 to-purple-50 p-6 sm:p-8 rounded-2xl border-2 border-blue-200/50 group-hover:border-purple-400 transition-all duration-300 group-hover:shadow-xl group-hover:shadow-purple-500/20">
+                  <div className="text-3xl sm:text-5xl font-black bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
                     {stat.number}{stat.suffix}
                   </div>
                   <div className="text-xs sm:text-sm text-slate-600 font-medium">{stat.label}</div>
@@ -473,7 +473,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
       </section>
 
       {/* Pricing Section - Investment Reframe */}
-      <section id="pricing" className="py-12 sm:py-24 bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-900 text-white relative overflow-hidden">
+      <section id="pricing" className="py-12 sm:py-24 bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-600 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
 
         <div className="container mx-auto px-4 sm:px-6 relative z-10">
@@ -481,10 +481,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-black mb-4 sm:mb-6">
               The Investment
             </h2>
-            <p className="text-lg sm:text-2xl text-emerald-200 max-w-3xl mx-auto mb-4">
+            <p className="text-lg sm:text-2xl text-blue-100 max-w-3xl mx-auto mb-4">
               Let's do the math: <span className="font-bold text-white">What's a fulfillment team REALLY costing you?</span>
             </p>
-            <p className="text-sm sm:text-base text-emerald-300 max-w-2xl mx-auto">
+            <p className="text-sm sm:text-base text-purple-100 max-w-2xl mx-auto">
               3 VAs × $4,000/mo = <span className="font-bold text-red-400">$12,000/month</span>. Plus benefits, tools, training, turnover...
               <br className="hidden sm:block" />
               You're looking at <span className="font-bold text-red-400">$150K+/year</span> minimum.
@@ -499,9 +499,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                 </div>
                 <div className="mb-6">
                   <div className="text-4xl sm:text-6xl md:text-7xl font-black mb-2">
-                    $497<span className="text-2xl sm:text-3xl md:text-4xl text-emerald-300">/mo</span>
+                    $497<span className="text-2xl sm:text-3xl md:text-4xl text-blue-200">/mo</span>
                   </div>
-                  <div className="text-base sm:text-xl text-emerald-200">
+                  <div className="text-base sm:text-xl text-purple-100">
                     Replace your entire fulfillment team for less than <span className="font-bold">1 lunch meeting per month</span>
                   </div>
                 </div>
@@ -631,7 +631,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
       </section>
 
       {/* Final CTA Section */}
-      <section className="py-16 sm:py-24 bg-gradient-to-br from-emerald-600 via-teal-600 to-slate-900 text-white relative overflow-hidden">
+      <section className="py-16 sm:py-24 bg-gradient-to-br from-blue-600 via-purple-600 to-teal-600 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
         <div className="absolute top-0 left-0 w-64 sm:w-96 h-64 sm:h-96 bg-gradient-to-br from-white/10 to-transparent rounded-full blur-3xl"></div>
         <div className="absolute bottom-0 right-0 w-64 sm:w-96 h-64 sm:h-96 bg-gradient-to-tl from-white/10 to-transparent rounded-full blur-3xl"></div>
@@ -649,7 +649,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
           <Button
             onClick={onLogin}
             size="lg"
-            className="bg-white hover:bg-slate-100 text-emerald-600 shadow-2xl rounded-full px-8 sm:px-16 h-14 sm:h-20 text-lg sm:text-2xl font-black mb-4 sm:mb-6 group"
+            className="bg-white hover:bg-slate-100 text-purple-600 shadow-2xl rounded-full px-8 sm:px-16 h-14 sm:h-20 text-lg sm:text-2xl font-black mb-4 sm:mb-6 group"
           >
             <span className="flex items-center gap-2 sm:gap-3">
               <Rocket className="w-6 h-6 sm:w-8 sm:h-8" />
@@ -674,43 +674,43 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-slate-900 text-slate-400 py-8 sm:py-12">
+      <footer className="bg-slate-100 text-slate-600 py-8 sm:py-12">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-8 mb-8">
             <div>
-              <h3 className="font-bold text-white text-sm sm:text-base mb-3 sm:mb-4">Product</h3>
+              <h3 className="font-bold text-slate-900 text-sm sm:text-base mb-3 sm:mb-4">Product</h3>
               <ul className="space-y-2 text-xs sm:text-sm">
-                <li><a href="#features" className="hover:text-white transition-colors">Features</a></li>
-                <li><a href="#pricing" className="hover:text-white transition-colors">Pricing</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Integrations</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Changelog</a></li>
+                <li><a href="#features" className="hover:text-blue-600 transition-colors">Features</a></li>
+                <li><a href="#pricing" className="hover:text-blue-600 transition-colors">Pricing</a></li>
+                <li><a href="#" className="hover:text-blue-600 transition-colors">Integrations</a></li>
+                <li><a href="#" className="hover:text-blue-600 transition-colors">Changelog</a></li>
               </ul>
             </div>
             <div>
-              <h3 className="font-bold text-white text-sm sm:text-base mb-3 sm:mb-4">Company</h3>
+              <h3 className="font-bold text-slate-900 text-sm sm:text-base mb-3 sm:mb-4">Company</h3>
               <ul className="space-y-2 text-xs sm:text-sm">
-                <li><a href="#" className="hover:text-white transition-colors">About</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
+                <li><a href="#" className="hover:text-blue-600 transition-colors">About</a></li>
+                <li><a href="#" className="hover:text-blue-600 transition-colors">Blog</a></li>
+                <li><a href="#" className="hover:text-blue-600 transition-colors">Careers</a></li>
+                <li><a href="#" className="hover:text-blue-600 transition-colors">Contact</a></li>
               </ul>
             </div>
             <div>
-              <h3 className="font-bold text-white text-sm sm:text-base mb-3 sm:mb-4">Resources</h3>
+              <h3 className="font-bold text-slate-900 text-sm sm:text-base mb-3 sm:mb-4">Resources</h3>
               <ul className="space-y-2 text-xs sm:text-sm">
-                <li><a href="#" className="hover:text-white transition-colors">Documentation</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Community</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Status</a></li>
+                <li><a href="#" className="hover:text-blue-600 transition-colors">Documentation</a></li>
+                <li><a href="#" className="hover:text-blue-600 transition-colors">Help Center</a></li>
+                <li><a href="#" className="hover:text-blue-600 transition-colors">Community</a></li>
+                <li><a href="#" className="hover:text-blue-600 transition-colors">Status</a></li>
               </ul>
             </div>
             <div>
-              <h3 className="font-bold text-white text-sm sm:text-base mb-3 sm:mb-4">Legal</h3>
+              <h3 className="font-bold text-slate-900 text-sm sm:text-base mb-3 sm:mb-4">Legal</h3>
               <ul className="space-y-2 text-xs sm:text-sm">
-                <li><a href="#" className="hover:text-white transition-colors">Privacy</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Terms</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Security</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Compliance</a></li>
+                <li><a href="#" className="hover:text-blue-600 transition-colors">Privacy</a></li>
+                <li><a href="#" className="hover:text-blue-600 transition-colors">Terms</a></li>
+                <li><a href="#" className="hover:text-blue-600 transition-colors">Security</a></li>
+                <li><a href="#" className="hover:text-blue-600 transition-colors">Compliance</a></li>
               </ul>
             </div>
           </div>
