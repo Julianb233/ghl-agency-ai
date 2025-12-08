@@ -14,23 +14,26 @@ type ViewState = 'LANDING' | 'LOGIN' | 'ONBOARDING' | 'DASHBOARD' | 'ALEX_RAMOZY
 type UserTier = 'STARTER' | 'GROWTH' | 'WHITELABEL';
 
 function App() {
-  // NOTE: Defaulting to LANDING as requested by user
-  const [currentView, setCurrentView] = useState<ViewState>('LANDING');
-  const [userTier, setUserTier] = useState<UserTier>('WHITELABEL'); // Default to max tier for testing
-  const [credits, setCredits] = useState(5000);
-
-  // Check for active session
+  // Check for active session first
   const { data: user, isLoading: isAuthLoading, error: authError } = trpc.auth.me.useQuery(undefined, {
     retry: false,
     refetchOnWindowFocus: false,
   });
 
+  // Set initial view based on auth status - if user is logged in, go straight to DASHBOARD
+  const [currentView, setCurrentView] = useState<ViewState>(user ? 'DASHBOARD' : 'LANDING');
+  const [userTier, setUserTier] = useState<UserTier>('WHITELABEL'); // Default to max tier for testing
+  const [credits, setCredits] = useState(5000);
+
   useEffect(() => {
     if (user) {
       // User is logged in, redirect to dashboard
       setCurrentView('DASHBOARD');
+    } else if (!isAuthLoading && !user) {
+      // User is not logged in and auth check is complete, show landing page
+      setCurrentView('LANDING');
     }
-  }, [user]);
+  }, [user, isAuthLoading]);
 
   const handleLogin = (tier: UserTier) => {
     setUserTier(tier);
