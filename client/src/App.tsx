@@ -20,18 +20,21 @@ function App() {
     refetchOnWindowFocus: false,
   });
 
-  // Set initial view based on auth status - if user is logged in, go straight to DASHBOARD
-  const [currentView, setCurrentView] = useState<ViewState>(user ? 'DASHBOARD' : 'LANDING');
+  // Set initial view to null, will be determined after auth check
+  const [currentView, setCurrentView] = useState<ViewState | null>(null);
   const [userTier, setUserTier] = useState<UserTier>('WHITELABEL'); // Default to max tier for testing
   const [credits, setCredits] = useState(5000);
 
   useEffect(() => {
-    if (user) {
-      // User is logged in, redirect to dashboard
-      setCurrentView('DASHBOARD');
-    } else if (!isAuthLoading && !user) {
-      // User is not logged in and auth check is complete, show landing page
-      setCurrentView('LANDING');
+    // Only set view after auth check is complete
+    if (!isAuthLoading) {
+      if (user) {
+        // User is logged in, go to dashboard
+        setCurrentView('DASHBOARD');
+      } else {
+        // User is not logged in, show landing page
+        setCurrentView('LANDING');
+      }
     }
   }, [user, isAuthLoading]);
 
@@ -46,7 +49,8 @@ function App() {
     setCurrentView('DASHBOARD');
   };
 
-  if (isAuthLoading) {
+  // Show loading spinner while auth is loading OR view hasn't been determined yet
+  if (isAuthLoading || currentView === null) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-950">
         <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
