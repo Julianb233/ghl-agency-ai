@@ -4,9 +4,11 @@ import { type Server } from "http";
 import { nanoid } from "nanoid";
 import path from "path";
 import { createServer as createViteServer } from "vite";
-import viteConfig from "../../vite.config";
 
 export async function setupVite(app: Express, server: Server) {
+  // Dynamic import to prevent bundling vite.config and its dependencies (like @tailwindcss/vite and lightningcss)
+  const { default: viteConfig } = await import("../../vite.config.js");
+  
   const serverOptions = {
     middlewareMode: true,
     hmr: { server },
