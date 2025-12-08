@@ -46,8 +46,8 @@ export function getSessionCookieOptions(
   return {
     httpOnly: true,
     path: "/",
-    // On localhost/http, we must use 'lax' because 'none' requires secure: true
-    sameSite: secure ? "none" : "lax",
+    // Use 'lax' for better compatibility - OAuth redirect is same-site
+    sameSite: "lax",
     secure: secure,
     ...(domain && { domain }),
   };
