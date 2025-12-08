@@ -142,10 +142,19 @@ export function registerGoogleAuthRoutes(app: Express) {
                 expiresInMs: ONE_YEAR_MS,
             });
 
-            console.log('[Google Auth] Session token created');
+            console.log('[Google Auth] Session token created:', sessionToken.substring(0, 20) + '...');
 
             const cookieOptions = getSessionCookieOptions(req);
-            res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
+            console.log('[Google Auth] Cookie options:', JSON.stringify(cookieOptions));
+            console.log('[Google Auth] Request hostname:', req.hostname);
+            console.log('[Google Auth] Request protocol:', req.protocol);
+            console.log('[Google Auth] Request headers x-forwarded-proto:', req.headers['x-forwarded-proto']);
+            
+            const fullCookieOptions = { ...cookieOptions, maxAge: ONE_YEAR_MS };
+            console.log('[Google Auth] Full cookie options:', JSON.stringify(fullCookieOptions));
+            
+            res.cookie(COOKIE_NAME, sessionToken, fullCookieOptions);
+            console.log('[Google Auth] Cookie set with name:', COOKIE_NAME);
 
             console.log('[Google Auth] Authentication successful, redirecting to /');
             res.redirect("/");
