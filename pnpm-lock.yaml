@@ -22,6 +22,9 @@ importers:
       '@aws-sdk/s3-request-presigner':
         specifier: ^3.693.0
         version: 3.907.0
+      '@browserbasehq/sdk':
+        specifier: ^2.6.0
+        version: 2.6.0
       '@browserbasehq/stagehand':
         specifier: ^3.0.3
         version: 3.0.3(@cfworker/json-schema@4.1.1)(@opentelemetry/api@1.9.0)(deepmerge@4.3.1)(dotenv@17.2.3)(zod@4.1.12)
