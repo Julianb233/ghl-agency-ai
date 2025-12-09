@@ -8,6 +8,7 @@ import { browserbaseSDK } from "../../_core/browserbaseSDK";
 import { Stagehand } from "@browserbasehq/stagehand";
 import { sessionMetricsService } from "../../services/sessionMetrics.service";
 import { websocketService } from "../../services/websocket.service";
+import { persistentSessionManager } from "../../services/persistentSession.service";
 
 /**
  * Browser Control API Router
@@ -118,76 +119,68 @@ const observeSchema = z.object({
 
 // ========================================
 // STAGEHAND INSTANCE MANAGEMENT
+// Uses persistent session manager for session reuse
 // ========================================
 
 /**
- * Active Stagehand instances mapped by session ID
- * This allows reusing browser sessions across multiple operations
- */
-const stagehandInstances = new Map<string, Stagehand>();
-
-/**
  * Get or create Stagehand instance for a session
+ * This uses the persistent session manager to handle session lifecycle
+ *
+ * @param sessionId - Optional session ID. If provided, will try to use that session.
+ *                   If not provided, will use/create user's persistent session.
+ * @param userId - User ID for session tracking
+ * @param browserSettings - Optional browser configuration
  */
 async function getStagehandInstance(
-  sessionId: string,
+  sessionId: string | undefined,
   userId: number,
   browserSettings?: any
-): Promise<{ stagehand: Stagehand; isNew: boolean }> {
-  // Check if instance already exists
-  if (stagehandInstances.has(sessionId)) {
-    return { stagehand: stagehandInstances.get(sessionId)!, isNew: false };
+): Promise<{ stagehand: Stagehand; isNew: boolean; sessionId: string }> {
+  // If specific sessionId provided, try to get it from persistent manager
+  if (sessionId) {
+    const existingSession = persistentSessionManager.getSession(sessionId);
+    if (existingSession) {
+      console.log(`[Browser] Reusing existing session from persistent manager: ${sessionId}`);
+      await persistentSessionManager.updateActivity(sessionId);
+      return {
+        stagehand: existingSession.stagehand,
+        isNew: false,
+        sessionId,
+      };
+    }
   }
 
-  // Create new instance
-  console.log(`[Browser] Creating new Stagehand instance for session ${sessionId}`);
+  // Use persistent session manager to get or create a session
+  console.log(`[Browser] Getting/creating persistent session for user ${userId}`);
 
-  const stagehand = new Stagehand({
-    env: "BROWSERBASE",
-    verbose: 1,
-    disablePino: true,
-    model: "google/gemini-2.0-flash",
-    apiKey: process.env.BROWSERBASE_API_KEY,
-    projectId: process.env.BROWSERBASE_PROJECT_ID,
-    browserbaseSessionCreateParams: {
-      projectId: process.env.BROWSERBASE_PROJECT_ID!,
-      proxies: true,
-      region: "us-west-2",
-      timeout: browserSettings?.timeout || 3600,
-      keepAlive: browserSettings?.keepAlive !== false,
-      browserSettings: {
-        advancedStealth: browserSettings?.advancedStealth || false,
-        blockAds: browserSettings?.blockAds !== false,
-        solveCaptchas: browserSettings?.solveCaptchas !== false,
-        recordSession: browserSettings?.recordSession !== false,
-        viewport: browserSettings?.viewport || { width: 1920, height: 1080 },
-      },
-      userMetadata: {
-        userId: `user-${userId}`,
-        sessionId,
-        environment: process.env.NODE_ENV || "development",
-      },
+  const persistentSession = await persistentSessionManager.getOrCreateSession(userId, {
+    browserSettings: {
+      viewport: browserSettings?.viewport || { width: 1920, height: 1080 },
+      blockAds: browserSettings?.blockAds !== false,
+      solveCaptchas: browserSettings?.solveCaptchas !== false,
+      advancedStealth: browserSettings?.advancedStealth || false,
     },
+    timeout: (browserSettings?.timeout || 3600) * 1000, // Convert to milliseconds
+    keepAlive: browserSettings?.keepAlive !== false,
+    recordSession: browserSettings?.recordSession !== false,
   });
 
-  await stagehand.init();
-  stagehandInstances.set(sessionId, stagehand);
-
-  return { stagehand, isNew: true };
+  return {
+    stagehand: persistentSession.stagehand,
+    isNew: persistentSession.isNew,
+    sessionId: persistentSession.sessionId,
+  };
 }
 
 /**
- * Close and cleanup Stagehand instance
+ * Close and cleanup Stagehand instance via persistent session manager
  */
 async function closeStagehandInstance(sessionId: string): Promise<void> {
-  const stagehand = stagehandInstances.get(sessionId);
-  if (stagehand) {
-    try {
-      await stagehand.close();
-    } catch (error) {
-      console.error(`[Browser] Error closing Stagehand for session ${sessionId}:`, error);
-    }
-    stagehandInstances.delete(sessionId);
+  try {
+    await persistentSessionManager.closeSession(sessionId);
+    console.log(`[Browser] Session ${sessionId} closed via persistent session manager`);
+  } catch (error) {
+    console.error(`[Browser] Error closing session ${sessionId}:`, error);
   }
 }
 
@@ -289,11 +282,11 @@ export const browserRouter = router({
       const userId = ctx.user.id;
 
       try {
-        // Get or create Stagehand instance
-        const { stagehand } = await getStagehandInstance(input.sessionId, userId);
+        // Get or create Stagehand instance (uses persistent session if no sessionId provided)
+        const { stagehand, sessionId } = await getStagehandInstance(input.sessionId, userId);
         const page = stagehand.context.pages()[0];
 
-        console.log(`[Browser] Navigating to ${input.url} in session ${input.sessionId}`);
+        console.log(`[Browser] Navigating to ${input.url} in session ${sessionId}`);
 
         // Navigate to URL
         await page.goto(input.url, {
@@ -306,17 +299,17 @@ export const browserRouter = router({
         if (db) {
           await db.update(browserSessions)
             .set({ url: input.url, updatedAt: new Date() })
-            .where(eq(browserSessions.sessionId, input.sessionId));
+            .where(eq(browserSessions.sessionId, sessionId));
         }
 
         // Track navigation metric
-        await sessionMetricsService.trackOperation(input.sessionId, "navigate", {
+        await sessionMetricsService.trackOperation(sessionId, "navigate", {
           url: input.url,
         });
 
         // Emit WebSocket event
         websocketService.broadcastToUser(userId, "browser:navigation", {
-          sessionId: input.sessionId,
+          sessionId,
           url: input.url,
           timestamp: new Date(),
         });
@@ -324,6 +317,7 @@ export const browserRouter = router({
         return {
           success: true,
           url: input.url,
+          sessionId,
           timestamp: new Date(),
         };
       } catch (error) {
@@ -344,7 +338,7 @@ export const browserRouter = router({
       const userId = ctx.user.id;
 
       try {
-        const { stagehand } = await getStagehandInstance(input.sessionId, userId);
+        const { stagehand, sessionId } = await getStagehandInstance(input.sessionId, userId);
         const page = stagehand.context.pages()[0];
 
         console.log(`[Browser] Clicking element: ${input.selector || input.instruction}`);
@@ -374,14 +368,14 @@ export const browserRouter = router({
         }
 
         // Track operation
-        await sessionMetricsService.trackOperation(input.sessionId, "click", {
+        await sessionMetricsService.trackOperation(sessionId, "click", {
           selector: input.selector,
           method,
         });
 
         // Emit WebSocket event
         websocketService.broadcastToUser(userId, "browser:action", {
-          sessionId: input.sessionId,
+          sessionId,
           action: "click",
           selector: input.selector,
           method,
@@ -391,6 +385,7 @@ export const browserRouter = router({
         return {
           success: true,
           method,
+          sessionId,
           timestamp: new Date(),
         };
       } catch (error) {
@@ -411,7 +406,7 @@ export const browserRouter = router({
       const userId = ctx.user.id;
 
       try {
-        const { stagehand } = await getStagehandInstance(input.sessionId, userId);
+        const { stagehand, sessionId } = await getStagehandInstance(input.sessionId, userId);
         const page = stagehand.context.pages()[0];
 
         console.log(`[Browser] Typing text into: ${input.selector || input.instruction}`);
@@ -444,7 +439,7 @@ export const browserRouter = router({
         }
 
         // Track operation (don't log actual text for security)
-        await sessionMetricsService.trackOperation(input.sessionId, "type", {
+        await sessionMetricsService.trackOperation(sessionId, "type", {
           selector: input.selector,
           method,
           textLength: input.text.length,
@@ -452,7 +447,7 @@ export const browserRouter = router({
 
         // Emit WebSocket event
         websocketService.broadcastToUser(userId, "browser:action", {
-          sessionId: input.sessionId,
+          sessionId,
           action: "type",
           selector: input.selector,
           method,
@@ -462,6 +457,7 @@ export const browserRouter = router({
         return {
           success: true,
           method,
+          sessionId,
           timestamp: new Date(),
         };
       } catch (error) {
@@ -482,7 +478,7 @@ export const browserRouter = router({
       const userId = ctx.user.id;
 
       try {
-        const { stagehand } = await getStagehandInstance(input.sessionId, userId);
+        const { stagehand, sessionId } = await getStagehandInstance(input.sessionId, userId);
         const page = stagehand.context.pages()[0];
 
         console.log(`[Browser] Scrolling to position:`, input.position);
@@ -502,13 +498,14 @@ export const browserRouter = router({
         await page.evaluate(scrollExpression);
 
         // Track operation
-        await sessionMetricsService.trackOperation(input.sessionId, "scroll", {
+        await sessionMetricsService.trackOperation(sessionId, "scroll", {
           position: input.position,
         });
 
         return {
           success: true,
           position: input.position,
+          sessionId,
           timestamp: new Date(),
         };
       } catch (error) {
@@ -530,7 +527,7 @@ export const browserRouter = router({
       const db = await getDb();
 
       try {
-        const { stagehand } = await getStagehandInstance(input.sessionId, userId);
+        const { stagehand, sessionId } = await getStagehandInstance(input.sessionId, userId);
         const page = stagehand.context.pages()[0];
 
         console.log(`[Browser] Extracting data with instruction: ${input.instruction}`);
@@ -588,7 +585,7 @@ export const browserRouter = router({
           const [session] = await db
             .select()
             .from(browserSessions)
-            .where(eq(browserSessions.sessionId, input.sessionId))
+            .where(eq(browserSessions.sessionId, sessionId))
             .limit(1);
 
           if (session) {
@@ -609,14 +606,14 @@ export const browserRouter = router({
         }
 
         // Track operation
-        await sessionMetricsService.trackOperation(input.sessionId, "extract", {
+        await sessionMetricsService.trackOperation(sessionId, "extract", {
           schemaType: input.schemaType,
           dataSize: JSON.stringify(extractedData).length,
         });
 
         // Emit WebSocket event
         websocketService.broadcastToUser(userId, "browser:data:extracted", {
-          sessionId: input.sessionId,
+          sessionId,
           url: currentUrl,
           dataType: input.schemaType,
           recordId: dbRecord?.id,
@@ -627,6 +624,7 @@ export const browserRouter = router({
           success: true,
           data: extractedData,
           url: currentUrl,
+          sessionId,
           savedToDatabase: !!dbRecord,
           recordId: dbRecord?.id,
           timestamp: new Date(),
@@ -649,10 +647,10 @@ export const browserRouter = router({
       const userId = ctx.user.id;
 
       try {
-        const { stagehand } = await getStagehandInstance(input.sessionId, userId);
+        const { stagehand, sessionId } = await getStagehandInstance(input.sessionId, userId);
         const page = stagehand.context.pages()[0];
 
-        console.log(`[Browser] Taking screenshot for session ${input.sessionId}`);
+        console.log(`[Browser] Taking screenshot for session ${sessionId}`);
 
         // Take screenshot
         const screenshotBuffer = await page.screenshot({
@@ -666,14 +664,14 @@ export const browserRouter = router({
         const dataUrl = `data:image/png;base64,${screenshotBase64}`;
 
         // Track operation
-        await sessionMetricsService.trackOperation(input.sessionId, "screenshot", {
+        await sessionMetricsService.trackOperation(sessionId, "screenshot", {
           fullPage: input.fullPage,
           size: screenshotBuffer.length,
         });
 
         // Emit WebSocket event
         websocketService.broadcastToUser(userId, "browser:screenshot:captured", {
-          sessionId: input.sessionId,
+          sessionId,
           size: screenshotBuffer.length,
           timestamp: new Date(),
         });
@@ -681,6 +679,7 @@ export const browserRouter = router({
         return {
           success: true,
           screenshot: dataUrl,
+          sessionId,
           size: screenshotBuffer.length,
           timestamp: new Date(),
         };
@@ -702,20 +701,20 @@ export const browserRouter = router({
       const userId = ctx.user.id;
 
       try {
-        const { stagehand } = await getStagehandInstance(input.sessionId, userId);
+        const { stagehand, sessionId } = await getStagehandInstance(input.sessionId, userId);
 
         console.log(`[Browser] Performing AI action: ${input.instruction}`);
 
         await stagehand.act(input.instruction);
 
         // Track operation
-        await sessionMetricsService.trackOperation(input.sessionId, "act", {
+        await sessionMetricsService.trackOperation(sessionId, "act", {
           instruction: input.instruction,
         });
 
         // Emit WebSocket event
         websocketService.broadcastToUser(userId, "browser:action", {
-          sessionId: input.sessionId,
+          sessionId,
           action: "act",
           instruction: input.instruction,
           timestamp: new Date(),
@@ -724,6 +723,7 @@ export const browserRouter = router({
         return {
           success: true,
           instruction: input.instruction,
+          sessionId,
           timestamp: new Date(),
         };
       } catch (error) {
@@ -744,14 +744,14 @@ export const browserRouter = router({
       const userId = ctx.user.id;
 
       try {
-        const { stagehand } = await getStagehandInstance(input.sessionId, userId);
+        const { stagehand, sessionId } = await getStagehandInstance(input.sessionId, userId);
 
         console.log(`[Browser] Observing page: ${input.instruction}`);
 
         const actions = await stagehand.observe(input.instruction);
 
         // Track operation
-        await sessionMetricsService.trackOperation(input.sessionId, "observe", {
+        await sessionMetricsService.trackOperation(sessionId, "observe", {
           instruction: input.instruction,
           actionsFound: actions.length,
         });
@@ -759,6 +759,7 @@ export const browserRouter = router({
         return {
           success: true,
           actions,
+          sessionId,
           timestamp: new Date(),
         };
       } catch (error) {

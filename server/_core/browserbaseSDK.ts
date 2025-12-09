@@ -361,6 +361,101 @@ class BrowserbaseSDKService {
       // TODO: Map geolocation to proxy settings if supported by Browserbase SDK directly
     });
   }
+
+  /**
+   * Terminate a Browserbase session
+   *
+   * @param sessionId - The session ID to terminate
+   * @returns void
+   *
+   * @example
+   * ```ts
+   * await browserbaseSDK.terminateSession('session_123');
+   * ```
+   */
+  public async terminateSession(sessionId: string): Promise<void> {
+    const client = this.ensureClient();
+
+    if (!sessionId) {
+      throw new BrowserbaseSDKError(
+        'Session ID is required',
+        'MISSING_SESSION_ID'
+      );
+    }
+
+    try {
+      console.log('[BrowserbaseSDK] Terminating session:', sessionId);
+
+      // Browserbase SDK uses sessions.update to change status
+      await client.sessions.update(sessionId, {
+        status: 'REQUEST_RELEASE',
+      });
+
+      console.log('[BrowserbaseSDK] Session terminated successfully');
+    } catch (error) {
+      console.error('[BrowserbaseSDK] Failed to terminate session:', error);
+      throw new BrowserbaseSDKError(
+        `Failed to terminate session: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        'TERMINATE_SESSION_ERROR',
+        error
+      );
+    }
+  }
+
+  /**
+   * Get session status
+   *
+   * @param sessionId - The session ID to check
+   * @returns Session status information
+   */
+  public async getSessionStatus(sessionId: string): Promise<{
+    id: string;
+    status: 'RUNNING' | 'COMPLETED' | 'ERROR' | 'TIMED_OUT';
+    projectId: string;
+    createdAt: string;
+  }> {
+    const client = this.ensureClient();
+
+    if (!sessionId) {
+      throw new BrowserbaseSDKError(
+        'Session ID is required',
+        'MISSING_SESSION_ID'
+      );
+    }
+
+    try {
+      console.log('[BrowserbaseSDK] Getting session status:', sessionId);
+
+      const session = await client.sessions.retrieve(sessionId);
+
+      console.log('[BrowserbaseSDK] Session status retrieved:', session.status);
+
+      return session as any;
+    } catch (error) {
+      console.error('[BrowserbaseSDK] Failed to get session status:', error);
+      throw new BrowserbaseSDKError(
+        `Failed to get session status: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        'GET_SESSION_STATUS_ERROR',
+        error
+      );
+    }
+  }
+
+  /**
+   * Check if a session is still running
+   *
+   * @param sessionId - The session ID to check
+   * @returns true if session is running, false otherwise
+   */
+  public async isSessionRunning(sessionId: string): Promise<boolean> {
+    try {
+      const session = await this.getSessionStatus(sessionId);
+      return session.status === 'RUNNING';
+    } catch (error) {
+      // If we can't get status, assume session is not running
+      return false;
+    }
+  }
 }
 
 // Export singleton instance
