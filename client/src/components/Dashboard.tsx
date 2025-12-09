@@ -1,6 +1,7 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
+import { trpc } from '../lib/trpc';
 // Gemini service removed - will be implemented server-side via tRPC
+import { MissionStatus } from './MissionStatus';
 import { executeStep } from '../services/mockAutomation';
 import { sendSlackAlert } from '../services/slackService';
 import { AgentStatus, AgentTask, AgentStep, LogEntry, IntegrationStatus, SlackConfig, ClientContext, User, TeamActivity, Asset, SeoConfig, SupportTicket, AgentInstance, SettingsTab, DriveFile } from '../types';
@@ -112,7 +113,8 @@ interface DashboardProps {
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initialCredits }) => {
-  const isDemo = import.meta.env.VITE_DEMO_MODE === '1';
+  // Enable demo mode by default (set VITE_DEMO_MODE=0 to disable)
+  const isDemo = import.meta.env.VITE_DEMO_MODE !== '0';
   const [viewMode, setViewMode] = useState<'GLOBAL' | 'TERMINAL' | 'EMAIL_AGENT' | 'VOICE_AGENT' | 'SETTINGS' | 'SEO' | 'ADS' | 'MARKETPLACE' | 'AI_BROWSER'>('GLOBAL');
   const [status, setStatus] = useState<AgentStatus>(AgentStatus.IDLE);
   const [task, setTask] = useState<AgentTask | null>(null);
@@ -130,11 +132,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
   const [isDriveConnected, setIsDriveConnected] = useState(false);
   const [driveFiles, setDriveFiles] = useState<DriveFile[]>(isDemo ? DEMO_DRIVE_FILES : []);
 
-  // Client list state (demo clients when enabled, otherwise empty)
+  // Client list state (demo clients enabled by default)
   const [clients] = useState<ClientContext[]>(isDemo ? DEMO_CLIENTS : []);
 
   // User/Team State
   const [currentUser, setCurrentUser] = useState<User>(DEFAULT_USER);
+  const [users] = useState<User[]>([DEFAULT_USER]); // Team users list
   const [activities] = useState<TeamActivity[]>([]);
 
   // Ticket State
@@ -155,6 +158,18 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
   const [mobileTerminalTab, setMobileTerminalTab] = useState<'CONTEXT' | 'BROWSER' | 'LOGS'>('BROWSER');
 
   // Load settings on mount
+  // Logout Mutation
+  const logoutMutation = trpc.auth.logout.useMutation({
+    onSuccess: () => {
+      // Force reload to clear state and redirect to landing
+      window.location.href = '/';
+    },
+  });
+
+  const handleLogout = () => {
+    logoutMutation.mutate();
+  };
+
   useEffect(() => {
     const saved = localStorage.getItem('ghl_agent_slack_config');
     if (saved) {
@@ -164,11 +179,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
         console.error('Failed to load settings');
       }
     }
-    // In demo mode, default select first client for demo, but view is Global
-    if (isDemo && clients.length > 0) {
+    // In demo mode, default select first client
+    console.log('[Dashboard] Demo mode:', isDemo, 'Clients available:', clients.length);
+    if (isDemo && clients.length > 0 && !selectedClient) {
+      console.log('[Dashboard] Auto-selecting first client:', clients[0].name);
       setSelectedClient(clients[0]);
     }
-  }, []);
+  }, [isDemo, clients, selectedClient]);
 
   const handleOpenSettings = (tab: SettingsTab = 'GENERAL') => {
     setSettingsTab(tab);
@@ -282,6 +299,151 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
     handleCommand(command);
   };
 
+  // AI Session Start Mutation
+  const startSessionMutation = trpc.ai.startSession.useMutation({
+    onSuccess: (response) => {
+      if (response.liveViewUrl) {
+        setLiveViewUrl(response.liveViewUrl);
+        addLog('info', 'Live View Available', 'Browser session started');
+      }
+      if (response.sessionId) {
+        addLog('info', 'Session ID', response.sessionId);
+      }
+    },
+    onError: (error) => {
+      console.error("Failed to start session:", error);
+      addLog('error', 'Session Error', 'Failed to initialize browser session');
+    }
+  });
+
+  // AI Chat Mutation
+  const chatMutation = trpc.ai.chat.useMutation({
+    onSuccess: (response) => {
+      // Update logs with AI response
+      addLog('success', 'AI Response', 'Received response from AI agent');
+
+      // If backend returned a live view URL or session info, reflect it in the UI
+      if (response.liveViewUrl) {
+        setLiveViewUrl(response.liveViewUrl);
+        addLog('info', 'Live View Available', response.liveViewUrl);
+      }
+
+      if (response.sessionId) {
+        addLog('info', 'Session ID', response.sessionId);
+      }
+
+      // Add assistant message to logs
+      if (response.message) {
+        addLog('info', 'AI', response.message);
+      }
+
+      setStatus(AgentStatus.COMPLETED);
+    },
+    onError: (error) => {
+      console.error(error);
+      setStatus(AgentStatus.ERROR);
+      addLog('error', 'AI Error', error.message);
+    }
+  });
+
+  const [liveViewUrl, setLiveViewUrl] = useState<string | undefined>(undefined);
+  const [currentGoal, setCurrentGoal] = useState<string>('');
+  const [currentSessionId, setCurrentSessionId] = useState<string | undefined>(undefined);
+  const [sseEventSource, setSseEventSource] = useState<EventSource | null>(null);
+
+  // Cleanup SSE on unmount
+  useEffect(() => {
+    return () => {
+      if (sseEventSource) {
+        sseEventSource.close();
+      }
+    };
+  }, [sseEventSource]);
+
+  // Connect to SSE stream for real-time updates
+  const connectToSSE = (sessionId: string) => {
+    // Close existing connection if any
+    if (sseEventSource) {
+      sseEventSource.close();
+    }
+
+    addLog('info', 'Connecting to live stream...', `Session: ${sessionId}`);
+
+    const eventSource = new EventSource(`/api/ai/stream/${sessionId}`);
+
+    eventSource.onmessage = (event) => {
+      try {
+        const update = JSON.parse(event.data);
+        console.log('[SSE] Received update:', update);
+
+        switch (update.type) {
+          case 'connected':
+            addLog('info', 'Live Stream Connected', 'Receiving real-time updates');
+            break;
+          case 'session_created':
+            addLog('info', 'Browser Session Created', update.message || 'Starting browser...');
+            break;
+          case 'live_view_ready':
+            if (update.data?.liveViewUrl) {
+              setLiveViewUrl(update.data.liveViewUrl);
+              addLog('success', 'Live View Ready!', 'Browser is now visible');
+            }
+            break;
+          case 'navigation':
+            if (update.data?.url) {
+              addLog('info', 'Navigating', `Going to: ${update.data.url}`);
+            }
+            break;
+          case 'action_start':
+            if (update.data?.action) {
+              addLog('info', 'Executing Action', update.data.action);
+              setStatus(AgentStatus.EXECUTING);
+            }
+            break;
+          case 'action_complete':
+            addLog('success', 'Action Complete', update.message || 'Action finished successfully');
+            break;
+          case 'error':
+            addLog('error', 'Error', update.message || 'An error occurred');
+            setStatus(AgentStatus.ERROR);
+            break;
+          case 'complete':
+            addLog('success', 'Task Complete', update.message || 'All actions completed');
+            setStatus(AgentStatus.COMPLETED);
+            break;
+        }
+      } catch (err) {
+        console.error('[SSE] Failed to parse event:', err);
+      }
+    };
+
+    eventSource.onerror = (error) => {
+      console.error('[SSE] Connection error:', error);
+      eventSource.close();
+      setSseEventSource(null);
+    };
+
+    setSseEventSource(eventSource);
+  };
+
+  const handleNewSession = () => {
+    // Close SSE connection
+    if (sseEventSource) {
+      sseEventSource.close();
+      setSseEventSource(null);
+    }
+
+    // Reset session state
+    setCurrentSessionId(undefined);
+    setLiveViewUrl(undefined);
+    setLogs([]);
+    setScreenshot(undefined);
+    setStatus(AgentStatus.IDLE);
+    setCurrentGoal('');
+
+    addLog('info', 'New Session Started', 'Previous session closed, ready for new tasks');
+  };
+
   const handleCommand = async (input: string) => {
     // Permission Guard
     if (currentUser.role === 'VA') {
@@ -301,78 +463,81 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
     }
 
     setStatus(AgentStatus.PLANNING);
-    setLogs([]);
-    setScreenshot(undefined);
+
+    // Only clear logs and reset state if starting a NEW session
+    if (!currentSessionId) {
+      setLogs([]);
+      setScreenshot(undefined);
+      setLiveViewUrl(undefined);
+    }
+
+    setCurrentGoal(input);
 
     try {
-      addLog('info', 'Agent is thinking...', 'Generating execution plan based on context and request.');
+      setStatus(AgentStatus.PLANNING);
 
-      // Mock plan generation - will be replaced with tRPC call
-      const plan: AgentTask = {
-        id: crypto.randomUUID(),
-        description: input,
-        subaccount: selectedClient.subaccountName,
-        clientName: selectedClient.name,
-        status: 'in-progress',
-        steps: [
-          { id: '1', action: 'Navigate to GHL', target: '.login', status: 'pending' },
-          { id: '2', action: 'Execute task', target: '.submit', status: 'pending' }
-        ]
-      };
+      // Only create a new session if we don't have one
+      let sessionIdToUse = currentSessionId;
 
-      setTask(plan);
-      addLog('success', 'Plan Generated', `${plan.steps.length} steps identified for subaccount: ${plan.subaccount}`);
+      if (!sessionIdToUse) {
+        addLog('info', 'Creating browser session...', 'Initializing Browserbase');
+        const sessionResult = await startSessionMutation.mutateAsync({});
 
-      setStatus(AgentStatus.EXECUTING);
-
-      // Execute Loop
-      let totalSessionCost = 0;
-
-      for (const step of plan.steps) {
-        setActiveStepId(step.id);
-
-        // Stop if credits run out mid-execution
-        if (availableCredits - totalSessionCost <= 0) {
-          addLog('error', 'Balance Depleted', 'Halting execution due to insufficient funds.');
-          setStatus(AgentStatus.ERROR);
-          return;
+        if (!sessionResult.sessionId) {
+          throw new Error('Failed to create browser session');
         }
 
-        const result = await executeStep(step);
+        sessionIdToUse = sessionResult.sessionId;
+        setCurrentSessionId(sessionIdToUse);
+        setLiveViewUrl(sessionResult.liveViewUrl);
 
-        // Billing Logic: Charge per minute of execution
-        // Standard Rate: $0.20 per minute (approx $0.0033 per second)
-        const costPerMs = 0.20 / 60000;
-        const stepCost = result.duration * costPerMs;
+        addLog('info', 'Session Created', `ID: ${sessionIdToUse.slice(0, 8)}`);
+        addLog('info', 'Connecting to live stream...', 'Setting up real-time updates');
 
-        // Update Credits
-        setAvailableCredits(prev => Math.max(0, prev - stepCost));
-        totalSessionCost += stepCost;
+        // Connect to SSE BEFORE executing the command
+        connectToSSE(sessionIdToUse);
 
-        // Merge logs
-        result.logs.forEach(l => addLog(l.level, l.message, l.detail));
-
-        if (result.screenshot) {
-          setScreenshot(result.screenshot);
-        }
-
-        if (!result.success) {
-          setStatus(AgentStatus.ERROR);
-          addLog('error', 'Step Failed', step.action);
-          const fixSuggestion = 'Retry with alternative selector or increase timeout';
-          addLog('warning', 'AI Suggestion', fixSuggestion);
-
-          await sendSlackAlert(slackConfig.webhookUrl, `Mission Failed at step: ${step.action}`, 'error');
-          return;
+        // Give SSE connection time to establish
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      } else {
+        addLog('info', 'Reusing session', `ID: ${sessionIdToUse.slice(0, 8)}`);
+        // Ensure SSE is connected for existing session
+        if (!sseEventSource) {
+          addLog('info', 'Reconnecting to live stream...', 'Re-establishing updates');
+          connectToSSE(sessionIdToUse);
+          await new Promise(resolve => setTimeout(resolve, 500));
         }
       }
 
-      setStatus(AgentStatus.COMPLETED);
-      addLog('success', 'Mission Complete', `All steps executed successfully. Total Cost: $${totalSessionCost.toFixed(3)}`);
-      setScreenshot('https://placehold.co/800x600/10b981/ffffff?text=Mission+Complete');
+      setStatus(AgentStatus.EXECUTING);
+      addLog('info', 'Executing command...', input);
 
-      // Send Success Alert
-      await sendSlackAlert(slackConfig.webhookUrl, `Mission "${input}" completed successfully for ${plan.subaccount}.`, 'success');
+      // Execute the command with the session
+      const chatResult = await chatMutation.mutateAsync({
+        messages: [
+          { role: 'system', content: `You are an AI agent acting on behalf of ${selectedClient.name}. Subaccount: ${selectedClient.subaccountName}.` },
+          { role: 'user', content: input }
+        ],
+        modelName: 'claude-3-7-sonnet-latest',
+        sessionId: sessionIdToUse, // Use the session (new or existing)
+        keepOpen: true, // Keep session open for follow-up commands
+      });
+
+      addLog('info', 'Browserbase Dashboard', `https://www.browserbase.com/sessions/${sessionIdToUse}`);
+      addLog('success', 'Command Complete', chatResult.message || 'Task finished')
+
+      // Show the live view URL
+      if (chatResult.liveViewUrl) {
+        setLiveViewUrl(chatResult.liveViewUrl);
+        addLog('success', 'Live View Available', 'You can now watch the browser in real-time');
+      }
+
+      // Add success message
+      if (chatResult.message) {
+        addLog('success', 'AI Response', chatResult.message);
+      }
+
+      setStatus(AgentStatus.COMPLETED);
 
     } catch (e) {
       console.error(e);
@@ -425,6 +590,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
                 className="w-9 h-9 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 text-white flex items-center justify-center text-xs font-bold hover:shadow-lg transition-shadow"
               >
                 {currentUser.avatarInitials}
+              </button>
+              <button
+                onClick={handleLogout}
+                className="p-2 text-slate-400 hover:text-red-500 transition-colors"
+                title="Logout"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
               </button>
             </div>
           </div>
@@ -580,177 +754,82 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
 
               {/* Left Sidebar: Context & Config */}
               <div className={`${mobileTerminalTab === 'CONTEXT' ? 'flex' : 'hidden'} md:flex col-span-1 md:col-span-3 flex-col gap-4 h-full min-h-0 order-2 md:order-1 overflow-hidden`}>
-                <GlassPane title="Mission Context" className="shrink-0">
-                  <div className="p-4 space-y-4">
-                    {/* Source Selector */}
-                    <div className="flex p-1 bg-slate-100 rounded-lg">
-                      <button
-                        onClick={() => setContextSource('NOTION')}
-                        className={`flex-1 py-1.5 text-[10px] font-bold rounded-md transition-all ${contextSource === 'NOTION' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                      >
-                        Notion
+
+                {/* Mission Context Panel */}
+                <div className="flex-1 min-h-0">
+                  {(status === AgentStatus.EXECUTING || status === AgentStatus.PLANNING) ? (
+                    <MissionStatus
+                      goal={currentGoal}
+                      status={status}
+                      logs={logs}
+                    />
+                  ) : (
+                    <GlassPane title="Mission Context" className="h-full">
+                      <div className="p-4 space-y-4">
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-400 uppercase mb-2">Select Client Profile</label>
+                          <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                            {clients.length === 0 && (
+                              <p className="text-xs text-slate-500">
+                                No client profiles yet. Enable demo mode or connect a sub-account to get started.
+                              </p>
+                            )}
+                            {clients.map(client => (
+                              <button
+                                key={client.id}
+                                onClick={() => setSelectedClient(client)}
+                                className={`w-full text-left p-3 rounded-lg border transition-all ${selectedClient?.id === client.id
+                                  ? 'bg-indigo-50 border-indigo-200 text-indigo-700 font-medium shadow-sm'
+                                  : 'bg-white border-slate-100 text-slate-600 hover:border-indigo-200 hover:bg-indigo-50/50'
+                                  }`}
+                              >
+                                <div className="font-bold text-sm">{client.name}</div>
+                                <div className="text-xs text-slate-500 mt-1">{client.subaccountName}</div>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {selectedClient && (
+                          <div className="pt-4 border-t border-slate-200">
+                            <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className="w-2 h-2 bg-emerald-500 rounded-full"></span>
+                                <span className="text-xs font-bold text-emerald-700">Active Client</span>
+                              </div>
+                              <p className="text-sm font-bold text-emerald-900">{selectedClient.name}</p>
+                              <p className="text-xs text-emerald-600 mt-1">{selectedClient.primaryGoal}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </GlassPane>
+                  )}
+                </div>
+
+                {/* Quick Actions / Tools */}
+                <div className="shrink-0">
+                  <GlassPane title="Quick Actions">
+                    <div className="p-3 grid grid-cols-2 gap-2">
+                      <button className="p-2 bg-slate-50 hover:bg-indigo-50 rounded-lg text-xs font-medium text-slate-600 hover:text-indigo-600 transition flex flex-col items-center gap-1 border border-slate-100 hover:border-indigo-200">
+                        <span className="text-lg">🔍</span>
+                        Audit Site
                       </button>
-                      <button
-                        onClick={() => setContextSource('G_DRIVE')}
-                        className={`flex-1 py-1.5 text-[10px] font-bold rounded-md transition-all ${contextSource === 'G_DRIVE' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                      >
-                        Drive
+                      <button className="p-2 bg-slate-50 hover:bg-indigo-50 rounded-lg text-xs font-medium text-slate-600 hover:text-indigo-600 transition flex flex-col items-center gap-1 border border-slate-100 hover:border-indigo-200">
+                        <span className="text-lg">⚡</span>
+                        Speed Test
                       </button>
-                      <button
-                        onClick={() => setContextSource('PDF')}
-                        className={`flex-1 py-1.5 text-[10px] font-bold rounded-md transition-all ${contextSource === 'PDF' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                      >
-                        Upload
+                      <button className="p-2 bg-slate-50 hover:bg-indigo-50 rounded-lg text-xs font-medium text-slate-600 hover:text-indigo-600 transition flex flex-col items-center gap-1 border border-slate-100 hover:border-indigo-200">
+                        <span className="text-lg">📸</span>
+                        Screenshot
+                      </button>
+                      <button className="p-2 bg-slate-50 hover:bg-indigo-50 rounded-lg text-xs font-medium text-slate-600 hover:text-indigo-600 transition flex flex-col items-center gap-1 border border-slate-100 hover:border-indigo-200">
+                        <span className="text-lg">📝</span>
+                        Summarize
                       </button>
                     </div>
-
-                    {contextSource === 'NOTION' && (
-                      <div>
-                        <label className="block text-[10px] font-bold text-slate-400 uppercase mb-2">Select Client Profile</label>
-                        <div className="space-y-2 max-h-32 overflow-y-auto pr-1">
-                          {clients.length === 0 && (
-                            <p className="text-xs text-slate-500">
-                              No client profiles yet. Connect a sub-account to get started.
-                            </p>
-                          )}
-                          {clients.map(client => (
-                            <button
-                              key={client.id}
-                              onClick={() => setSelectedClient(client)}
-                              className={`w-full text-left p-2 rounded-lg border transition-all text-xs ${selectedClient?.id === client.id
-                                ? 'bg-indigo-50 border-indigo-200 text-indigo-700 font-medium'
-                                : 'bg-white border-slate-100 text-slate-600 hover:border-slate-200'
-                                }`}
-                            >
-                              {client.name}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {contextSource === 'G_DRIVE' && (
-                      <div className="flex flex-col gap-3 h-64">
-                        {!isDriveConnected ? (
-                          <div className="flex-1 border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:bg-white/50 transition-colors flex flex-col items-center justify-center gap-3">
-                            <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center">
-                              <svg className="w-6 h-6" viewBox="0 0 24 24">
-                                <path fill="#4285F4" d="M23.745 12.27c0-.79-.07-1.54-.19-2.27h-11.3v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z" />
-                                <path fill="#34A853" d="M12.255 24c3.24 0 5.95-1.08 7.92-2.91l-3.86-3c-1.08.72-2.45 1.16-4.06 1.16-3.13 0-5.78-2.11-6.73-4.96h-3.98v3.09c1.97 3.92 6.02 6.62 10.71 6.62z" />
-                                <path fill="#FBBC05" d="M5.525 14.29c-.25-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29V6.62h-3.98a11.86 11.86 0 000 10.76l3.98-3.09z" />
-                                <path fill="#EA4335" d="M12.255 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C18.205 1.19 15.495 0 12.255 0c-4.69 0-8.74 2.7-10.71 6.62l3.98 3.09c.95-2.85 3.6-4.96 6.73-4.96z" />
-                              </svg>
-                            </div>
-                            <button
-                              onClick={handleConnectDrive}
-                              className="bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg text-xs font-bold shadow-sm hover:bg-slate-50 transition-colors"
-                            >
-                              Connect Drive
-                            </button>
-                          </div>
-                        ) : (
-                          <>
-                            <div className="bg-emerald-50 text-emerald-700 px-3 py-2 rounded-lg text-[10px] font-medium flex justify-between items-center">
-                              <span>Connected: admin@zenithops.com</span>
-                              <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-                            </div>
-                            <div className="flex-1 overflow-y-auto space-y-2 pr-1">
-                              {driveFiles.map(file => (
-                                <div key={file.id} className="flex items-center gap-2 bg-white p-2 rounded-lg border border-slate-100 shadow-sm">
-                                  <input
-                                    type="checkbox"
-                                    checked={file.selected}
-                                    onChange={() => handleDriveFileToggle(file.id)}
-                                    className="rounded text-indigo-600 focus:ring-indigo-500"
-                                  />
-                                  <span className="text-lg">{file.icon}</span>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-xs font-medium text-slate-700 truncate">{file.name}</p>
-                                    <p className="text-[9px] text-slate-400">Google Doc</p>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                            <button
-                              onClick={handleUseDriveContext}
-                              className="bg-indigo-600 text-white py-2 rounded-lg text-xs font-bold hover:bg-indigo-700 transition-colors shadow-md shadow-indigo-500/20"
-                            >
-                              Import Context & Analyze
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    )}
-
-                    {contextSource === 'PDF' && (
-                      <div className="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:bg-white/50 transition-colors cursor-pointer relative">
-                        <input
-                          type="file"
-                          accept=".pdf"
-                          onChange={handlePdfUpload}
-                          className="absolute inset-0 opacity-0 cursor-pointer"
-                        />
-                        <div className="text-indigo-500 mb-2 mx-auto">
-                          <svg className="w-8 h-8 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
-                        </div>
-                        <p className="text-xs font-medium text-slate-600">{pdfFile ? pdfFile.name : "Drop Brief / Audit PDF"}</p>
-                        <p className="text-[10px] text-slate-400 mt-1">Auto-extracts brand voice & goals</p>
-                      </div>
-                    )}
-                  </div>
-                </GlassPane>
-
-                {/* Context Data Visualization */}
-                <GlassPane className="flex-1 min-h-0 overflow-hidden bg-gradient-to-b from-white/40 to-white/10">
-                  <div className="p-4 space-y-4 overflow-y-auto h-full">
-                    {selectedClient ? (
-                      <>
-                        <div>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Subaccount Target</p>
-                          <div className="bg-white/60 p-2 rounded border border-white/50 text-xs font-mono text-slate-700 flex items-center gap-2">
-                            <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-                            {selectedClient.subaccountName}
-                          </div>
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Brand Voice</p>
-                          <textarea
-                            className="w-full text-xs text-slate-600 bg-indigo-50/50 p-2 rounded border border-indigo-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none resize-y min-h-[80px]"
-                            value={selectedClient.brandVoice}
-                            onChange={(e) => setSelectedClient({ ...selectedClient, brandVoice: e.target.value })}
-                            placeholder="Describe the brand's tone, style, and personality..."
-                          />
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Primary Objective</p>
-                          <textarea
-                            className="w-full text-xs text-slate-700 bg-white p-2 rounded border border-slate-200 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none resize-y min-h-[60px]"
-                            value={selectedClient.primaryGoal}
-                            onChange={(e) => setSelectedClient({ ...selectedClient, primaryGoal: e.target.value })}
-                            placeholder="What is the main goal for this agent?"
-                          />
-                        </div>
-
-                        {selectedClient.driveFiles && selectedClient.driveFiles.length > 0 && (
-                          <div>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Active Documents</p>
-                            <div className="space-y-1">
-                              {selectedClient.driveFiles.map(f => (
-                                <div key={f.id} className="text-[10px] text-slate-600 flex items-center gap-1">
-                                  <span>{f.icon}</span> {f.name}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      <div className="h-full flex items-center justify-center text-slate-400 text-xs italic">
-                        Select a client to view context data
-                      </div>
-                    )}
-                  </div>
-                </GlassPane>
+                  </GlassPane>
+                </div>
               </div>
 
               {/* Center: Visual Command Center */}
@@ -759,7 +838,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
                   <BrowserPreview
                     currentStep={task?.steps.find(s => s.id === activeStepId) || null}
                     screenshotUrl={screenshot}
+                    liveViewUrl={liveViewUrl}
                     isProcessing={status === AgentStatus.EXECUTING || status === AgentStatus.PLANNING}
+                    sessionId={currentSessionId}
+                    isStreaming={sseEventSource !== null}
                   />
                 </div>
 
@@ -767,6 +849,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
                   <CommandBar
                     onSend={handleCommand}
                     disabled={status === AgentStatus.EXECUTING || status === AgentStatus.PLANNING}
+                    hasActiveSession={currentSessionId !== undefined}
+                    onNewSession={handleNewSession}
                   />
                 </div>
               </div>
@@ -777,82 +861,74 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
                 <div className="flex border-b border-white/50 bg-white/30">
                   <button
                     onClick={() => setRightPanelTab('tickets')}
-                    className={`flex-1 py-3 text-[10px] font-bold uppercase tracking-wider transition-colors ${rightPanelTab === 'tickets' ? 'bg-white/50 text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-white/20'}`}
+                    className={`flex-1 py-3 text-xs font-bold transition-colors ${rightPanelTab === 'tickets' ? 'text-indigo-600 border-b-2 border-indigo-600 bg-white/40' : 'text-slate-500 hover:text-slate-700'}`}
                   >
                     Tickets
                   </button>
                   <button
                     onClick={() => setRightPanelTab('logs')}
-                    className={`flex-1 py-3 text-[10px] font-bold uppercase tracking-wider transition-colors ${rightPanelTab === 'logs' ? 'bg-white/50 text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-white/20'}`}
+                    className={`flex-1 py-3 text-xs font-bold transition-colors ${rightPanelTab === 'logs' ? 'text-indigo-600 border-b-2 border-indigo-600 bg-white/40' : 'text-slate-500 hover:text-slate-700'}`}
                   >
-                    Terminal
-                  </button>
-                  <button
-                    onClick={() => setRightPanelTab('resources')}
-                    className={`flex-1 py-3 text-[10px] font-bold uppercase tracking-wider transition-colors ${rightPanelTab === 'resources' ? 'bg-white/50 text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-white/20'}`}
-                  >
-                    Assets
+                    Logs
                   </button>
                   <button
                     onClick={() => setRightPanelTab('team')}
-                    className={`flex-1 py-3 text-[10px] font-bold uppercase tracking-wider transition-colors ${rightPanelTab === 'team' ? 'bg-white/50 text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-white/20'}`}
+                    className={`flex-1 py-3 text-xs font-bold transition-colors ${rightPanelTab === 'team' ? 'text-indigo-600 border-b-2 border-indigo-600 bg-white/40' : 'text-slate-500 hover:text-slate-700'}`}
                   >
                     Team
                   </button>
+                  <button
+                    onClick={() => setRightPanelTab('resources')}
+                    className={`flex-1 py-3 text-xs font-bold transition-colors ${rightPanelTab === 'resources' ? 'text-indigo-600 border-b-2 border-indigo-600 bg-white/40' : 'text-slate-500 hover:text-slate-700'}`}
+                  >
+                    Resources
+                  </button>
                 </div>
 
-                <div className="flex-1 min-h-0 relative bg-white/20">
+                {/* Tab Content */}
+                <div className="flex-1 overflow-y-auto bg-white/40 p-0">
                   {rightPanelTab === 'logs' && (
-                    <div className="absolute inset-0">
-                      <TerminalLog logs={logs} />
-                    </div>
-                  )}
-
-                  {rightPanelTab === 'tickets' && (
-                    <div className="absolute inset-0 p-2">
-                      <TicketQueue
-                        tickets={tickets}
-                        onResolve={handleResolveTicket}
-                      />
-                    </div>
-                  )}
-
-                  {rightPanelTab === 'resources' && selectedClient && (
-                    <div className="absolute inset-0 p-2">
-                      <AssetManager
-                        assets={selectedClient.assets || []}
-                        seoConfig={selectedClient.seo || { siteTitle: '', metaDescription: '', keywords: [], robotsTxt: '' }}
-                        onAssetsUpdate={(newAssets) => setSelectedClient({ ...selectedClient, assets: newAssets })}
-                        onSeoUpdate={(newSeo) => setSelectedClient({ ...selectedClient, seo: newSeo })}
-                      />
-                    </div>
+                    <TerminalLog logs={logs} />
                   )}
 
                   {rightPanelTab === 'team' && (
-                    <div className="absolute inset-0 p-2">
-                      <TeamPanel
-                        users={MOCK_USERS}
-                        activities={activities}
-                        currentUser={currentUser}
-                        onSwitchUser={(userId) => {
-                          const user = MOCK_USERS.find(u => u.id === userId);
-                          if (user) {
-                            setCurrentUser(user);
-                          }
-                        }}
-                      />
-                    </div>
+                    <TeamPanel
+                      users={users}
+                      currentUser={currentUser}
+                      activities={activities}
+                      onInvite={() => { }}
+                    />
                   )}
 
-                  {!selectedClient && rightPanelTab === 'resources' && (
-                    <div className="h-full flex items-center justify-center text-slate-400 text-xs italic p-4 text-center">
-                      Select a client to manage their assets and SEO settings.
-                    </div>
+                  {rightPanelTab === 'tickets' && (
+                    <TicketQueue
+                      tickets={tickets}
+                      onResolve={handleResolveTicket}
+                    />
+                  )}
+
+                  {rightPanelTab === 'resources' && (
+                    <AssetManager
+                      assets={selectedClient?.assets || []}
+                      seoConfig={selectedClient?.seo || { siteTitle: '', metaDescription: '', keywords: [], robotsTxt: '' }}
+                      onAssetsUpdate={(assets) => {
+                        if (selectedClient) {
+                          setSelectedClient({ ...selectedClient, assets });
+                        }
+                      }}
+                      onSeoUpdate={(seo) => {
+                        if (selectedClient) {
+                          setSelectedClient({ ...selectedClient, seo });
+                        }
+                      }}
+                    />
                   )}
                 </div>
               </div>
+
             </div>
           )}
+
         </main>
       </div>
 

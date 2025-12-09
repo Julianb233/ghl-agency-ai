@@ -12,7 +12,7 @@ const GOOGLE_USER_INFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo";
 
 export function registerGoogleAuthRoutes(app: Express) {
     // Debug endpoint to check configuration
-    app.get("/api/auth/google/config", (req: Request, res: Response) => {
+    app.get("/api/oauth/google/config", (req: Request, res: Response) => {
         res.json({
             clientId: process.env.GOOGLE_CLIENT_ID || 'NOT_SET',
             redirectUri: process.env.GOOGLE_REDIRECT_URI || 'NOT_SET',
@@ -22,9 +22,9 @@ export function registerGoogleAuthRoutes(app: Express) {
         });
     });
 
-    app.get("/api/auth/google", (req: Request, res: Response) => {
+    app.get("/api/oauth/google", (req: Request, res: Response) => {
         const clientId = process.env.GOOGLE_CLIENT_ID;
-        const redirectUri = process.env.GOOGLE_REDIRECT_URI || "http://localhost:3006/api/auth/google/callback";
+        const redirectUri = process.env.GOOGLE_REDIRECT_URI || "http://localhost:3006/api/oauth/google/callback";
 
         console.log('[Google Auth] Initiating OAuth flow');
         console.log('[Google Auth] Client ID:', clientId ? 'Present' : 'Missing');
@@ -48,7 +48,7 @@ export function registerGoogleAuthRoutes(app: Express) {
         res.redirect(`${GOOGLE_AUTH_URL}?${params.toString()}`);
     });
 
-    app.get("/api/auth/google/callback", async (req: Request, res: Response) => {
+    app.get("/api/oauth/google/callback", async (req: Request, res: Response) => {
         const code = req.query.code as string;
         const error = req.query.error as string;
 
@@ -71,7 +71,7 @@ export function registerGoogleAuthRoutes(app: Express) {
         try {
             const clientId = process.env.GOOGLE_CLIENT_ID;
             const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-            const redirectUri = process.env.GOOGLE_REDIRECT_URI || "http://localhost:3006/api/auth/google/callback";
+            const redirectUri = process.env.GOOGLE_REDIRECT_URI || "http://localhost:3006/api/oauth/google/callback";
 
             console.log('[Google Auth] Exchanging code for token');
             console.log('[Google Auth] Client ID:', clientId ? 'Present' : 'Missing');

@@ -5,6 +5,7 @@ import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { registerGoogleAuthRoutes } from "./google-auth.ts";
+import { registerSSERoutes } from "./sse-routes";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
@@ -37,6 +38,8 @@ export async function createApp() {
   registerOAuthRoutes(app);
   // Google Auth routes
   registerGoogleAuthRoutes(app);
+  // SSE routes for real-time streaming
+  registerSSERoutes(app);
   // tRPC API
   app.use(
     "/api/trpc",

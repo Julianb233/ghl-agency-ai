@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "npx vite build",
+  "buildCommand": "pnpm build",
   "functions": {
     "api/index.ts": {
       "maxDuration": 60

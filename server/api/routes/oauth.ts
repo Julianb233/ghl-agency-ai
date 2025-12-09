@@ -86,7 +86,7 @@ const OAUTH_CONFIGS = {
     userInfoUrl: "https://www.googleapis.com/oauth2/v2/userinfo",
     clientId: process.env.GOOGLE_CLIENT_ID || "PLACEHOLDER_GOOGLE_CLIENT_ID",
     clientSecret: process.env.GOOGLE_CLIENT_SECRET || "PLACEHOLDER_GOOGLE_CLIENT_SECRET",
-    redirectUri: process.env.GOOGLE_REDIRECT_URI || "http://localhost:3000/api/auth/oauth/google/callback",
+    redirectUri: process.env.GOOGLE_REDIRECT_URI || "http://localhost:3000/api/oauth/google/callback",
   },
   gmail: {
     tokenUrl: "https://oauth2.googleapis.com/token",

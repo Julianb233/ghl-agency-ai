@@ -176,7 +176,7 @@ const OAUTH_CONFIGS = {
     scope: "openid email profile",
     clientId: process.env.GOOGLE_CLIENT_ID || "PLACEHOLDER_GOOGLE_CLIENT_ID",
     clientSecret: process.env.GOOGLE_CLIENT_SECRET || "PLACEHOLDER_GOOGLE_CLIENT_SECRET",
-    redirectUri: process.env.GOOGLE_REDIRECT_URI || "http://localhost:3000/api/oauth/callback/google",
+    redirectUri: process.env.GOOGLE_REDIRECT_URI || "http://localhost:3000/api/oauth/google/callback",
   },
   gmail: {
     authUrl: "https://accounts.google.com/o/oauth2/v2/auth",

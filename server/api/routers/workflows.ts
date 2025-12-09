@@ -5,8 +5,41 @@ import { getDb } from "../../db";
 import { eq, and, desc } from "drizzle-orm";
 import { Stagehand } from "@browserbasehq/stagehand";
 import { getBrowserbaseService } from "../../_core/browserbase";
+import { TRPCError } from "@trpc/server";
 
 import { automationWorkflows, workflowExecutions, browserSessions } from "../../../drizzle/schema";
+
+/**
+ * Resolve the correct LLM API key for a given model name.
+ * Shared with aiRouter semantics: Anthropic (Claude), Google (Gemini), OpenAI.
+ */
+const resolveModelApiKey = (modelName: string): string => {
+    const isGoogleModel = modelName.includes("google") || modelName.includes("gemini");
+    const isAnthropicModel = modelName.includes("anthropic") || modelName.includes("claude");
+
+    let modelApiKey: string | undefined;
+    if (isAnthropicModel) {
+        modelApiKey = process.env.ANTHROPIC_API_KEY;
+    } else if (isGoogleModel) {
+        modelApiKey = process.env.GEMINI_API_KEY;
+    } else {
+        modelApiKey = process.env.OPENAI_API_KEY;
+    }
+
+    if (!modelApiKey) {
+        const keyName = isAnthropicModel
+            ? "ANTHROPIC_API_KEY"
+            : isGoogleModel
+            ? "GEMINI_API_KEY"
+            : "OPENAI_API_KEY";
+        throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: `Missing API key for model ${modelName}. Please set ${keyName} in your environment.`,
+        });
+    }
+
+    return modelApiKey;
+};
 
 // PLACEHOLDER: Define Zod schemas for validation
 const workflowStepSchema = z.object({
@@ -405,11 +438,15 @@ export const workflowsRouter = router({
                     .where(eq(workflowExecutions.id, executionId));
 
                 // Initialize Stagehand
+                const modelName = "google/gemini-2.0-flash";
+                const modelApiKey = resolveModelApiKey(modelName);
+
                 const stagehand = new Stagehand({
                     env: "BROWSERBASE",
                     verbose: 1,
                     disablePino: true,
-                    model: "google/gemini-2.0-flash",
+                    modelName,
+                    modelApiKey,
                     apiKey: process.env.BROWSERBASE_API_KEY,
                     projectId: process.env.BROWSERBASE_PROJECT_ID,
                     browserbaseSessionCreateParams: {

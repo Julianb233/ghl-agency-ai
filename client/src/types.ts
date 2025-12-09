@@ -163,4 +163,4 @@ export interface BillingHistory {
   type: 'CHARGE' | 'CREDIT';
 }
 
-export type SettingsTab = 'GENERAL' | 'INTEGRATIONS' | 'BILLING' | 'ADDONS' | 'WHITELABEL';
+export type SettingsTab = 'GENERAL' | 'INTEGRATIONS' | 'BILLING' | 'ADDONS' | 'WHITELABEL' | 'TEAM';

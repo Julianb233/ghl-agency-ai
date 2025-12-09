@@ -108,7 +108,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthenticated, onBac
 
             <button
               type="button"
-              onClick={() => window.location.href = '/api/auth/google'}
+              onClick={() => window.location.href = '/api/oauth/google'}
               className="w-full bg-white/80 border border-slate-200 text-slate-700 font-bold py-3 rounded-xl shadow-sm hover:bg-white transition-colors flex items-center justify-center gap-2"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">

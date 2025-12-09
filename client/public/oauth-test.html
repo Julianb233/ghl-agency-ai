@@ -76,7 +76,7 @@
     <div class="info">
         <h3>Common Errors and Solutions:</h3>
         <ul>
-            <li><strong>redirect_uri_mismatch:</strong> Add <code>http://localhost:3006/api/auth/google/callback</code>
+            <li><strong>redirect_uri_mismatch:</strong> Add <code>http://localhost:3006/api/oauth/google/callback</code>
                 to Authorized redirect URIs in Google Cloud Console</li>
             <li><strong>invalid_client:</strong> Check that Client ID and Secret are correct in .env file</li>
             <li><strong>access_denied:</strong> User denied permission or app is in testing mode without test users</li>
@@ -84,12 +84,12 @@
     </div>
 
     <script>
-        // Display cuuration
-        fetch('/api/auth/google/config')
+        // Display current configuration
+        fetch('/api/oauth/google/config')
             .then(r => r.json())
             .catch(() => ({
-                clientId: '10128406567r5844adatke21ra2k7j6c5ecm12.apps.googleusercontent.com',
-                redirectUri: 'http://localhost:3006/api/auth/google/callback'
+                clientId: '1012840656772-gh3q2r5844adatke21ra2k7j6c5ecm12.apps.googleusercontent.com',
+                redirectUri: 'http://localhost:3006/api/oauth/google/callback'
             }))
             .then(config => {
                 document.getElementById('config').textContent = JSON.stringify(config, null, 2);
@@ -99,11 +99,12 @@
         const urlParams = new URLSearchParams(window.location.search);
         const error = urlParams.get('error');
         if (error) {
-            document.getElementById('error').style.display = '        document.getElementById('errorMessage').textContent = error;
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('errorMessage').textContent = error;
         }
 
         function testGoogleAuth() {
-            window.location.h/google';
+            window.location.href = '/api/oauth/google';
         }
     </script>
 </body>

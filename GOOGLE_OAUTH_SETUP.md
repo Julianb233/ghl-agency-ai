@@ -3,7 +3,7 @@
 ## Current Configuration
 
 - **Client ID**: `1012840656772-gh3q2r5844adatke21ra2k7j6c5ecm12.apps.googleusercontent.com`
-- **Redirect URI**: `http://localhost:3006/api/auth/google/callback`
+- **Redirect URI**: `http://localhost:3006/api/oauth/google/callback`
 
 ## Required Google Cloud Console Settings
 
@@ -19,8 +19,9 @@ Find the client ID: `1012840656772-gh3q2r5844adatke21ra2k7j6c5ecm12`
 **CRITICAL**: Add these EXACT URIs to the "Authorized redirect URIs" section:
 
 ```
-http://localhost:3006/api/auth/google/callback
-http://localhost:3000/api/auth/google/callback
+http://localhost:3006/api/oauth/google/callback
+http://localhost:3000/api/oauth/google/callback
+https://ghl-agency-ai-ai-acrobatics.vercel.app/api/oauth/google/callback
 ```
 
 ### 4. Authorized JavaScript Origins

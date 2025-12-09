@@ -1,20 +1,102 @@
 import { z } from "zod";
-import { router, publicProcedure } from "../../_core/trpc";
+import { router, publicProcedure, protectedProcedure } from "../../_core/trpc";
 import { Stagehand } from "@browserbasehq/stagehand";
 import { TRPCError } from "@trpc/server";
 import { browserbaseSDK } from "../../_core/browserbaseSDK";
+import { sendProgress } from "../../_core/sse-manager";
 import { getDb } from "../../db";
 import { browserSessions, extractedData } from "../../../drizzle/schema";
 import { eq } from "drizzle-orm";
 
 const getBrowserbaseService = () => browserbaseSDK;
 
+/**
+ * Resolve the correct LLM API key for a given model name.
+ * Supports Anthropic (Claude), Google (Gemini) and OpenAI models.
+ * Throws a TRPCError if the corresponding API key is not configured.
+ */
+const resolveModelApiKey = (modelName: string): string => {
+    const isGoogleModel = modelName.includes("google") || modelName.includes("gemini");
+    const isAnthropicModel = modelName.includes("anthropic") || modelName.includes("claude");
+
+    let modelApiKey: string | undefined;
+    if (isAnthropicModel) {
+        modelApiKey = process.env.ANTHROPIC_API_KEY;
+    } else if (isGoogleModel) {
+        modelApiKey = process.env.GEMINI_API_KEY;
+    } else {
+        modelApiKey = process.env.OPENAI_API_KEY;
+    }
+
+    if (!modelApiKey) {
+        const keyName = isAnthropicModel
+            ? "ANTHROPIC_API_KEY"
+            : isGoogleModel
+            ? "GEMINI_API_KEY"
+            : "OPENAI_API_KEY";
+        throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: `Missing API key for model ${modelName}. Please set ${keyName} in your environment.`,
+        });
+    }
+
+    return modelApiKey;
+};
+
 export const aiRouter = router({
+    /**
+     * Start a Browserbase session explicitly
+     * Returns the session ID and live view URL immediately
+     */
+    startSession: protectedProcedure
+        .input(
+            z.object({
+                geolocation: z.object({
+                    city: z.string().optional(),
+                    state: z.string().optional(),
+                    country: z.string().optional(),
+                }).optional(),
+            })
+        )
+        .mutation(async ({ input, ctx }) => {
+            try {
+                const browserbaseService = getBrowserbaseService();
+                const session = input.geolocation
+                    ? await browserbaseService.createSessionWithGeoLocation(input.geolocation)
+                    : await browserbaseService.createSession();
+
+                console.log(`[startSession] Created session: ${session.id}`);
+
+                // Get live view URLs immediately
+                let liveViewUrl: string | undefined;
+                let debuggerUrl: string | undefined;
+                try {
+                    const debugInfo = await browserbaseSDK.getSessionDebug(session.id);
+                    liveViewUrl = debugInfo.debuggerFullscreenUrl;
+                    debuggerUrl = debugInfo.debuggerUrl;
+                } catch (debugError) {
+                    console.error("Failed to get live view URL:", debugError);
+                }
+
+                return {
+                    sessionId: session.id,
+                    liveViewUrl,
+                    debuggerUrl,
+                };
+            } catch (error) {
+                console.error("Failed to start session:", error);
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: `Failed to start session: ${error instanceof Error ? error.message : "Unknown error"}`,
+                });
+            }
+        }),
+
     /**
      * Execute browser automation with AI agent
      * Supports geo-location and session tracking
      */
-    chat: publicProcedure
+    chat: protectedProcedure
         .input(
             z.object({
                 messages: z.array(
@@ -33,9 +115,13 @@ export const aiRouter = router({
                 startUrl: z.string().url().optional(),
                 // Model selection (default: gemini-2.0-flash)
                 modelName: z.string().optional(),
+                // Optional session ID to reuse existing session
+                sessionId: z.string().optional(),
+                // Whether to keep the session open after execution (default: true for live viewing)
+                keepOpen: z.boolean().optional().default(true),
             })
         )
-        .mutation(async ({ input }) => {
+        .mutation(async ({ input, ctx }) => {
             // Database is optional: used for logging only
             const db = await getDb();
             if (!db) {
@@ -60,64 +146,227 @@ export const aiRouter = router({
             let debuggerUrl: string | undefined;
 
             try {
-                // Create Browserbase session using the real SDK
-                const session = await browserbaseSDK.createSession({
-                    projectId: process.env.BROWSERBASE_PROJECT_ID,
-                    browserSettings: {
-                        viewport: { width: 1920, height: 1080 },
-                    },
-                    proxies: true,
-                    recordSession: true,
-                    keepAlive: true,
-                    timeout: 3600,
+                // Normalize model name to the provider-prefixed format Stagehand expects
+                // Example targets:
+                // - "anthropic/claude-3-7-sonnet-latest"
+                // - "google/gemini-2.0-flash"
+                // - "openai/gpt-4o"
+                let modelId = input.modelName || "claude-3-7-sonnet-latest";
+                if (!modelId.includes("/")) {
+                    if (modelId.includes("claude") || modelId.includes("anthropic")) {
+                        modelId = `anthropic/${modelId}`;
+                    } else if (modelId.includes("gemini") || modelId.includes("google")) {
+                        modelId = `google/${modelId}`;
+                    } else {
+                        modelId = `openai/${modelId}`;
+                    }
+                }
+
+                const modelApiKey = resolveModelApiKey(modelId);
+
+                // Small debug log to confirm config without leaking secrets
+                console.log("[AI Router] Stagehand model config", {
+                    model: modelId,
+                    hasAnthropicKey: !!process.env.ANTHROPIC_API_KEY,
+                    hasGeminiKey: !!process.env.GEMINI_API_KEY,
+                    hasOpenAIKey: !!process.env.OPENAI_API_KEY,
+                    reuseSessionId: input.sessionId || null,
                 });
 
-                sessionId = session.id;
-                console.log(`Browserbase session created: ${sessionId}`);
+                // Initialize Stagehand with Browserbase + explicit model configuration.
+                const stagehandConfig: any = {
+                    env: "BROWSERBASE",
+                    verbose: 1,
+                    apiKey: process.env.BROWSERBASE_API_KEY,
+                    projectId: process.env.BROWSERBASE_PROJECT_ID,
+                    model: modelId,
+                    modelApiKey,
+                };
 
-                // Get live view URLs immediately after session creation
+                if (input.sessionId) {
+                    // Reuse existing session - pass ONLY the session ID, no create params
+                    stagehandConfig.browserbaseSessionID = input.sessionId; // Try with capital ID
+                    console.log(`Attempting to reuse session: ${input.sessionId}`);
+                } else {
+                    // Create new session with proper configuration
+                    stagehandConfig.browserbaseSessionCreateParams = {
+                        projectId: process.env.BROWSERBASE_PROJECT_ID!,
+                        proxies: true,
+                        region: "us-west-2",
+                        timeout: 900, // 15 minutes session timeout
+                        keepAlive: true,
+                        browserSettings: {
+                            advancedStealth: false,
+                            blockAds: true,
+                            solveCaptchas: true,
+                            recordSession: true, // ENABLE RECORDING for live view
+                            viewport: { width: 1920, height: 1080 },
+                        },
+                        userMetadata: {
+                            userId: "automation-user-chat",
+                            environment: process.env.NODE_ENV || "development",
+                        },
+                    };
+                    console.log('Creating new session with recording enabled');
+                }
+
+                const stagehand = new Stagehand(stagehandConfig);
+
+                await stagehand.init();
+
+                // ALWAYS get the actual session ID from Stagehand after init
+                // Stagehand may create a new session even if we provided one
+                sessionId = stagehand.browserbaseSessionID;
+                console.log(`Stagehand using session: ${sessionId}`);
+
+                // Send session created event via SSE
+                sendProgress(sessionId!, {
+                    type: 'session_created',
+                    sessionId: sessionId!,
+                    message: 'Browser session created'
+                });
+
+                // Get live view URLs using the ACTUAL session ID
                 try {
-                    const debugInfo = await browserbaseSDK.getSessionDebug(sessionId);
+                    const debugInfo = await browserbaseSDK.getSessionDebug(sessionId!);
                     liveViewUrl = debugInfo.debuggerFullscreenUrl;
                     debuggerUrl = debugInfo.debuggerUrl;
                     console.log(`Live view available at: ${liveViewUrl}`);
+
+                    // Send live view ready event - THIS IS KEY FOR REAL-TIME!
+                    sendProgress(sessionId!, {
+                        type: 'live_view_ready',
+                        sessionId: sessionId!,
+                        data: {
+                            liveViewUrl,
+                            debuggerUrl,
+                            sessionUrl: `https://www.browserbase.com/sessions/${sessionId}`
+                        },
+                        message: 'Live view ready - browser visible!'
+                    });
                 } catch (debugError) {
                     console.error("Failed to get live view URL:", debugError);
-                    // Don't throw - continue with automation even if live view fails
                 }
-
-                // Initialize Stagehand with the existing Browserbase session
-                const stagehand = new Stagehand({
-                    env: "BROWSERBASE",
-                    verbose: 1,
-                    disablePino: true,
-                    model: input.modelName || "google/gemini-2.0-flash",
-                    apiKey: process.env.BROWSERBASE_API_KEY,
-                    projectId: process.env.BROWSERBASE_PROJECT_ID,
-                    browserbaseSessionID: sessionId, // Connect to existing session
-                });
-
-                await stagehand.init();
 
                 // Get the first page from context
                 const page = stagehand.context.pages()[0];
 
-                // Navigate to starting URL
-                await page.goto(startUrl);
+                // Determine if we need to navigate
+                // Only navigate if:
+                // 1. No session was provided (new session) OR
+                // 2. Explicit navigation intent detected in prompt OR
+                // 3. startUrl was provided
+                const isReusingSession = !!input.sessionId;
+                let shouldNavigate = !isReusingSession || !!input.startUrl;
+                let targetUrl = input.startUrl;
+                let modifiedPrompt = prompt;
 
-                // Execute AI action - Note: In V3, act is called on stagehand, not page
-                await stagehand.act(prompt);
+                // Enhanced URL detection with better pattern matching
+                const urlPatterns = [
+                    // Full URLs with extensions
+                    /(?:open|go to|navigate to|visit)\s+(?:the\s+)?(?:website\s+)?(?:at\s+)?(?:https?:\/\/)?([\w\-\.]+\.\w{2,})/i,
+                    // Direct URLs with extensions
+                    /(?:https?:\/\/)?([\w\-\.]+\.(?:com|org|net|io|co|app|dev))/i,
+                    // Website names without extensions (e.g., "open gohighlevel")
+                    /(?:open|go to|navigate to|visit)\s+(?:the\s+)?([\w\-]+)(?:\s+website|\s+site|\s+page)?/i,
+                ];
 
-                await stagehand.close();
+                // Try to detect URL/website name in the prompt
+                for (const pattern of urlPatterns) {
+                    const match = prompt.match(pattern);
+                    if (match) {
+                        shouldNavigate = true;
+                        let domain = match[1] || match[0];
+
+                        // Clean up the domain
+                        domain = domain.replace(/^(open|go to|navigate to|visit|the|website|site|page)\s+/gi, '').trim();
+                        domain = domain.replace(/\s+(website|site|page)$/gi, '').trim();
+
+                        // If no extension, add .com by default
+                        if (!domain.includes('.') && !domain.startsWith('http')) {
+                            domain = `${domain}.com`;
+                        }
+
+                        // Add https:// if not present
+                        targetUrl = domain.startsWith('http') ? domain : `https://${domain}`;
+
+                        // Modify prompt to remove the navigation part
+                        modifiedPrompt = prompt.replace(match[0], '').trim();
+
+                        // Clean up common connecting words
+                        modifiedPrompt = modifiedPrompt.replace(/^(and|then)\s+/i, '').trim();
+
+                        // If nothing meaningful left, just say we navigated
+                        if (!modifiedPrompt || modifiedPrompt.length < 5) {
+                            modifiedPrompt = null; // Will skip action execution
+                        }
+
+                        console.log(`[Smart Navigation] Detected URL: ${targetUrl}`);
+                        console.log(`[Smart Navigation] Remaining actions: ${modifiedPrompt || 'None'}`);
+                        break;
+                    }
+                }
+
+                // Navigate only if needed
+                if (shouldNavigate) {
+                    const finalUrl = targetUrl || "https://google.com";
+                    console.log(`[Navigation] Going to: ${finalUrl}`);
+
+                    // Send navigation event
+                    sendProgress(sessionId!, {
+                        type: 'navigation',
+                        sessionId: sessionId!,
+                        data: { url: finalUrl },
+                        message: `Navigating to ${finalUrl}`
+                    });
+
+                    await page.goto(finalUrl, { waitUntil: 'domcontentloaded' });
+                } else {
+                    console.log('[Navigation] Skipped - reusing existing session and page');
+                    modifiedPrompt = prompt; // Use full prompt since we didn't extract navigation
+                }
+
+                // Execute actions if any
+                if (modifiedPrompt && modifiedPrompt.length > 5) {
+                    console.log(`[Action] Executing: ${modifiedPrompt}`);
+
+                    // Send action start event
+                    sendProgress(sessionId!, {
+                        type: 'action_start',
+                        sessionId: sessionId!,
+                        data: { action: modifiedPrompt },
+                        message: `Executing: ${modifiedPrompt}`
+                    });
+
+                    await stagehand.act(modifiedPrompt);
+
+                    // Send action complete event
+                    sendProgress(sessionId!, {
+                        type: 'action_complete',
+                        sessionId: sessionId!,
+                        message: 'Action completed successfully'
+                    });
+                } else if (!shouldNavigate) {
+                    // If we didn't navigate and have no actions, log a warning
+                    console.log('[Action] No action detected in prompt');
+                }
+
+                // Keep session open by default for live viewing
+                // Sessions will auto-expire after the Browserbase timeout (default: 5-15 minutes)
+                if (input.keepOpen === false) {
+                    await stagehand.close();
+                    console.log('Session closed as requested');
+                } else {
+                    console.log('Session kept open for live viewing (will auto-expire)');
+                }
 
                 // Persist session to database
                 try {
-                    // PLACEHOLDER: Replace with actual userId from auth context (e.g., ctx.session.user.id)
-                    const placeholderUserId = 1;
+                    const userId = ctx.user.id;
 
-                    if (db) {
+                    if (db && sessionId) {
                         await db.insert(browserSessions).values({
-                            userId: placeholderUserId,
+                            userId: userId,
                             sessionId: sessionId,
                             status: "completed",
                             url: liveViewUrl || `https://www.browserbase.com/sessions/${sessionId}`,
@@ -157,10 +406,10 @@ export const aiRouter = router({
                 if (sessionId && db) {
                     try {
                         // PLACEHOLDER: Replace with actual userId from auth context
-                        const placeholderUserId = 1;
+                        const userId = ctx.user.id;
 
                         await db.insert(browserSessions).values({
-                            userId: placeholderUserId,
+                            userId: userId,
                             sessionId: sessionId,
                             status: "failed",
                             metadata: {
@@ -339,7 +588,7 @@ export const aiRouter = router({
      * Observe a page and get actionable steps
      * Returns an array of actions that can be executed
      */
-    observePage: publicProcedure
+    observePage: protectedProcedure
         .input(
             z.object({
                 url: z.string().url(),
@@ -352,7 +601,7 @@ export const aiRouter = router({
                 modelName: z.string().optional(),
             })
         )
-        .mutation(async ({ input }) => {
+        .mutation(async ({ input, ctx }) => {
             const db = await getDb();
             if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
 
@@ -371,7 +620,6 @@ export const aiRouter = router({
                     env: "BROWSERBASE",
                     verbose: 1,
                     disablePino: true,
-                    model: input.modelName || "google/gemini-2.0-flash",
                     apiKey: process.env.BROWSERBASE_API_KEY,
                     projectId: process.env.BROWSERBASE_PROJECT_ID,
                     browserbaseSessionCreateParams: {
@@ -406,10 +654,10 @@ export const aiRouter = router({
 
                 // Persist session to database
                 try {
-                    const placeholderUserId = 1;
+                    const userId = ctx.user.id;
 
                     await db.insert(browserSessions).values({
-                        userId: placeholderUserId,
+                        userId: userId,
                         sessionId: sessionId,
                         status: "completed",
                         url: input.url,
@@ -442,7 +690,7 @@ export const aiRouter = router({
                 if (sessionId) {
                     try {
                         await db.insert(browserSessions).values({
-                            userId: 1,
+                            userId: ctx.user.id,
                             sessionId: sessionId,
                             status: "failed",
                             url: input.url,
@@ -467,7 +715,7 @@ export const aiRouter = router({
      * Execute multiple observed actions sequentially
      * Useful for form filling and multi-step workflows
      */
-    executeActions: publicProcedure
+    executeActions: protectedProcedure
         .input(
             z.object({
                 url: z.string().url(),
@@ -480,7 +728,7 @@ export const aiRouter = router({
                 modelName: z.string().optional(),
             })
         )
-        .mutation(async ({ input }) => {
+        .mutation(async ({ input, ctx }) => {
             const db = await getDb();
             if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
 
@@ -499,7 +747,6 @@ export const aiRouter = router({
                     env: "BROWSERBASE",
                     verbose: 1,
                     disablePino: true,
-                    model: input.modelName || "google/gemini-2.0-flash",
                     apiKey: process.env.BROWSERBASE_API_KEY,
                     projectId: process.env.BROWSERBASE_PROJECT_ID,
                     browserbaseSessionCreateParams: {
@@ -540,10 +787,10 @@ export const aiRouter = router({
 
                 // Persist session to database
                 try {
-                    const placeholderUserId = 1;
+                    const userId = ctx.user.id;
 
                     await db.insert(browserSessions).values({
-                        userId: placeholderUserId,
+                        userId: userId,
                         sessionId: sessionId,
                         status: "completed",
                         url: input.url,
@@ -577,7 +824,7 @@ export const aiRouter = router({
                 if (sessionId) {
                     try {
                         await db.insert(browserSessions).values({
-                            userId: 1,
+                            userId: ctx.user.id,
                             sessionId: sessionId,
                             status: "failed",
                             url: input.url,
@@ -602,7 +849,7 @@ export const aiRouter = router({
      * Extract structured data from a page using AI
      * Supports custom Zod schemas for type-safe extraction
      */
-    extractData: publicProcedure
+    extractData: protectedProcedure
         .input(
             z.object({
                 url: z.string().url(),
@@ -617,7 +864,7 @@ export const aiRouter = router({
                 modelName: z.string().optional(),
             })
         )
-        .mutation(async ({ input }) => {
+        .mutation(async ({ input, ctx }) => {
             const db = await getDb();
             if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Database not available" });
 
@@ -636,7 +883,6 @@ export const aiRouter = router({
                     env: "BROWSERBASE",
                     verbose: 1,
                     disablePino: true,
-                    model: input.modelName || "google/gemini-2.0-flash",
                     apiKey: process.env.BROWSERBASE_API_KEY,
                     projectId: process.env.BROWSERBASE_PROJECT_ID,
                     browserbaseSessionCreateParams: {
@@ -699,8 +945,7 @@ export const aiRouter = router({
 
                 // Persist extracted data to database
                 try {
-                    // PLACEHOLDER: Replace with actual userId from auth context (e.g., ctx.session.user.id)
-                    const placeholderUserId = 1;
+                    const userId = ctx.user.id;
 
                     // Find the browser session in DB to get its database ID
                     let dbSessionId: number | null = null;
@@ -713,7 +958,7 @@ export const aiRouter = router({
                     }
 
                     await db.insert(extractedData).values({
-                        userId: placeholderUserId,
+                        userId: userId,
                         sessionId: dbSessionId,
                         url: input.url,
                         dataType: input.schemaType,
@@ -750,7 +995,7 @@ export const aiRouter = router({
      * Execute multi-tab workflow
      * Note: Multi-tab replays may be unreliable. Use Live View for monitoring.
      */
-    multiTabWorkflow: publicProcedure
+    multiTabWorkflow: protectedProcedure
         .input(
             z.object({
                 tabs: z.array(
@@ -767,7 +1012,7 @@ export const aiRouter = router({
                 modelName: z.string().optional(),
             })
         )
-        .mutation(async ({ input }) => {
+        .mutation(async ({ input, ctx }) => {
             let sessionId: string | undefined;
 
             try {
@@ -783,7 +1028,6 @@ export const aiRouter = router({
                     env: "BROWSERBASE",
                     verbose: 1,
                     disablePino: true,
-                    model: input.modelName || "google/gemini-2.0-flash-exp",
                     apiKey: process.env.BROWSERBASE_API_KEY,
                     projectId: process.env.BROWSERBASE_PROJECT_ID,
                     browserbaseSessionCreateParams: {
@@ -807,67 +1051,41 @@ export const aiRouter = router({
                 });
 
                 await stagehand.init();
-                const page1 = stagehand.context.pages()[0];
 
-                const tabResults: Array<{
-                    tabIndex: number;
-                    url: string;
-                    success: boolean;
-                    message?: string;
-                }> = [];
+                // Execute workflow for each tab
+                const results = [];
 
-                // Open first tab (already exists)
-                await page1.goto(input.tabs[0].url);
-                if (input.tabs[0].instruction) {
-                    // Execute action on specific page using V3 API
-                    await stagehand.act(input.tabs[0].instruction, { page: page1 });
-                    tabResults.push({
-                        tabIndex: 0,
-                        url: input.tabs[0].url,
-                        success: true,
-                        message: `Executed: ${input.tabs[0].instruction}`,
-                    });
-                } else {
-                    tabResults.push({
-                        tabIndex: 0,
-                        url: input.tabs[0].url,
-                        success: true,
-                    });
-                }
+                for (let i = 0; i < input.tabs.length; i++) {
+                    const tabConfig = input.tabs[i];
+                    console.log(`Processing tab ${i + 1}: ${tabConfig.url}`);
 
-                // Open additional tabs using V3 context API
-                for (let i = 1; i < input.tabs.length; i++) {
-                    const tab = input.tabs[i];
-                    const newPage = await stagehand.context.newPage();
-                    await newPage.goto(tab.url);
+                    // Use existing page for first tab, new page for others
+                    const page = i === 0
+                        ? stagehand.context.pages()[0]
+                        : await stagehand.context.newPage();
 
-                    if (tab.instruction) {
-                        // Execute on specific page
-                        await stagehand.act(tab.instruction, { page: newPage });
-                        tabResults.push({
-                            tabIndex: i,
-                            url: tab.url,
-                            success: true,
-                            message: `Executed: ${tab.instruction}`,
-                        });
-                    } else {
-                        tabResults.push({
-                            tabIndex: i,
-                            url: tab.url,
-                            success: true,
-                        });
+                    await page.goto(tabConfig.url);
+
+                    let actionResult = null;
+                    if (tabConfig.instruction) {
+                        // Execute action on this tab
+                        actionResult = await stagehand.act(tabConfig.instruction);
                     }
+
+                    results.push({
+                        url: tabConfig.url,
+                        status: "completed",
+                        result: actionResult
+                    });
                 }
 
                 await stagehand.close();
 
                 return {
                     success: true,
-                    tabs: tabResults,
-                    tabCount: input.tabs.length,
+                    results: results,
                     sessionId: sessionId,
                     sessionUrl: session.url,
-                    warning: "Multi-tab replays may be unreliable. Use Browserbase Live View for monitoring.",
                 };
 
             } catch (error) {

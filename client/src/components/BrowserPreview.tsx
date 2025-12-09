@@ -8,9 +8,11 @@ interface BrowserPreviewProps {
   screenshotUrl?: string;
   liveViewUrl?: string;
   isProcessing: boolean;
+  sessionId?: string;
+  isStreaming?: boolean; // Whether we're receiving SSE updates
 }
 
-export const BrowserPreview: React.FC<BrowserPreviewProps> = ({ currentStep, screenshotUrl, liveViewUrl, isProcessing }) => {
+export const BrowserPreview: React.FC<BrowserPreviewProps> = ({ currentStep, screenshotUrl, liveViewUrl, isProcessing, sessionId, isStreaming = false }) => {
   const isAnalyzing = currentStep?.action === 'ANALYZE_UX' || currentStep?.action === 'INSPECT';
   const isBuilding = currentStep?.action === 'BUILD_ELEMENT' || currentStep?.action === 'CLONE_SECTION';
 
@@ -39,17 +41,44 @@ export const BrowserPreview: React.FC<BrowserPreviewProps> = ({ currentStep, scr
       {/* Content Area */}
       <div className="w-full h-full bg-slate-50 relative flex items-center justify-center overflow-hidden">
         {liveViewUrl ? (
-          <iframe
-            src={liveViewUrl}
-            className="w-full h-full border-none"
-            title="Live Browser View"
-            allow="clipboard-read; clipboard-write"
-          />
+          <div className="w-full h-full flex flex-col">
+            <div className={`p-2 border-b flex items-center justify-between ${isStreaming || isProcessing ? 'bg-blue-50 border-blue-200' : 'bg-emerald-50 border-emerald-200'}`}>
+              <div className="flex items-center gap-2">
+                {(isStreaming || isProcessing) ? (
+                  <>
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                    <span className="text-xs text-blue-700 font-medium">Live Browser - Watching in real-time</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-xs text-emerald-700 font-medium">✓ Session ready - browser is live</span>
+                  </>
+                )}
+                {sessionId && (
+                  <span className="text-[10px] text-slate-500 font-mono">ID: {sessionId.slice(0, 8)}</span>
+                )}
+              </div>
+              <a
+                href={liveViewUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-1 text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded transition"
+              >
+                Open Fullscreen →
+              </a>
+            </div>
+            <iframe
+              src={liveViewUrl}
+              className="w-full flex-1 border-none"
+              title="Live Browser View"
+              allow="clipboard-read; clipboard-write"
+            />
+          </div>
         ) : screenshotUrl ? (
           <img
             src={screenshotUrl}
             alt="Browser View"
-            className={`w-full h-full object-cover transition-opacity duration-500 ${isProcessing ? 'opacity-90 blur-[1px]' : 'opacity-100'}`}
+            className="w-full h-full object-cover transition-opacity duration-500 opacity-100"
           />
         ) : (
           <div className="flex flex-col items-center justify-center text-slate-400 gap-4">
@@ -93,8 +122,8 @@ export const BrowserPreview: React.FC<BrowserPreviewProps> = ({ currentStep, scr
           </div>
         )}
 
-        {/* Processing Spinner */}
-        {isProcessing && !isAnalyzing && !isBuilding && (
+        {/* Processing Spinner - only show when NO live view */}
+        {isProcessing && !isAnalyzing && !isBuilding && !liveViewUrl && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/30 backdrop-blur-[2px]">
             <div className="relative">
               <div className="absolute inset-0 rounded-full border-4 border-indigo-500/20 animate-ping"></div>

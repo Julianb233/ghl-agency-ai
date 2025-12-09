@@ -35,9 +35,11 @@ declare global {
 interface CommandBarProps {
   onSend: (text: string) => void;
   disabled: boolean;
+  hasActiveSession?: boolean;
+  onNewSession?: () => void;
 }
 
-export const CommandBar: React.FC<CommandBarProps> = ({ onSend, disabled }) => {
+export const CommandBar: React.FC<CommandBarProps> = ({ onSend, disabled, hasActiveSession = false, onNewSession }) => {
   const [input, setInput] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
@@ -119,6 +121,20 @@ export const CommandBar: React.FC<CommandBarProps> = ({ onSend, disabled }) => {
   return (
     <div className="glass-panel p-4 rounded-2xl mt-6 shadow-lg transition-all">
       <div className="flex gap-3 items-end">
+        {/* New Session Button - only show when there's an active session */}
+        {hasActiveSession && onNewSession && (
+          <button
+            type="button"
+            onClick={onNewSession}
+            className="p-3 rounded-xl bg-white border border-white text-slate-400 hover:text-red-600 hover:border-red-200 hover:bg-red-50 hover:shadow-md transition-all shadow-sm"
+            title="Start New Browser Session"
+          >
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </button>
+        )}
+
         {/* Attach File Button (Visual Only) */}
         <button
           type="button"
