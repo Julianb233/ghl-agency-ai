@@ -25,6 +25,20 @@ function App() {
   const [userTier, setUserTier] = useState<UserTier>('WHITELABEL'); // Default to max tier for testing
   const [credits, setCredits] = useState(5000);
 
+  // Capture token from URL if present (OAuth redirect)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    if (token) {
+      // Store token in localStorage
+      localStorage.setItem('auth_token', token);
+      // Remove token from URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+      // Force auth refresh
+      window.location.reload();
+    }
+  }, []);
+
   useEffect(() => {
     // Only set view after auth check is complete
     if (!isAuthLoading) {

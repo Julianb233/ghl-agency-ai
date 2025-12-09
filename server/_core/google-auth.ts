@@ -156,8 +156,9 @@ export function registerGoogleAuthRoutes(app: Express) {
             res.cookie(COOKIE_NAME, sessionToken, fullCookieOptions);
             console.log('[Google Auth] Cookie set with name:', COOKIE_NAME);
 
-            console.log('[Google Auth] Authentication successful, redirecting to /');
-            res.redirect("/");
+            console.log('[Google Auth] Authentication successful, redirecting with token');
+            // Also pass token in URL for localStorage storage (fallback for cookie issues)
+            res.redirect(`/?token=${encodeURIComponent(sessionToken)}`);
         } catch (error) {
             console.error("[Google Auth] Callback failed:", error);
             if (axios.isAxiosError(error)) {
