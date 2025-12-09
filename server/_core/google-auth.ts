@@ -24,7 +24,7 @@ export function registerGoogleAuthRoutes(app: Express) {
 
     app.get("/api/auth/google", (req: Request, res: Response) => {
         const clientId = process.env.GOOGLE_CLIENT_ID;
-        const redirectUri = process.env.GOOGLE_REDIRECT_URI || "http://localhost:3000/api/auth/google/callback";
+        const redirectUri = process.env.GOOGLE_REDIRECT_URI || "http://localhost:3000/api/auth/callback/google";
 
         console.log('[Google Auth] Initiating OAuth flow');
         console.log('[Google Auth] Client ID:', clientId ? 'Present' : 'Missing');
@@ -48,7 +48,7 @@ export function registerGoogleAuthRoutes(app: Express) {
         res.redirect(`${GOOGLE_AUTH_URL}?${params.toString()}`);
     });
 
-    app.get("/api/auth/google/callback", async (req: Request, res: Response) => {
+    app.get("/api/auth/callback/google", async (req: Request, res: Response) => {
         const code = req.query.code as string;
         const error = req.query.error as string;
 
@@ -71,7 +71,7 @@ export function registerGoogleAuthRoutes(app: Express) {
         try {
             const clientId = process.env.GOOGLE_CLIENT_ID;
             const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-            const redirectUri = process.env.GOOGLE_REDIRECT_URI || "http://localhost:3000/api/auth/google/callback";
+            const redirectUri = process.env.GOOGLE_REDIRECT_URI || "http://localhost:3000/api/auth/callback/google";
 
             console.log('[Google Auth] Exchanging code for token');
             console.log('[Google Auth] Client ID:', clientId ? 'Present' : 'Missing');
