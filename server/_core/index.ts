@@ -34,25 +34,22 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 export async function createApp() {
   const app = express();
 
-  // Custom middleware to handle Vercel's pre-parsed body
-  // Vercel serverless functions already parse the body, so we need to skip
-  // Express body parsing if the body is already an object
-  app.use((req, res, next) => {
-    // If body is already parsed (Vercel), skip body parsing
-    if (req.body && typeof req.body === 'object' && Object.keys(req.body).length > 0) {
-      return next();
-    }
-    // Otherwise, use Express JSON parser
-    express.json({ limit: "50mb" })(req, res, next);
-  });
+  // On Vercel, the body is already parsed and attached to req.body
+  // We need to skip express.json() parsing to avoid "Bad Request" errors
+  const isVercel = process.env.VERCEL === "1";
 
-  app.use((req, res, next) => {
-    // Skip if body is already parsed
-    if (req.body && typeof req.body === 'object' && Object.keys(req.body).length > 0) {
-      return next();
-    }
-    express.urlencoded({ limit: "50mb", extended: true })(req, res, next);
-  });
+  if (isVercel) {
+    // For Vercel: body is already parsed, just ensure it's available
+    app.use((req, _res, next) => {
+      // Vercel has already parsed the body and attached it to req.body
+      // We don't need to do anything special, just continue
+      next();
+    });
+  } else {
+    // For non-Vercel environments: use standard Express body parsers
+    app.use(express.json({ limit: "50mb" }));
+    app.use(express.urlencoded({ limit: "50mb", extended: true }));
+  }
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
   // Google Auth routes
