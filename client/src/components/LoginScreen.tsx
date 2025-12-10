@@ -13,6 +13,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthenticated, onBac
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,8 +39,21 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthenticated, onBac
         return;
       }
 
-      // Success - reload to show dashboard
-      window.location.reload();
+      if (isSignUp) {
+        // After signup success, switch to login mode with success message
+        setIsSignUp(false);
+        setError('');
+        setPassword('');
+        setSuccessMessage('Account created successfully! Please log in.');
+        setTimeout(() => setSuccessMessage(''), 5000);
+        setIsLoading(false);
+        return;
+      }
+
+      // Login success - use proper callback instead of reload
+      // Default to WHITELABEL tier for now - could be fetched from server
+      setIsLoading(false);
+      onAuthenticated('WHITELABEL');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Authentication failed');
       setIsLoading(false);
@@ -70,6 +84,12 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthenticated, onBac
               {isSignUp ? 'Sign up to access the command center.' : 'Enter your agency credentials to access the command center.'}
             </p>
           </div>
+
+          {successMessage && (
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-600 text-sm">
+              {successMessage}
+            </div>
+          )}
 
           {error && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">

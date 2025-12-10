@@ -39,8 +39,14 @@ function App() {
     if (tier === 'GROWTH') setCredits(1500);
     if (tier === 'WHITELABEL') setCredits(5000);
 
-    // Route to dashboard normally
-    setCurrentView('DASHBOARD');
+    // Route to onboarding for new users, then dashboard
+    // Check localStorage to see if user has completed onboarding
+    const hasCompletedOnboarding = localStorage.getItem('onboardingCompleted');
+    if (hasCompletedOnboarding) {
+      setCurrentView('DASHBOARD');
+    } else {
+      setCurrentView('ONBOARDING');
+    }
   };
 
   if (isAuthLoading) {

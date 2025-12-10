@@ -19,6 +19,8 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
       setIsLoading(true);
       // Simulate Setup
       setTimeout(() => {
+        // Mark onboarding as complete
+        localStorage.setItem('onboardingCompleted', 'true');
         onComplete();
       }, 2000);
     }
