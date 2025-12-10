@@ -24,6 +24,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
+  // Ensure body is available on the request object for Express
+  // Vercel parses the body and attaches it to req.body, but we need
+  // to make sure Express can access it
+  if (req.body === undefined) {
+    (req as any).body = {};
+  }
+
   // Express apps are request handlers: (req, res, next?) => void
   // @ts-ignore - Express app is callable
   return cachedApp(req, res);

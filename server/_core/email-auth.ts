@@ -7,6 +7,16 @@ import { COOKIE_NAME } from "@shared/const";
 
 const router = Router();
 
+// Debug endpoint to test if routes are working
+router.get("/debug", async (_req, res) => {
+  res.json({
+    status: "ok",
+    timestamp: new Date().toISOString(),
+    vercel: process.env.VERCEL === "1",
+    databaseUrl: process.env.DATABASE_URL ? "set" : "not set",
+  });
+});
+
 // Simple password hashing using PBKDF2-like approach with SHA-256
 function hashPassword(password: string, salt?: string): { hash: string; salt: string } {
   const useSalt = salt || randomBytes(16).toString('hex');
