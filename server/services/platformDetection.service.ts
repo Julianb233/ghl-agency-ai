@@ -32,6 +32,9 @@ interface DetectionResult {
   isGoogleRelated: boolean;
   isAhrefsRelated: boolean;
   isMarketingRelated: boolean;
+  isAiToolsRelated: boolean;
+  isStagehandRelated: boolean;
+  isOutreachRelated: boolean;
 }
 
 class PlatformDetectionService {
@@ -99,6 +102,9 @@ class PlatformDetectionService {
       isGoogleRelated: platforms.some(p => p.platform === "google"),
       isAhrefsRelated: platforms.some(p => p.platform === "ahrefs"),
       isMarketingRelated: platforms.some(p => p.platform === "marketing"),
+      isAiToolsRelated: platforms.some(p => p.platform === "ai-tools"),
+      isStagehandRelated: platforms.some(p => p.platform === "stagehand"),
+      isOutreachRelated: platforms.some(p => p.platform === "outreach"),
     };
   }
 
@@ -276,6 +282,63 @@ class PlatformDetectionService {
       { keyword: "web scraping", type: "keyword", priority: 4 },
       { keyword: "playwright", type: "keyword", priority: 4 },
       { keyword: "puppeteer", type: "keyword", priority: 3 },
+      { keyword: "navigate to", type: "keyword", priority: 3 },
+      { keyword: "click on", type: "keyword", priority: 2 },
+      { keyword: "extract data", type: "keyword", priority: 3 },
+      { keyword: "scrape", type: "keyword", priority: 4 },
+    ]);
+
+    // AI Tools keywords
+    this.keywordCache.set("ai-tools", [
+      { keyword: "chatgpt", type: "keyword", priority: 10 },
+      { keyword: "openai", type: "keyword", priority: 8 },
+      { keyword: "jasper", type: "keyword", priority: 8 },
+      { keyword: "jasper ai", type: "keyword", priority: 10 },
+      { keyword: "copy.ai", type: "keyword", priority: 8 },
+      { keyword: "surfer seo", type: "keyword", priority: 8 },
+      { keyword: "midjourney", type: "keyword", priority: 8 },
+      { keyword: "dall-e", type: "keyword", priority: 7 },
+      { keyword: "synthesia", type: "keyword", priority: 7 },
+      { keyword: "grammarly", type: "keyword", priority: 6 },
+      { keyword: "ai content", type: "keyword", priority: 5 },
+      { keyword: "ai copywriting", type: "keyword", priority: 6 },
+      { keyword: "ai writer", type: "keyword", priority: 5 },
+      { keyword: "generate content", type: "keyword", priority: 4 },
+      { keyword: "ai image", type: "keyword", priority: 4 },
+      { keyword: "ai video", type: "keyword", priority: 4 },
+      { keyword: "clearbit", type: "keyword", priority: 6 },
+      { keyword: "persado", type: "keyword", priority: 6 },
+      { keyword: "phrasee", type: "keyword", priority: 6 },
+      { keyword: "marketmuse", type: "keyword", priority: 6 },
+      { keyword: "albert ai", type: "keyword", priority: 6 },
+    ]);
+
+    // Outreach & Prospecting keywords
+    this.keywordCache.set("outreach", [
+      { keyword: "apollo", type: "keyword", priority: 8 },
+      { keyword: "apollo.io", type: "keyword", priority: 10 },
+      { keyword: "zoominfo", type: "keyword", priority: 8 },
+      { keyword: "linkedin sales navigator", type: "keyword", priority: 10 },
+      { keyword: "sales navigator", type: "keyword", priority: 8 },
+      { keyword: "hunter.io", type: "keyword", priority: 8 },
+      { keyword: "hunter", type: "keyword", priority: 4 },
+      { keyword: "lemlist", type: "keyword", priority: 8 },
+      { keyword: "instantly", type: "keyword", priority: 6 },
+      { keyword: "instantly.ai", type: "keyword", priority: 8 },
+      { keyword: "snov.io", type: "keyword", priority: 7 },
+      { keyword: "vidyard", type: "keyword", priority: 6 },
+      { keyword: "loom", type: "keyword", priority: 5 },
+      { keyword: "calendly", type: "keyword", priority: 5 },
+      { keyword: "cold email", type: "keyword", priority: 6 },
+      { keyword: "outreach", type: "keyword", priority: 5 },
+      { keyword: "prospecting", type: "keyword", priority: 5 },
+      { keyword: "lead gen", type: "keyword", priority: 5 },
+      { keyword: "email finder", type: "keyword", priority: 5 },
+      { keyword: "email verification", type: "keyword", priority: 4 },
+      { keyword: "warmup", type: "keyword", priority: 4 },
+      { keyword: "deliverability", type: "keyword", priority: 4 },
+      { keyword: "sequence", type: "keyword", priority: 3 },
+      { keyword: "cadence", type: "keyword", priority: 4 },
     ]);
   }
 

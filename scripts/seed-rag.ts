@@ -102,6 +102,33 @@ const documentConfigs: DocumentConfig[] = [
       },
     ],
   },
+  {
+    platform: "ai-tools",
+    category: "documentation",
+    files: [
+      {
+        name: "marketing-ai-tools.md",
+        title: "AI Marketing Tools Complete Guide",
+        description: "Top AI tools for marketing: ChatGPT, Jasper, Midjourney, Surfer SEO, and more with integration examples",
+      },
+      {
+        name: "agency-outreach-tools.md",
+        title: "Agency Outreach & Prospecting Tools",
+        description: "Lead generation tools: Apollo, ZoomInfo, LinkedIn Sales Navigator, Hunter.io, Lemlist, and cold outreach strategies",
+      },
+    ],
+  },
+  {
+    platform: "stagehand",
+    category: "automation",
+    files: [
+      {
+        name: "browser-automation-guide.md",
+        title: "Stagehand Browser Automation Guide",
+        description: "Navigation patterns and automation strategies for marketing platforms using Stagehand browser automation",
+      },
+    ],
+  },
 ];
 
 async function seedPlatformKeywords(): Promise<void> {
