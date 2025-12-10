@@ -7,6 +7,7 @@ import { sendProgress } from "../../_core/sse-manager";
 import { getDb } from "../../db";
 import { browserSessions, extractedData } from "../../../drizzle/schema";
 import { eq } from "drizzle-orm";
+import { persistentSessionManager } from "../../services/persistentSession.service";
 
 const getBrowserbaseService = () => browserbaseSDK;
 
@@ -95,6 +96,7 @@ export const aiRouter = router({
     /**
      * Execute browser automation with AI agent
      * Supports geo-location and session tracking
+     * Uses persistent sessions - automatically reuses existing active sessions
      */
     chat: protectedProcedure
         .input(
@@ -113,12 +115,14 @@ export const aiRouter = router({
                 }).optional(),
                 // Optional initial URL
                 startUrl: z.string().url().optional(),
-                // Model selection (default: gemini-2.0-flash)
+                // Model selection (default: claude-3-7-sonnet-latest)
                 modelName: z.string().optional(),
-                // Optional session ID to reuse existing session
+                // Optional session ID to reuse specific session (if not provided, uses persistent session)
                 sessionId: z.string().optional(),
-                // Whether to keep the session open after execution (default: true for live viewing)
+                // Whether to keep the session open after execution (default: true for persistent sessions)
                 keepOpen: z.boolean().optional().default(true),
+                // Force create new session instead of reusing persistent session
+                forceNewSession: z.boolean().optional().default(false),
             })
         )
         .mutation(async ({ input, ctx }) => {
@@ -138,19 +142,18 @@ export const aiRouter = router({
 
             const prompt = lastMessage.content;
             const startUrl = input.startUrl || "https://google.com";
+            const userId = ctx.user.id;
 
-            console.log("Initializing Stagehand with Browserbase...");
+            console.log("[AI Router] Initializing browser session with persistent session support...");
 
             let sessionId: string | undefined;
             let liveViewUrl: string | undefined;
             let debuggerUrl: string | undefined;
+            let stagehand: Stagehand;
+            let isNewSession = false;
 
             try {
                 // Normalize model name to the provider-prefixed format Stagehand expects
-                // Example targets:
-                // - "anthropic/claude-3-7-sonnet-latest"
-                // - "google/gemini-2.0-flash"
-                // - "openai/gpt-4o"
                 let modelId = input.modelName || "claude-3-7-sonnet-latest";
                 if (!modelId.includes("/")) {
                     if (modelId.includes("claude") || modelId.includes("anthropic")) {
@@ -164,88 +167,112 @@ export const aiRouter = router({
 
                 const modelApiKey = resolveModelApiKey(modelId);
 
-                // Small debug log to confirm config without leaking secrets
+                // Log config without secrets
                 console.log("[AI Router] Stagehand model config", {
                     model: modelId,
                     hasAnthropicKey: !!process.env.ANTHROPIC_API_KEY,
                     hasGeminiKey: !!process.env.GEMINI_API_KEY,
                     hasOpenAIKey: !!process.env.OPENAI_API_KEY,
-                    reuseSessionId: input.sessionId || null,
+                    explicitSessionId: input.sessionId || null,
+                    forceNewSession: input.forceNewSession,
+                    userId,
                 });
 
-                // Initialize Stagehand with Browserbase + explicit model configuration.
-                const stagehandConfig: any = {
-                    env: "BROWSERBASE",
-                    verbose: 1,
-                    apiKey: process.env.BROWSERBASE_API_KEY,
-                    projectId: process.env.BROWSERBASE_PROJECT_ID,
-                    model: modelId,
-                    modelApiKey,
-                };
-
+                // Use persistent session manager to get or create a session
+                // This automatically handles session reuse across requests
                 if (input.sessionId) {
-                    // Reuse existing session - pass ONLY the session ID, no create params
-                    stagehandConfig.browserbaseSessionID = input.sessionId; // Try with capital ID
-                    console.log(`Attempting to reuse session: ${input.sessionId}`);
+                    // If explicit session ID provided, try to get that specific session
+                    const existingSession = persistentSessionManager.getSession(input.sessionId);
+                    if (existingSession) {
+                        console.log(`[AI Router] Using explicitly provided session: ${input.sessionId}`);
+                        stagehand = existingSession.stagehand;
+                        sessionId = input.sessionId;
+                        isNewSession = false;
+
+                        // Update activity to extend session timeout
+                        await persistentSessionManager.updateActivity(sessionId);
+                    } else {
+                        // Session not in memory, try to create new one with that ID
+                        console.log(`[AI Router] Session ${input.sessionId} not found, creating new session`);
+                        const persistentSession = await persistentSessionManager.getOrCreateSession(userId, {
+                            modelName: modelId,
+                            modelApiKey,
+                            geolocation: input.geolocation,
+                            timeout: 15 * 60 * 1000, // 15 minutes
+                        });
+                        stagehand = persistentSession.stagehand;
+                        sessionId = persistentSession.sessionId;
+                        liveViewUrl = persistentSession.liveViewUrl;
+                        debuggerUrl = persistentSession.debugUrl;
+                        isNewSession = persistentSession.isNew;
+                    }
+                } else if (input.forceNewSession) {
+                    // Force create new session (close existing first)
+                    console.log("[AI Router] Force creating new session");
+                    await persistentSessionManager.closeUserSessions(userId);
+
+                    const persistentSession = await persistentSessionManager.getOrCreateSession(userId, {
+                        modelName: modelId,
+                        modelApiKey,
+                        geolocation: input.geolocation,
+                        timeout: 15 * 60 * 1000,
+                    });
+                    stagehand = persistentSession.stagehand;
+                    sessionId = persistentSession.sessionId;
+                    liveViewUrl = persistentSession.liveViewUrl;
+                    debuggerUrl = persistentSession.debugUrl;
+                    isNewSession = persistentSession.isNew;
                 } else {
-                    // Create new session with proper configuration
-                    stagehandConfig.browserbaseSessionCreateParams = {
-                        projectId: process.env.BROWSERBASE_PROJECT_ID!,
-                        proxies: true,
-                        region: "us-west-2",
-                        timeout: 900, // 15 minutes session timeout
-                        keepAlive: true,
-                        browserSettings: {
-                            advancedStealth: false,
-                            blockAds: true,
-                            solveCaptchas: true,
-                            recordSession: true, // ENABLE RECORDING for live view
-                            viewport: { width: 1920, height: 1080 },
-                        },
-                        userMetadata: {
-                            userId: "automation-user-chat",
-                            environment: process.env.NODE_ENV || "development",
-                        },
-                    };
-                    console.log('Creating new session with recording enabled');
+                    // Use persistent session manager - automatically reuses or creates
+                    console.log("[AI Router] Using persistent session manager");
+                    const persistentSession = await persistentSessionManager.getOrCreateSession(userId, {
+                        modelName: modelId,
+                        modelApiKey,
+                        geolocation: input.geolocation,
+                        timeout: 15 * 60 * 1000, // 15 minutes
+                    });
+                    stagehand = persistentSession.stagehand;
+                    sessionId = persistentSession.sessionId;
+                    liveViewUrl = persistentSession.liveViewUrl;
+                    debuggerUrl = persistentSession.debugUrl;
+                    isNewSession = persistentSession.isNew;
                 }
 
-                const stagehand = new Stagehand(stagehandConfig);
+                console.log(`[AI Router] Using session: ${sessionId} (${isNewSession ? "NEW" : "REUSED"})`);
 
-                await stagehand.init();
-
-                // ALWAYS get the actual session ID from Stagehand after init
-                // Stagehand may create a new session even if we provided one
-                sessionId = stagehand.browserbaseSessionID;
-                console.log(`Stagehand using session: ${sessionId}`);
-
-                // Send session created event via SSE
+                // Send session created/reused event via SSE
                 sendProgress(sessionId!, {
-                    type: 'session_created',
+                    type: isNewSession ? 'session_created' : 'session_reused',
                     sessionId: sessionId!,
-                    message: 'Browser session created'
+                    message: isNewSession ? 'Browser session created' : 'Reusing existing browser session'
                 });
 
-                // Get live view URLs using the ACTUAL session ID
-                try {
-                    const debugInfo = await browserbaseSDK.getSessionDebug(sessionId!);
-                    liveViewUrl = debugInfo.debuggerFullscreenUrl;
-                    debuggerUrl = debugInfo.debuggerUrl;
-                    console.log(`Live view available at: ${liveViewUrl}`);
+                // Get live view URLs if we don't have them yet
+                if (!liveViewUrl || !debuggerUrl) {
+                    try {
+                        const debugInfo = await browserbaseSDK.getSessionDebug(sessionId!);
+                        liveViewUrl = debugInfo.debuggerFullscreenUrl;
+                        debuggerUrl = debugInfo.debuggerUrl;
+                        console.log(`[AI Router] Live view available at: ${liveViewUrl}`);
+                    } catch (debugError) {
+                        console.error("[AI Router] Failed to get live view URL:", debugError);
+                    }
+                }
 
-                    // Send live view ready event - THIS IS KEY FOR REAL-TIME!
+                // Send live view ready event
+                if (liveViewUrl) {
                     sendProgress(sessionId!, {
                         type: 'live_view_ready',
                         sessionId: sessionId!,
                         data: {
                             liveViewUrl,
                             debuggerUrl,
-                            sessionUrl: `https://www.browserbase.com/sessions/${sessionId}`
+                            sessionUrl: `https://www.browserbase.com/sessions/${sessionId}`,
+                            isPersistent: true,
+                            isReused: !isNewSession,
                         },
                         message: 'Live view ready - browser visible!'
                     });
-                } catch (debugError) {
-                    console.error("Failed to get live view URL:", debugError);
                 }
 
                 // Get the first page from context
@@ -351,41 +378,70 @@ export const aiRouter = router({
                     console.log('[Action] No action detected in prompt');
                 }
 
-                // Keep session open by default for live viewing
-                // Sessions will auto-expire after the Browserbase timeout (default: 5-15 minutes)
+                // Update session activity to extend timeout
+                await persistentSessionManager.updateActivity(sessionId!);
+
+                // Handle session lifecycle based on keepOpen preference
+                // Persistent sessions stay open by default
                 if (input.keepOpen === false) {
-                    await stagehand.close();
-                    console.log('Session closed as requested');
+                    // User explicitly wants to close the session
+                    await persistentSessionManager.closeSession(sessionId!);
+                    console.log('[AI Router] Session closed as requested');
                 } else {
-                    console.log('Session kept open for live viewing (will auto-expire)');
+                    console.log('[AI Router] Session kept open (persistent session - will auto-extend on activity)');
                 }
 
-                // Persist session to database
+                // Update session in database (don't insert duplicate if reusing)
                 try {
-                    const userId = ctx.user.id;
-
                     if (db && sessionId) {
-                        await db.insert(browserSessions).values({
-                            userId: userId,
-                            sessionId: sessionId,
-                            status: "completed",
-                            url: liveViewUrl || `https://www.browserbase.com/sessions/${sessionId}`,
-                            debugUrl: debuggerUrl,
-                            projectId: process.env.BROWSERBASE_PROJECT_ID,
-                            metadata: {
-                                sessionType: "chat",
-                                prompt: prompt,
-                                startUrl: startUrl,
-                                modelName: input.modelName || "google/gemini-2.0-flash",
-                                geolocation: input.geolocation || null,
-                                environment: process.env.NODE_ENV || "development",
-                                liveViewUrl: liveViewUrl,
-                            },
-                        });
-                        console.log(`Session ${sessionId} persisted to database`);
+                        if (isNewSession) {
+                            // Session was already created by persistent session manager
+                            // Just update with prompt info
+                            await db.update(browserSessions)
+                                .set({
+                                    url: liveViewUrl || `https://www.browserbase.com/sessions/${sessionId}`,
+                                    debugUrl: debuggerUrl,
+                                    metadata: {
+                                        sessionType: "chat",
+                                        persistent: true,
+                                        lastPrompt: prompt,
+                                        startUrl: startUrl,
+                                        modelName: input.modelName || "claude-3-7-sonnet-latest",
+                                        geolocation: input.geolocation || null,
+                                        environment: process.env.NODE_ENV || "development",
+                                        liveViewUrl: liveViewUrl,
+                                    },
+                                    updatedAt: new Date(),
+                                })
+                                .where(eq(browserSessions.sessionId, sessionId));
+                            console.log(`[AI Router] Session ${sessionId} updated in database`);
+                        } else {
+                            // Reused session - just update metadata with latest prompt
+                            const existingSession = await db.query.browserSessions.findFirst({
+                                where: eq(browserSessions.sessionId, sessionId),
+                            });
+
+                            if (existingSession) {
+                                const existingMetadata = (existingSession.metadata as any) || {};
+                                await db.update(browserSessions)
+                                    .set({
+                                        metadata: {
+                                            ...existingMetadata,
+                                            lastPrompt: prompt,
+                                            promptHistory: [
+                                                ...(existingMetadata.promptHistory || []),
+                                                { prompt, timestamp: new Date().toISOString() },
+                                            ].slice(-10), // Keep last 10 prompts
+                                        },
+                                        updatedAt: new Date(),
+                                    })
+                                    .where(eq(browserSessions.sessionId, sessionId));
+                                console.log(`[AI Router] Reused session ${sessionId} metadata updated`);
+                            }
+                        }
                     }
                 } catch (dbError) {
-                    console.error("Failed to persist session to database:", dbError);
+                    console.error("[AI Router] Failed to update session in database:", dbError);
                     // Don't throw - session was successful, just log the DB error
                 }
 
@@ -397,6 +453,8 @@ export const aiRouter = router({
                     liveViewUrl: liveViewUrl,
                     debuggerUrl: debuggerUrl,
                     prompt: prompt,
+                    isPersistent: true,
+                    isReusedSession: !isNewSession,
                 };
 
             } catch (error) {
@@ -1095,5 +1153,201 @@ export const aiRouter = router({
                     message: `Failed to execute multi-tab workflow: ${error instanceof Error ? error.message : "Unknown error"}`,
                 });
             }
+        }),
+
+    // ========================================
+    // PERSISTENT SESSION MANAGEMENT ENDPOINTS
+    // ========================================
+
+    /**
+     * Get current active persistent session for the user
+     * Returns session details if one exists, null otherwise
+     */
+    getActiveSession: protectedProcedure
+        .query(async ({ ctx }) => {
+            const userId = ctx.user.id;
+            const activeSession = persistentSessionManager.getActiveSession(userId);
+
+            if (!activeSession) {
+                return {
+                    hasActiveSession: false,
+                    session: null,
+                };
+            }
+
+            // Get debug URLs
+            let debugUrl: string | undefined;
+            let liveViewUrl: string | undefined;
+
+            try {
+                const debugInfo = await browserbaseSDK.getSessionDebug(activeSession.sessionId);
+                debugUrl = debugInfo.debuggerUrl;
+                liveViewUrl = debugInfo.debuggerFullscreenUrl;
+            } catch (error) {
+                console.error("[AI Router] Failed to get debug info for active session:", error);
+            }
+
+            return {
+                hasActiveSession: true,
+                session: {
+                    sessionId: activeSession.sessionId,
+                    userId: activeSession.userId,
+                    lastActivity: activeSession.lastActivity,
+                    expiresAt: activeSession.expiresAt,
+                    debugUrl,
+                    liveViewUrl,
+                    sessionUrl: `https://www.browserbase.com/sessions/${activeSession.sessionId}`,
+                },
+            };
+        }),
+
+    /**
+     * Terminate the current active persistent session
+     */
+    terminateSession: protectedProcedure
+        .input(
+            z.object({
+                sessionId: z.string().optional(), // Specific session or current active
+            }).optional()
+        )
+        .mutation(async ({ input, ctx }) => {
+            const userId = ctx.user.id;
+            const db = await getDb();
+
+            try {
+                if (input?.sessionId) {
+                    // Terminate specific session
+                    await persistentSessionManager.closeSession(input.sessionId);
+
+                    if (db) {
+                        await db.update(browserSessions)
+                            .set({
+                                status: "completed",
+                                completedAt: new Date(),
+                                updatedAt: new Date(),
+                            })
+                            .where(eq(browserSessions.sessionId, input.sessionId));
+                    }
+
+                    return {
+                        success: true,
+                        message: `Session ${input.sessionId} terminated`,
+                        terminatedSessionId: input.sessionId,
+                    };
+                } else {
+                    // Terminate all user sessions
+                    await persistentSessionManager.closeUserSessions(userId);
+
+                    return {
+                        success: true,
+                        message: "All active sessions terminated",
+                    };
+                }
+            } catch (error) {
+                console.error("[AI Router] Failed to terminate session:", error);
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: `Failed to terminate session: ${error instanceof Error ? error.message : "Unknown error"}`,
+                });
+            }
+        }),
+
+    /**
+     * Extend the timeout of the current active session
+     */
+    extendSession: protectedProcedure
+        .input(
+            z.object({
+                sessionId: z.string().optional(),
+                additionalMinutes: z.number().min(1).max(60).default(15),
+            }).optional()
+        )
+        .mutation(async ({ input, ctx }) => {
+            const userId = ctx.user.id;
+
+            try {
+                const sessionId = input?.sessionId || persistentSessionManager.getActiveSession(userId)?.sessionId;
+
+                if (!sessionId) {
+                    throw new TRPCError({
+                        code: "NOT_FOUND",
+                        message: "No active session found",
+                    });
+                }
+
+                const additionalMs = (input?.additionalMinutes || 15) * 60 * 1000;
+                const success = await persistentSessionManager.extendSession(sessionId, additionalMs);
+
+                if (!success) {
+                    throw new TRPCError({
+                        code: "NOT_FOUND",
+                        message: "Session not found or already expired",
+                    });
+                }
+
+                const session = persistentSessionManager.getSession(sessionId);
+
+                return {
+                    success: true,
+                    sessionId,
+                    newExpiresAt: session?.expiresAt,
+                    message: `Session extended by ${input?.additionalMinutes || 15} minutes`,
+                };
+            } catch (error) {
+                if (error instanceof TRPCError) throw error;
+                console.error("[AI Router] Failed to extend session:", error);
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: `Failed to extend session: ${error instanceof Error ? error.message : "Unknown error"}`,
+                });
+            }
+        }),
+
+    /**
+     * Delete a session record (closes session if active and removes from database)
+     */
+    deleteSession: protectedProcedure
+        .input(
+            z.object({
+                sessionId: z.string(),
+            })
+        )
+        .mutation(async ({ input, ctx }) => {
+            const userId = ctx.user.id;
+            const db = await getDb();
+
+            try {
+                // Close session if active
+                await persistentSessionManager.closeSession(input.sessionId);
+
+                // Delete from database
+                if (db) {
+                    await db.delete(browserSessions)
+                        .where(eq(browserSessions.sessionId, input.sessionId));
+                }
+
+                return {
+                    success: true,
+                    message: `Session ${input.sessionId} deleted`,
+                };
+            } catch (error) {
+                console.error("[AI Router] Failed to delete session:", error);
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: `Failed to delete session: ${error instanceof Error ? error.message : "Unknown error"}`,
+                });
+            }
+        }),
+
+    /**
+     * Get persistent session manager stats
+     */
+    getSessionStats: protectedProcedure
+        .query(async ({ ctx }) => {
+            const stats = persistentSessionManager.getStats();
+            return {
+                ...stats,
+                timestamp: new Date(),
+            };
         }),
 });
