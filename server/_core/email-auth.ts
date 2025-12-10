@@ -34,7 +34,11 @@ function verifyPassword(password: string, storedHash: string): boolean {
 // POST /api/auth/signup - Create new account with email/password
 router.post("/signup", async (req, res) => {
   try {
-    const { email, password, name } = req.body;
+    console.log("[Auth] Signup request received");
+    console.log("[Auth] req.body:", JSON.stringify(req.body));
+    console.log("[Auth] req.body type:", typeof req.body);
+
+    const { email, password, name } = req.body || {};
 
     if (!email || !password) {
       return res.status(400).json({ error: "Email and password are required" });
@@ -89,6 +93,8 @@ router.post("/signup", async (req, res) => {
     });
   } catch (error) {
     console.error("[Auth] Signup error:", error);
+    console.error("[Auth] Signup error name:", error instanceof Error ? error.name : 'unknown');
+    console.error("[Auth] Signup error message:", error instanceof Error ? error.message : String(error));
     return res.status(500).json({ error: "Failed to create account" });
   }
 });
