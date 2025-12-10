@@ -5,9 +5,20 @@
 
 import { Stagehand } from "@browserbasehq/stagehand";
 import { z } from "zod";
+import type { Page } from "playwright";
 
 // GHL Login URL
 const GHL_LOGIN_URL = "https://app.gohighlevel.com/";
+
+// Helper to get Playwright page with correct types
+function getPage(stagehand: Stagehand): Page {
+  return stagehand.context.pages()[0] as unknown as Page;
+}
+
+// Helper for delays (Playwright-compatible)
+async function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 // Login credentials schema
 export const ghlLoginSchema = z.object({
@@ -41,12 +52,12 @@ export async function ghlLogin(
   const sessionId = stagehand.browserbaseSessionID || "unknown";
 
   try {
-    const page = stagehand.context.pages()[0];
+    const page = getPage(stagehand);
 
     // Navigate to GHL login page
     console.log("[GHL Login] Navigating to login page...");
     await page.goto(GHL_LOGIN_URL, { waitUntil: "domcontentloaded" });
-    await page.waitForTimeout(2000);
+    await delay(2000);
 
     // Check if already logged in
     const currentUrl = page.url();
@@ -63,18 +74,18 @@ export async function ghlLogin(
     console.log("[GHL Login] Entering email...");
     const emailInput = await page.locator('input[type="email"], input[name="email"], input[placeholder*="email" i]').first();
     await emailInput.fill(credentials.email);
-    await page.waitForTimeout(500);
+    await delay(500);
 
     // Fill in password using Playwright native method (SECURE - not logged)
     console.log("[GHL Login] Entering password...");
     const passwordInput = await page.locator('input[type="password"], input[name="password"]').first();
     await passwordInput.fill(credentials.password);
-    await page.waitForTimeout(500);
+    await delay(500);
 
     // Click login button
     console.log("[GHL Login] Clicking login button...");
     await stagehand.act("Click the Sign In or Login button");
-    await page.waitForTimeout(3000);
+    await delay(3000);
 
     // Check for 2FA prompt
     const pageContent = await page.content();
@@ -98,9 +109,9 @@ export async function ghlLogin(
       // Use Playwright native method for 2FA code (SECURE - not logged)
       const codeInput = await page.locator('input[type="text"][maxlength="6"], input[name*="code" i], input[placeholder*="code" i], input[name*="otp" i]').first();
       await codeInput.fill(credentials.twoFactorCode);
-      await page.waitForTimeout(500);
+      await delay(500);
       await stagehand.act("Click the Verify or Submit button");
-      await page.waitForTimeout(3000);
+      await delay(3000);
     }
 
     // Verify login success
@@ -110,14 +121,14 @@ export async function ghlLogin(
                          finalUrl.includes("/launchpad");
 
     if (!loginSuccess) {
-      // Check for error messages
+      // Check for error messages - using 'as any' pattern from existing codebase
       try {
-        const errorText = await stagehand.extract({
-          instruction: "Extract any error message shown on the page",
-          schema: z.object({
+        const errorText: any = await stagehand.extract(
+          "Extract any error message shown on the page",
+          z.object({
             error: z.string().optional(),
-          }),
-        });
+          }) as any
+        );
 
         return {
           success: false,
@@ -140,7 +151,7 @@ export async function ghlLogin(
         await page.goto(`https://app.gohighlevel.com/location/${credentials.locationId}/dashboard`, {
           waitUntil: "domcontentloaded",
         });
-        await page.waitForTimeout(2000);
+        await delay(2000);
       } catch (e) {
         console.log("[GHL Login] Could not navigate to specific location");
       }
@@ -169,7 +180,7 @@ export async function ghlLogin(
  */
 export async function isGHLLoggedIn(stagehand: Stagehand): Promise<boolean> {
   try {
-    const page = stagehand.context.pages()[0];
+    const page = getPage(stagehand);
     const currentUrl = page.url();
 
     return currentUrl.includes("app.gohighlevel.com") &&
@@ -186,13 +197,11 @@ export async function isGHLLoggedIn(stagehand: Stagehand): Promise<boolean> {
  */
 export async function ghlLogout(stagehand: Stagehand): Promise<boolean> {
   try {
-    const page = stagehand.context.pages()[0];
-
     // Try to click user menu and logout
     await stagehand.act("Click on the user profile menu or avatar in the header");
-    await page.waitForTimeout(1000);
+    await delay(1000);
     await stagehand.act("Click on Logout or Sign Out");
-    await page.waitForTimeout(2000);
+    await delay(2000);
 
     return true;
   } catch {

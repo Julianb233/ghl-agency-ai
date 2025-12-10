@@ -6,7 +6,7 @@
  * error recovery patterns, and support documents.
  */
 
-import { getDb } from "@/server/db";
+import { getDb } from "../db";
 import { eq, desc, and, sql, gt, or, ilike } from "drizzle-orm";
 import {
   generateEmbedding,
@@ -508,7 +508,7 @@ ${context.website.description || ""}
       .slice(0, 5)
       .map(
         (s) =>
-          `- ${s.elementName} (${s.elementType}): \`${s.primarySelector}\` (reliability: ${(s.reliabilityScore * 100).toFixed(0)}%)`
+          `- ${s.elementName} (${s.elementType}): \`${s.primarySelector}\` (reliability: ${((s.reliabilityScore ?? 0) * 100).toFixed(0)}%)`
       )
       .join("\n");
     sections.push(`## Known Selectors\n${selectorInfo}`);
@@ -519,7 +519,7 @@ ${context.website.description || ""}
     const sequenceInfo = context.actionSequences
       .map(
         (s) =>
-          `- ${s.name}: ${s.description || s.triggerInstruction} (success rate: ${(s.successRate * 100).toFixed(0)}%)`
+          `- ${s.name}: ${s.description || s.triggerInstruction} (success rate: ${((s.successRate ?? 0) * 100).toFixed(0)}%)`
       )
       .join("\n");
     sections.push(`## Recommended Action Patterns\n${sequenceInfo}`);
@@ -530,7 +530,7 @@ ${context.website.description || ""}
     const errorInfo = context.errorPatterns
       .map(
         (e) =>
-          `- ${e.errorType}: ${e.recoveryStrategy} (${(e.recoveryRate * 100).toFixed(0)}% success)`
+          `- ${e.errorType}: ${e.recoveryStrategy} (${((e.recoveryRate ?? 0) * 100).toFixed(0)}% success)`
       )
       .join("\n");
     sections.push(`## Error Recovery Strategies\n${errorInfo}`);

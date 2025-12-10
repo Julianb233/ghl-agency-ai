@@ -6,8 +6,8 @@
 import { Router, type Request, Response } from "express";
 import { z } from "zod";
 import { Stagehand } from "@browserbasehq/stagehand";
-import { getDb } from "@/server/db";
-import { browserSessions } from "@/drizzle/schema";
+import { getDb } from "../../../db";
+import { browserSessions } from "../../../../drizzle/schema";
 import { asyncHandler, ApiError } from "../middleware/errorMiddleware";
 import {
   ghlLogin,
@@ -16,7 +16,7 @@ import {
   extractPipelines,
   extractDashboardMetrics,
   type GHLWorkflowType,
-} from "@/server/workflows/ghl";
+} from "../../../workflows/ghl";
 
 const router = Router();
 
@@ -113,17 +113,13 @@ router.post(
     let sessionId: string | undefined;
 
     try {
-      // Create Stagehand instance
+      // Create Stagehand instance - matching existing codebase pattern
       stagehand = new Stagehand({
         env: "BROWSERBASE",
         verbose: 1,
         disablePino: true,
         apiKey: process.env.BROWSERBASE_API_KEY,
         projectId: process.env.BROWSERBASE_PROJECT_ID,
-        modelName: process.env.STAGEHAND_MODEL || "openai/gpt-4o",
-        modelClientOptions: {
-          apiKey: process.env.OPENAI_API_KEY || process.env.GEMINI_API_KEY,
-        },
         browserbaseSessionCreateParams: {
           projectId: process.env.BROWSERBASE_PROJECT_ID!,
           proxies: true,
@@ -256,12 +252,17 @@ router.post(
           if (!payload.taskData.url || !payload.taskData.instruction) {
             throw ApiError.badRequest("browser-extract requires url and instruction");
           }
-          const page = stagehand.context.pages()[0];
-          await page.goto(payload.taskData.url, { waitUntil: "domcontentloaded" });
-          result = await stagehand.extract({
-            instruction: payload.taskData.instruction,
-            schema: payload.taskData.extractionSchema,
-          });
+          const extractPage = stagehand.context.pages()[0];
+          await extractPage.goto(payload.taskData.url, { waitUntil: "domcontentloaded" });
+          // Use correct Stagehand extract API - pass schema directly with 'as any'
+          if (payload.taskData.extractionSchema) {
+            result = await stagehand.extract(
+              payload.taskData.instruction,
+              payload.taskData.extractionSchema as any
+            );
+          } else {
+            result = await stagehand.extract(payload.taskData.instruction);
+          }
           break;
         }
 
@@ -291,23 +292,29 @@ router.post(
 
       const executionTime = Date.now() - startTime;
 
-      // Log to database
+      // Log to database - userId expects integer, clientId might be string ID
       try {
         const db = await getDb();
-        if (db) {
-          await db.insert(browserSessions).values({
-            userId: payload.clientId,
-            sessionId: sessionId!,
-            status: "completed",
-            url: payload.taskData.url || "webhook-automation",
-            metadata: {
-              taskType: payload.taskType,
-              clientId: payload.clientId,
-              source: "webhook",
-              executionTime,
-              result: typeof result === "object" ? JSON.stringify(result).slice(0, 1000) : result,
-            },
-          });
+        if (db && sessionId) {
+          // Parse clientId as integer if numeric, otherwise skip DB logging
+          const userIdNum = parseInt(payload.clientId, 10);
+          if (!isNaN(userIdNum)) {
+            await db.insert(browserSessions).values({
+              userId: userIdNum,
+              sessionId: sessionId,
+              status: "completed",
+              url: payload.taskData.url || "webhook-automation",
+              metadata: {
+                taskType: payload.taskType,
+                clientId: payload.clientId,
+                source: "webhook",
+                executionTime,
+                result: typeof result === "object" ? JSON.stringify(result).slice(0, 1000) : result,
+              },
+            });
+          } else {
+            console.log("[Webhook] Skipping DB log - clientId is not a numeric user ID");
+          }
         }
       } catch (dbError) {
         console.error("[Webhook] Failed to log session:", dbError);
@@ -354,12 +361,13 @@ router.post(
         }
       }
 
-      // Log failed session
+      // Log failed session - userId expects integer
       try {
         const db = await getDb();
-        if (db && sessionId) {
+        const userIdNum = parseInt(payload.clientId, 10);
+        if (db && sessionId && !isNaN(userIdNum)) {
           await db.insert(browserSessions).values({
-            userId: payload.clientId,
+            userId: userIdNum,
             sessionId,
             status: "failed",
             metadata: {
