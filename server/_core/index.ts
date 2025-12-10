@@ -33,9 +33,26 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 
 export async function createApp() {
   const app = express();
-  // Configure body parser with larger size limit for file uploads
-  app.use(express.json({ limit: "50mb" }));
-  app.use(express.urlencoded({ limit: "50mb", extended: true }));
+
+  // Custom middleware to handle Vercel's pre-parsed body
+  // Vercel serverless functions already parse the body, so we need to skip
+  // Express body parsing if the body is already an object
+  app.use((req, res, next) => {
+    // If body is already parsed (Vercel), skip body parsing
+    if (req.body && typeof req.body === 'object' && Object.keys(req.body).length > 0) {
+      return next();
+    }
+    // Otherwise, use Express JSON parser
+    express.json({ limit: "50mb" })(req, res, next);
+  });
+
+  app.use((req, res, next) => {
+    // Skip if body is already parsed
+    if (req.body && typeof req.body === 'object' && Object.keys(req.body).length > 0) {
+      return next();
+    }
+    express.urlencoded({ limit: "50mb", extended: true })(req, res, next);
+  });
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
   // Google Auth routes
