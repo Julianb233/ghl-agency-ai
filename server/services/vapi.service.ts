@@ -69,27 +69,13 @@ export class VapiService {
     script: string,
     settings?: VapiCallSettings
   ): Promise<VapiCreateCallResponse> {
-    // TODO: Implement actual API call
-    // Example payload structure:
-    // {
-    //   phoneNumberId: "your-vapi-phone-number-id",
-    //   customer: { number: phoneNumber },
-    //   assistant: {
-    //     firstMessage: script,
-    //     model: { provider: "openai", model: settings?.model || "gpt-4" },
-    //     voice: { provider: "11labs", voiceId: "voice-id-based-on-settings" },
-    //     ...
-    //   }
-    // }
+    if (!this.apiKey) {
+      throw new Error("VAPI_API_KEY not configured. Please set the environment variable.");
+    }
 
-    console.log(`TODO: Creating call to ${phoneNumber} with script: ${script.substring(0, 50)}...`);
-
-    // Mock response for development
-    return {
-      callId: `vapi_call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      status: "initiated",
-      message: "Call created successfully (MOCK)",
-    };
+    // TODO: Implement actual Vapi API call
+    // API endpoint: POST https://api.vapi.ai/call
+    throw new Error("Vapi integration not yet implemented. Configure VAPI_API_KEY and implement the API call.");
   }
 
   /**
@@ -102,29 +88,13 @@ export class VapiService {
    * Documentation: https://docs.vapi.ai/api-reference/calls/get-call
    */
   async getCallStatus(vapiCallId: string): Promise<VapiCallStatus> {
-    // TODO: Implement actual API call
-    // Example response structure:
-    // {
-    //   id: vapiCallId,
-    //   status: "completed",
-    //   startedAt: "2024-01-01T00:00:00Z",
-    //   endedAt: "2024-01-01T00:05:00Z",
-    //   transcript: "...",
-    //   recordingUrl: "https://...",
-    //   ...
-    // }
+    if (!this.apiKey) {
+      throw new Error("VAPI_API_KEY not configured. Please set the environment variable.");
+    }
 
-    console.log(`TODO: Getting status for call ${vapiCallId}`);
-
-    // Mock response for development
-    return {
-      callId: vapiCallId,
-      status: "completed",
-      duration: 180, // 3 minutes
-      outcome: "completed",
-      transcript: "Mock transcript - conversation details would appear here",
-      recordingUrl: `https://mock-recordings.vapi.ai/${vapiCallId}.mp3`,
-    };
+    // TODO: Implement actual Vapi API call
+    // API endpoint: GET https://api.vapi.ai/call/{id}
+    throw new Error("Vapi integration not yet implemented. Configure VAPI_API_KEY and implement the API call.");
   }
 
   /**
@@ -136,9 +106,11 @@ export class VapiService {
    * API Endpoint: GET /call
    */
   async listCalls(limit: number = 50, offset: number = 0): Promise<VapiCallStatus[]> {
+    if (!this.apiKey) {
+      return [];
+    }
     // TODO: Implement actual API call
-    console.log(`TODO: Listing calls with limit=${limit}, offset=${offset}`);
-    return [];
+    throw new Error("Vapi listCalls not yet implemented.");
   }
 
   /**
@@ -149,12 +121,11 @@ export class VapiService {
    * API Endpoint: DELETE /call/{id}
    */
   async endCall(vapiCallId: string): Promise<{ success: boolean; message?: string }> {
+    if (!this.apiKey) {
+      throw new Error("VAPI_API_KEY not configured. Please set the environment variable.");
+    }
     // TODO: Implement actual API call
-    console.log(`TODO: Ending call ${vapiCallId}`);
-    return {
-      success: true,
-      message: "Call ended successfully (MOCK)",
-    };
+    throw new Error("Vapi endCall not yet implemented.");
   }
 
   /**
@@ -169,12 +140,11 @@ export class VapiService {
     vapiCallId: string,
     updates: Partial<VapiCallSettings>
   ): Promise<{ success: boolean; message?: string }> {
+    if (!this.apiKey) {
+      throw new Error("VAPI_API_KEY not configured. Please set the environment variable.");
+    }
     // TODO: Implement actual API call
-    console.log(`TODO: Updating call ${vapiCallId}`, updates);
-    return {
-      success: true,
-      message: "Call updated successfully (MOCK)",
-    };
+    throw new Error("Vapi updateCall not yet implemented.");
   }
 
   /**

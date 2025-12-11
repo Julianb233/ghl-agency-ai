@@ -15,40 +15,13 @@ interface EmailDraft {
     timestamp: string;
 }
 
-const MOCK_DRAFTS: EmailDraft[] = [
-    {
-        id: 'e1',
-        subject: 'Re: Question about pricing',
-        to: 'john.doe@example.com',
-        preview: "Hi John, thanks for reaching out! Our pricing tiers are designed to scale with you. Based on your needs, I'd recommend the Growth plan...",
-        status: 'NEEDS_REVIEW',
-        sentiment: 'POSITIVE',
-        timestamp: '10m ago'
-    },
-    {
-        id: 'e2',
-        subject: 'Follow-up: Meeting scheduled',
-        to: 'sarah.smith@agency.com',
-        preview: "Hi Sarah, just confirming our call for tomorrow at 2 PM EST. Looking forward to discussing the new campaign strategy.",
-        status: 'SENT',
-        sentiment: 'NEUTRAL',
-        timestamp: '1h ago'
-    },
-    {
-        id: 'e3',
-        subject: 'Urgent: Account Access',
-        to: 'support@client.com',
-        preview: "Hello, I'm having trouble logging into the dashboard. Could you please reset my credentials? Thanks.",
-        status: 'DRAFT',
-        sentiment: 'NEGATIVE',
-        timestamp: '2h ago'
-    }
-];
+// Email drafts will be loaded from the backend API when connected
+const INITIAL_DRAFTS: EmailDraft[] = [];
 
 export const EmailAgentPanel: React.FC = () => {
     const [isConnected, setIsConnected] = useState(false);
     const [isMonitoring, setIsMonitoring] = useState(false);
-    const [drafts, setDrafts] = useState<EmailDraft[]>(MOCK_DRAFTS);
+    const [drafts, setDrafts] = useState<EmailDraft[]>(INITIAL_DRAFTS);
 
     const handleConnect = () => {
         // Simulate OAuth flow
@@ -112,19 +85,19 @@ export const EmailAgentPanel: React.FC = () => {
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="p-3 bg-indigo-50 rounded-xl border border-indigo-100">
                                     <p className="text-xs text-indigo-500 font-bold uppercase">Unread</p>
-                                    <p className="text-2xl font-bold text-indigo-900">12</p>
+                                    <p className="text-2xl font-bold text-indigo-900">-</p>
                                 </div>
                                 <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-100">
                                     <p className="text-xs text-emerald-500 font-bold uppercase">Drafted</p>
-                                    <p className="text-2xl font-bold text-emerald-900">45</p>
+                                    <p className="text-2xl font-bold text-emerald-900">{drafts.length}</p>
                                 </div>
                                 <div className="p-3 bg-amber-50 rounded-xl border border-amber-100">
                                     <p className="text-xs text-amber-500 font-bold uppercase">Needs Review</p>
-                                    <p className="text-2xl font-bold text-amber-900">3</p>
+                                    <p className="text-2xl font-bold text-amber-900">{drafts.filter(d => d.status === 'NEEDS_REVIEW').length}</p>
                                 </div>
                                 <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
                                     <p className="text-xs text-slate-500 font-bold uppercase">Reply Rate</p>
-                                    <p className="text-2xl font-bold text-slate-700">24%</p>
+                                    <p className="text-2xl font-bold text-slate-700">-</p>
                                 </div>
                             </div>
 
@@ -150,17 +123,21 @@ export const EmailAgentPanel: React.FC = () => {
                         <GlassPane title="Recent Activity" className="flex-1 p-0 overflow-hidden">
                             <ScrollArea className="h-full">
                                 <div className="p-4 space-y-4">
-                                    {[1, 2, 3, 4].map(i => (
-                                        <div key={i} className="flex gap-3 text-sm">
+                                    {isMonitoring ? (
+                                        <div className="flex gap-3 text-sm">
                                             <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
-                                                <RefreshCw className="w-4 h-4 text-slate-500" />
+                                                <RefreshCw className="w-4 h-4 text-slate-500 animate-spin" />
                                             </div>
                                             <div>
-                                                <p className="text-slate-700"><span className="font-bold">Analyzed email</span> from client@bigcorp.com</p>
-                                                <p className="text-xs text-slate-400">2 mins ago</p>
+                                                <p className="text-slate-700"><span className="font-bold">Monitoring inbox</span></p>
+                                                <p className="text-xs text-slate-400">Waiting for new emails...</p>
                                             </div>
                                         </div>
-                                    ))}
+                                    ) : (
+                                        <div className="text-center py-8 text-slate-400">
+                                            <p className="text-sm">Start monitoring to see activity</p>
+                                        </div>
+                                    )}
                                 </div>
                             </ScrollArea>
                         </GlassPane>

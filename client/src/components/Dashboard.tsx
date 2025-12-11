@@ -24,6 +24,7 @@ import { MarketplacePanel } from './MarketplacePanel';
 import { AIBrowserPanel } from './AIBrowserPanel';
 import { SkipLink } from './SkipLink';
 import { ClientProfileModal } from './ClientProfileModal';
+import { Home, Terminal, Mail, Globe, Settings } from 'lucide-react';
 
 // Demo data only loaded when VITE_DEMO_MODE=1 (disabled by default in production)
 
@@ -605,8 +606,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
 
       <div className="flex max-w-[2000px] mx-auto h-[calc(100vh-64px)]">
 
-        {/* Navigation Rail */}
-        <nav className="w-16 flex flex-col items-center py-4 gap-4 border-r border-white/50 bg-white/30" role="navigation" aria-label="Main navigation">
+        {/* Navigation Rail - Hidden on mobile */}
+        <nav className="hidden md:flex w-16 flex-col items-center py-4 gap-4 border-r border-white/50 bg-white/30" role="navigation" aria-label="Main navigation">
           <button
             onClick={() => setViewMode('GLOBAL')}
             className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${viewMode === 'GLOBAL' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30' : 'text-slate-400 hover:bg-white/60 hover:text-indigo-500'}`}
@@ -691,8 +692,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
           </button>
         </nav>
 
-        {/* Main Content Area */}
-        <main id="dashboard-main" className="flex-1 p-4 overflow-y-auto md:overflow-hidden" tabIndex={-1}>
+        {/* Main Content Area - Add bottom padding on mobile for bottom nav */}
+        <main id="dashboard-main" className="flex-1 p-4 pb-20 md:pb-4 overflow-y-auto md:overflow-hidden" tabIndex={-1}>
 
           {viewMode === 'GLOBAL' && (
             <GlobalOps
@@ -978,6 +979,81 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
         onSave={handleSaveClientProfile}
         existingProfile={editingClient}
       />
+
+      {/* Mobile Bottom Navigation */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50" role="navigation" aria-label="Mobile navigation">
+        <div className="flex justify-around items-center h-16 px-2">
+          <button
+            onClick={() => setViewMode('GLOBAL')}
+            className={`flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-all ${
+              viewMode === 'GLOBAL'
+                ? 'text-indigo-600 bg-indigo-50'
+                : 'text-slate-500 hover:text-slate-700'
+            }`}
+            aria-label="Global Operations"
+            aria-current={viewMode === 'GLOBAL' ? 'page' : undefined}
+          >
+            <Home className="w-5 h-5" />
+            <span className="text-xs font-medium">Home</span>
+          </button>
+
+          <button
+            onClick={() => setViewMode('TERMINAL')}
+            className={`flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-all ${
+              viewMode === 'TERMINAL'
+                ? 'text-indigo-600 bg-indigo-50'
+                : 'text-slate-500 hover:text-slate-700'
+            }`}
+            aria-label="Live Terminal"
+            aria-current={viewMode === 'TERMINAL' ? 'page' : undefined}
+          >
+            <Terminal className="w-5 h-5" />
+            <span className="text-xs font-medium">Terminal</span>
+          </button>
+
+          <button
+            onClick={() => setViewMode('EMAIL_AGENT')}
+            className={`flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-all ${
+              viewMode === 'EMAIL_AGENT'
+                ? 'text-indigo-600 bg-indigo-50'
+                : 'text-slate-500 hover:text-slate-700'
+            }`}
+            aria-label="AI Email Agent"
+            aria-current={viewMode === 'EMAIL_AGENT' ? 'page' : undefined}
+          >
+            <Mail className="w-5 h-5" />
+            <span className="text-xs font-medium">Email</span>
+          </button>
+
+          <button
+            onClick={() => setViewMode('AI_BROWSER')}
+            className={`flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-all ${
+              viewMode === 'AI_BROWSER'
+                ? 'text-indigo-600 bg-indigo-50'
+                : 'text-slate-500 hover:text-slate-700'
+            }`}
+            aria-label="AI Browser"
+            aria-current={viewMode === 'AI_BROWSER' ? 'page' : undefined}
+          >
+            <Globe className="w-5 h-5" />
+            <span className="text-xs font-medium">Browser</span>
+          </button>
+
+          <button
+            onClick={() => setViewMode('SETTINGS')}
+            className={`flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-all ${
+              viewMode === 'SETTINGS'
+                ? 'text-indigo-600 bg-indigo-50'
+                : 'text-slate-500 hover:text-slate-700'
+            }`}
+            aria-label="Settings"
+            aria-current={viewMode === 'SETTINGS' ? 'page' : undefined}
+          >
+            <Settings className="w-5 h-5" />
+            <span className="text-xs font-medium">Settings</span>
+          </button>
+        </div>
+      </nav>
     </div>
   );
 };

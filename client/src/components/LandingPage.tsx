@@ -53,7 +53,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
             {isMobileMenuOpen ? <X className="w-6 h-6" aria-hidden="true" /> : <Menu className="w-6 h-6" aria-hidden="true" />}
           </button>
 
-          <div className="hidden sm:flex items-center gap-2 sm:gap-4">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4">
             <Button variant="ghost" onClick={onLogin} className="font-semibold text-xs sm:text-sm text-slate-700 hover:text-purple-600 px-2 sm:px-4">
               Log In
             </Button>
@@ -101,7 +101,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
           <div className="text-center mb-6 sm:mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="inline-flex items-center gap-2 sm:gap-3 bg-gradient-to-r from-purple-50 to-blue-50 border-2 border-purple-200/50 rounded-full px-3 sm:px-6 py-2 sm:py-2.5 shadow-lg shadow-purple-500/10">
               <Crown className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 animate-pulse" />
-              <span className="text-[10px] sm:text-sm font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent uppercase tracking-wide">
+              <span className="text-xs sm:text-sm font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent uppercase tracking-wide">
                 For Agency Owners Who Are Done Being Babysitters
               </span>
             </div>

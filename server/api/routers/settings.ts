@@ -27,11 +27,18 @@ import crypto from "crypto";
 // ========================================
 
 /**
- * PLACEHOLDER: Set up encryption key in environment variables
- * Add to .env: ENCRYPTION_KEY=<32-byte-hex-string>
+ * Encryption key for sensitive data storage
+ * REQUIRED: Set ENCRYPTION_KEY in environment variables
  * Generate with: openssl rand -hex 32
  */
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || "PLACEHOLDER_ENCRYPTION_KEY_REPLACE_ME_32_BYTES_HEX";
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
+
+// Validate encryption key is properly configured
+if (!ENCRYPTION_KEY || ENCRYPTION_KEY.length !== 64 || ENCRYPTION_KEY.includes("PLACEHOLDER")) {
+  console.error("[Settings] CRITICAL: ENCRYPTION_KEY is not properly configured!");
+  console.error("[Settings] Generate a key with: openssl rand -hex 32");
+  console.error("[Settings] Add to .env: ENCRYPTION_KEY=<your-64-char-hex-string>");
+}
 const ALGORITHM = "aes-256-gcm";
 const IV_LENGTH = 16;
 const AUTH_TAG_LENGTH = 16;
@@ -40,6 +47,13 @@ const AUTH_TAG_LENGTH = 16;
  * Encrypt sensitive data (API keys, tokens)
  */
 function encrypt(text: string): string {
+  if (!ENCRYPTION_KEY || ENCRYPTION_KEY.length !== 64) {
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Encryption key not configured. Please set ENCRYPTION_KEY environment variable.",
+    });
+  }
+
   try {
     const iv = crypto.randomBytes(IV_LENGTH);
     const cipher = crypto.createCipheriv(
@@ -67,6 +81,13 @@ function encrypt(text: string): string {
  * Decrypt sensitive data
  */
 function decrypt(encryptedText: string): string {
+  if (!ENCRYPTION_KEY || ENCRYPTION_KEY.length !== 64) {
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Encryption key not configured. Please set ENCRYPTION_KEY environment variable.",
+    });
+  }
+
   try {
     const parts = encryptedText.split(":");
     if (parts.length !== 3) {
@@ -1523,7 +1544,7 @@ export const settingsRouter = router({
 
   /**
    * Get webhook delivery logs
-   * PLACEHOLDER: Implement webhook logging system
+   * TODO: Implement webhook logging system with dedicated database table
    */
   getWebhookLogs: protectedProcedure
     .input(
@@ -1534,21 +1555,11 @@ export const settingsRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      // PLACEHOLDER: Query webhook delivery logs from dedicated table
-      // For now, returning mock data
+      // TODO: Implement webhook delivery logs storage
+      // Currently returns empty array - logs will be stored when webhook logging is implemented
       return {
-        logs: [
-          {
-            id: "log-1",
-            webhookId: input.webhookId,
-            event: "workflow.executed",
-            statusCode: 200,
-            deliveredAt: new Date().toISOString(),
-            duration: 145,
-            success: true,
-          },
-        ],
-        total: 1,
+        logs: [],
+        total: 0,
         limit: input.limit,
         offset: input.offset,
       };
