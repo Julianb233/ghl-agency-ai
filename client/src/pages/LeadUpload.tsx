@@ -49,12 +49,13 @@ export default function LeadUpload() {
     },
   });
 
-  const { uploadList, processLeads } = useLeadEnrichment();
+  const { createList, uploadLeads, enrichList } = useLeadEnrichment();
   const { getBalance } = useCredits();
-  const { data: balance } = getBalance('enrichment');
+  const { data: balance } = getBalance({ creditType: 'enrichment' });
 
-  const uploadMutation = uploadList();
-  const processMutation = processLeads();
+  const createListMutation = createList;
+  const uploadLeadsMutation = uploadLeads;
+  const enrichListMutation = enrichList;
 
   const handleFileSelect = (data: any[], columns: string[], fileName: string) => {
     setUploadState((prev) => ({
@@ -104,18 +105,22 @@ export default function LeadUpload() {
         return transformed;
       });
 
-      // Upload list
-      const uploadResult = await uploadMutation.mutateAsync({
+      // Step 1: Create the list
+      const createResult = await createListMutation.mutateAsync({
         name: uploadState.listName,
         description: uploadState.description,
-        leads: transformedData,
       });
 
-      // Process enrichment
-      if (uploadResult.listId) {
-        await processMutation.mutateAsync({
-          listId: uploadResult.listId,
-          enrichOptions: uploadState.enrichOptions,
+      // Step 2: Upload leads to the list
+      if (createResult.id) {
+        await uploadLeadsMutation.mutateAsync({
+          listId: createResult.id,
+          leads: transformedData,
+        });
+
+        // Step 3: Start enrichment process
+        await enrichListMutation.mutateAsync({
+          listId: createResult.id,
         });
       }
 
@@ -411,11 +416,12 @@ export default function LeadUpload() {
                   disabled={
                     !hasEnoughCredits ||
                     !uploadState.listName ||
-                    uploadMutation.isPending ||
-                    processMutation.isPending
+                    createListMutation.isPending ||
+                    uploadLeadsMutation.isPending ||
+                    enrichListMutation.isPending
                   }
                 >
-                  {uploadMutation.isPending || processMutation.isPending ? (
+                  {createListMutation.isPending || uploadLeadsMutation.isPending || enrichListMutation.isPending ? (
                     <>Uploading...</>
                   ) : (
                     <>

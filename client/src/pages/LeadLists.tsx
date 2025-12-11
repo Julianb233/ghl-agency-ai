@@ -27,6 +27,17 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
+interface LeadList {
+  id: string;
+  name: string;
+  totalLeads: number;
+  enrichedCount: number;
+  status: 'uploading' | 'processing' | 'completed' | 'failed';
+  creditsCost: number;
+  createdAt: Date;
+  description?: string;
+}
+
 export default function LeadLists() {
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
@@ -35,11 +46,13 @@ export default function LeadLists() {
   const [selectedListId, setSelectedListId] = useState<string | null>(null);
 
   const { getLists, deleteList, exportLeads } = useLeadEnrichment();
-  const { data: lists, isLoading } = getLists();
-  const deleteListMutation = deleteList();
-  const exportLeadsMutation = exportLeads();
+  const { data: listsData, isLoading } = getLists();
+  const deleteListMutation = deleteList;
 
-  const filteredLists = lists?.filter((list) => {
+  // Handle response structure - could be array or { lists, total, hasMore }
+  const lists = Array.isArray(listsData) ? listsData : (listsData?.lists || []);
+
+  const filteredLists = lists?.filter((list: LeadList) => {
     const matchesSearch = list.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || list.status === statusFilter;
     return matchesSearch && matchesStatus;
@@ -47,16 +60,16 @@ export default function LeadLists() {
 
   const stats = {
     totalLists: lists?.length || 0,
-    totalLeads: lists?.reduce((sum, list) => sum + list.totalLeads, 0) || 0,
-    enrichedLeads: lists?.reduce((sum, list) => sum + list.enrichedCount, 0) || 0,
-    creditsUsed: lists?.reduce((sum, list) => sum + list.creditsCost, 0) || 0,
+    totalLeads: lists?.reduce((sum: number, list: LeadList) => sum + list.totalLeads, 0) || 0,
+    enrichedLeads: lists?.reduce((sum: number, list: LeadList) => sum + list.enrichedCount, 0) || 0,
+    creditsUsed: lists?.reduce((sum: number, list: LeadList) => sum + list.creditsCost, 0) || 0,
   };
 
   const handleDelete = async () => {
     if (!selectedListId) return;
 
     try {
-      await deleteListMutation.mutateAsync(selectedListId);
+      await deleteListMutation.mutateAsync({ listId: Number(selectedListId) });
       toast.success('Lead list deleted successfully');
       setDeleteDialogOpen(false);
       setSelectedListId(null);
@@ -67,21 +80,21 @@ export default function LeadLists() {
 
   const handleExport = async (listId: string) => {
     try {
-      const result = await exportLeadsMutation.mutateAsync({
-        listId,
-        format: 'csv'
-      });
+      // exportLeads is a query, not a mutation - call it directly
+      const result = await exportLeads({ listId: Number(listId), format: 'csv' });
 
-      // Create download link
-      const blob = new Blob([result.data], { type: 'text/csv' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = result.filename;
-      a.click();
-      window.URL.revokeObjectURL(url);
+      if (result.data) {
+        // Create download link
+        const blob = new Blob([result.data.data], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = result.data.filename;
+        a.click();
+        window.URL.revokeObjectURL(url);
 
-      toast.success('Lead list exported successfully');
+        toast.success('Lead list exported successfully');
+      }
     } catch (error) {
       toast.error('Failed to export lead list');
     }
@@ -226,7 +239,7 @@ export default function LeadLists() {
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredLists.map((list) => (
+          {filteredLists.map((list: LeadList) => (
             <LeadListCard
               key={list.id}
               leadList={list}

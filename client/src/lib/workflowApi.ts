@@ -54,7 +54,7 @@ export async function saveWorkflow(workflow: Workflow): Promise<Workflow> {
     // const result = await trpc.workflows.create.mutate(workflowToDbFormat(workflow));
 
     // For now, save to localStorage as fallback
-    const workflows = getAllWorkflows();
+    const workflows = await getAllWorkflows();
     const workflowId = workflow.id || Date.now();
     const savedWorkflow: Workflow = {
       ...workflow,
@@ -83,7 +83,7 @@ export async function loadWorkflow(workflowId: number): Promise<Workflow> {
     // return dbToWorkflowFormat(result);
 
     // For now, load from localStorage
-    const workflows = getAllWorkflows();
+    const workflows = await getAllWorkflows();
     const workflow = workflows[workflowId];
 
     if (!workflow) {
@@ -125,7 +125,7 @@ export async function deleteWorkflow(workflowId: number): Promise<void> {
     // await trpc.workflows.delete.mutate({ id: workflowId });
 
     // For now, delete from localStorage
-    const workflows = getAllWorkflows();
+    const workflows = await getAllWorkflows();
     delete workflows[workflowId];
     localStorage.setItem('workflows', JSON.stringify(workflows));
 

@@ -2,7 +2,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { publicProcedure, protectedProcedure, router } from "../../_core/trpc";
 import { getDb } from "../../db";
-import { lead_lists, leads } from "../../../drizzle/schema-lead-enrichment";
+import { lead_lists, leads } from "../../../drizzle/schema";
 import { eq, and, desc, sql, count, inArray } from "drizzle-orm";
 import { AppifyService } from "../../services/appify.service";
 import { CreditService } from "../../services/credit.service";

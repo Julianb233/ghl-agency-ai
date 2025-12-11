@@ -11,6 +11,7 @@ import { registerSSERoutes } from "./sse-routes";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
+import { webhookEndpointsRouter } from "../api/webhookEndpoints";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -60,6 +61,8 @@ export async function createApp() {
   app.use("/api/onboarding", onboardingRouter);
   // SSE routes for real-time streaming
   registerSSERoutes(app);
+  // Webhook endpoints (public, token-authenticated)
+  app.use("/api/webhooks", webhookEndpointsRouter);
   // tRPC API
   app.use(
     "/api/trpc",

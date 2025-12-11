@@ -2,16 +2,26 @@ import { trpc } from '@/lib/trpc';
 
 export function useCredits() {
   const getBalance = trpc.credits.getBalance.useQuery;
+  const getBalances = trpc.credits.getBalances.useQuery;
   const checkBalance = trpc.credits.checkBalance.useQuery;
-  const getHistory = trpc.credits.getCreditHistory.useQuery;
+  const getTransactionHistory = trpc.credits.getTransactionHistory.useQuery;
+  const getUsageStats = trpc.credits.getUsageStats.useQuery;
   const purchaseCredits = trpc.credits.purchaseCredits.useMutation();
-  const listPackages = trpc.credits.listPackages.useQuery;
+  const getPackages = trpc.credits.getPackages.useQuery;
+  const createPackage = trpc.credits.createPackage.useMutation();
+  const updatePackage = trpc.credits.updatePackage.useMutation();
+  const adjustCredits = trpc.credits.adjustCredits.useMutation();
 
   return {
     getBalance,
+    getBalances,
     checkBalance,
-    getHistory,
+    getTransactionHistory,
+    getUsageStats,
     purchaseCredits,
-    listPackages
+    getPackages,
+    createPackage,
+    updatePackage,
+    adjustCredits
   };
 }

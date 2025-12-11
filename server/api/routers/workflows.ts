@@ -445,7 +445,6 @@ export const workflowsRouter = router({
                     env: "BROWSERBASE",
                     verbose: 1,
                     disablePino: true,
-                    modelName,
                     modelApiKey,
                     apiKey: process.env.BROWSERBASE_API_KEY,
                     projectId: process.env.BROWSERBASE_PROJECT_ID,

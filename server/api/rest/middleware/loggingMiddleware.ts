@@ -5,8 +5,8 @@
 
 import type { Request, Response, NextFunction } from "express";
 import type { AuthenticatedRequest } from "./authMiddleware";
-import { getDb } from "@/server/db";
-import { apiRequestLogs } from "@/drizzle/schema-settings-media";
+import { getDb } from "../../../db";
+import { apiRequestLogs } from "../../../../drizzle/schema";
 
 /**
  * Request with timing information

@@ -33,14 +33,11 @@ export default function LeadDetails() {
   const [selectedLead, setSelectedLead] = useState<any>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
 
-  const { getList, getEnrichedLeads, exportLeads, deleteLead, reEnrichLeads } =
+  const { getList, exportLeads, enrichLead } =
     useLeadEnrichment();
 
-  const { data: leadList, isLoading } = getList(id!);
-  const { data: enrichedData } = getEnrichedLeads(id!);
-  const exportMutation = exportLeads();
-  const deleteMutation = deleteLead();
-  const reEnrichMutation = reEnrichLeads();
+  const { data: leadList, isLoading } = getList(Number(id!));
+  const enrichMutation = enrichLead;
 
   if (isLoading) {
     return (
@@ -76,22 +73,22 @@ export default function LeadDetails() {
 
   const handleExport = async (format: 'csv' | 'json' = 'csv') => {
     try {
-      const result = await exportMutation.mutateAsync({
-        listId: id!,
-        format,
-      });
+      // exportLeads is a query, not a mutation - call it directly
+      const result = await exportLeads({ listId: Number(id!), format });
 
-      const blob = new Blob([result.data], {
-        type: format === 'csv' ? 'text/csv' : 'application/json',
-      });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = result.filename;
-      a.click();
-      window.URL.revokeObjectURL(url);
+      if (result.data) {
+        const blob = new Blob([result.data.data], {
+          type: format === 'csv' ? 'text/csv' : 'application/json',
+        });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = result.data.filename;
+        a.click();
+        window.URL.revokeObjectURL(url);
 
-      toast.success('Leads exported successfully');
+        toast.success('Leads exported successfully');
+      }
     } catch (error) {
       toast.error('Failed to export leads');
     }
@@ -106,9 +103,9 @@ export default function LeadDetails() {
 
       case 'enrich':
         try {
-          await reEnrichMutation.mutateAsync({
-            listId: id!,
-            leadIds: [lead.id],
+          await enrichMutation.mutateAsync({
+            listId: Number(id!),
+            leadId: lead.id,
           });
           toast.success('Lead re-enrichment started');
         } catch (error) {
@@ -117,15 +114,8 @@ export default function LeadDetails() {
         break;
 
       case 'delete':
-        try {
-          await deleteMutation.mutateAsync({
-            listId: id!,
-            leadId: lead.id,
-          });
-          toast.success('Lead deleted successfully');
-        } catch (error) {
-          toast.error('Failed to delete lead');
-        }
+        // deleteLead doesn't exist in the router - would need to be implemented
+        toast.info('Delete lead functionality not yet implemented');
         break;
     }
   };

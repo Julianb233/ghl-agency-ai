@@ -86,7 +86,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useBulkOperations } from '@/hooks/useBulkOperations';
-import { useSavedViewsStore } from '@/stores/savedViewsStore';
+import { useSavedViewsStore, SavedView } from '@/stores/savedViewsStore';
 import { BulkOperationsToolbar } from '@/components/BulkOperationsToolbar';
 import { KeyboardShortcuts } from '@/components/KeyboardShortcuts';
 
@@ -556,7 +556,7 @@ export default function ScheduledTasksPage() {
   };
 
   const handleLoadView = (viewId: string) => {
-    const view = views.find((v) => v.id === viewId);
+    const view = views.find((v: SavedView) => v.id === viewId);
     if (!view) return;
 
     setStatusFilter(view.filters.status || 'all');
@@ -712,7 +712,7 @@ export default function ScheduledTasksPage() {
                       <DropdownMenuContent align="start">
                         <DropdownMenuLabel>Your Saved Views</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        {views.map((view) => (
+                        {views.map((view: SavedView) => (
                           <DropdownMenuItem
                             key={view.id}
                             className="flex items-center justify-between gap-4"

@@ -13,6 +13,17 @@ import { workflowsRouter } from "./api/routers/workflows";
 import { quizRouter } from "./api/routers/quiz";
 import { browserRouter } from "./api/routers/browser";
 import { onboardingRouter } from "./api/routers/onboarding";
+import { aiCallingRouter } from "./api/routers/aiCalling";
+import { creditsRouter } from "./api/routers/credits";
+import { leadEnrichmentRouter } from "./api/routers/leadEnrichment";
+import { scheduledTasksRouter } from "./api/routers/scheduledTasks";
+import { ragRouter } from "./api/routers/rag";
+import { alertsRouter } from "./api/routers/alerts";
+import { apiKeysRouter } from "./api/routers/apiKeys";
+import { analyticsRouter } from "./api/routers/analytics";
+import { settingsRouter } from "./api/routers/settings";
+import { webhooksRouter } from "./api/routers/webhooks";
+import { agencyTasksRouter } from "./api/routers/agencyTasks";
 import { publicProcedure, router } from "./_core/trpc";
 
 export const appRouter = router({
@@ -42,6 +53,29 @@ export const appRouter = router({
   quiz: quizRouter,
   browser: browserRouter,
   onboarding: onboardingRouter,
+
+  // AI & Lead Management
+  aiCalling: aiCallingRouter,
+  credits: creditsRouter,
+  leadEnrichment: leadEnrichmentRouter,
+
+  // Automation & Scheduling
+  scheduledTasks: scheduledTasksRouter,
+
+  // RAG & Documentation
+  rag: ragRouter,
+
+  // Monitoring & Analytics
+  alerts: alertsRouter,
+  analytics: analyticsRouter,
+
+  // Settings & Configuration
+  apiKeys: apiKeysRouter,
+  settings: settingsRouter,
+
+  // Webhooks & Communication
+  webhooks: webhooksRouter,
+  agencyTasks: agencyTasksRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -5,8 +5,8 @@
 
 import { Router, type Response } from "express";
 import { z } from "zod";
-import { getDb } from "@/server/db";
-import { scheduledTaskExecutions, scheduledBrowserTasks } from "@/drizzle/schema-scheduled-tasks";
+import { getDb } from "../../../db";
+import { scheduledTaskExecutions, scheduledBrowserTasks } from "../../../../drizzle/schema-scheduled-tasks";
 import { eq, and, desc } from "drizzle-orm";
 import { requireApiKey, requireScopes, type AuthenticatedRequest } from "../middleware/authMiddleware";
 import { asyncHandler, ApiError } from "../middleware/errorMiddleware";

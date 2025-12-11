@@ -231,7 +231,7 @@ export function ExecutionMonitor({ executionId, open, onClose }: ExecutionMonito
     return `${minutes}m ${remainingSeconds}s`;
   };
 
-  const filteredLogs = execution.logs.filter((log) => {
+  const filteredLogs = execution.logs.filter((log: ExecutionLogEntry) => {
     // Filter by level
     if (logFilter !== 'all' && log.level !== logFilter) return false;
 
@@ -267,9 +267,9 @@ export function ExecutionMonitor({ executionId, open, onClose }: ExecutionMonito
     } else {
       content = execution.logs
         .map(
-          (log) =>
+          (log: ExecutionLogEntry) =>
             `[${formatTimestamp(log.timestamp)}] [${log.level.toUpperCase()}] ${log.message}${
-              log.data ? `\nData: ${JSON.stringify(log.data, null, 2)}` : ''
+              log.metadata ? `\nData: ${JSON.stringify(log.metadata, null, 2)}` : ''
             }`
         )
         .join('\n\n');
@@ -291,7 +291,7 @@ export function ExecutionMonitor({ executionId, open, onClose }: ExecutionMonito
   const copyAllLogs = () => {
     const content = filteredLogs
       .map(
-        (log) =>
+        (log: ExecutionLogEntry) =>
           `[${formatTimestamp(log.timestamp)}] [${log.level.toUpperCase()}] ${log.message}`
       )
       .join('\n');
@@ -573,7 +573,7 @@ export function ExecutionMonitor({ executionId, open, onClose }: ExecutionMonito
                     No logs to display
                   </div>
                 ) : (
-                  filteredLogs.map((log, index) => (
+                  filteredLogs.map((log: ExecutionLogEntry, index: number) => (
                     <div
                       key={index}
                       className={`rounded border p-3 ${getLogLevelColor(log.level)}`}
@@ -590,9 +590,9 @@ export function ExecutionMonitor({ executionId, open, onClose }: ExecutionMonito
                             </Badge>
                           </div>
                           <p className="text-sm">{log.message}</p>
-                          {log.data && (
+                          {log.metadata && (
                             <pre className="mt-2 text-xs bg-black/5 rounded p-2 overflow-x-auto">
-                              {JSON.stringify(log.data, null, 2)}
+                              {JSON.stringify(log.metadata, null, 2)}
                             </pre>
                           )}
                         </div>

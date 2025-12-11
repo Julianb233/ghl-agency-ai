@@ -9,6 +9,10 @@ if (!connectionString) {
 export default defineConfig({
   schema: [
     "./drizzle/schema.ts",
+    "./drizzle/schema-scheduled-tasks.ts",
+    "./drizzle/schema-rag.ts",
+    "./drizzle/schema-webhooks.ts",
+    "./drizzle/relations.ts",
     "./server/rag/schema.ts",
   ],
   out: "./drizzle",

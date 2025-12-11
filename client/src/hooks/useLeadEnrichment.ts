@@ -1,25 +1,27 @@
 import { trpc } from '@/lib/trpc';
 
 export function useLeadEnrichment() {
-  const uploadList = trpc.leadEnrichment.uploadLeadList.useMutation();
-  const processLeads = trpc.leadEnrichment.processLeadList.useMutation();
-  const getLists = trpc.leadEnrichment.listLeadLists.useQuery;
-  const getList = trpc.leadEnrichment.getLeadList.useQuery;
-  const getEnrichedLeads = trpc.leadEnrichment.getEnrichedLeads.useQuery;
-  const exportLeads = trpc.leadEnrichment.exportLeads.useMutation();
-  const deleteList = trpc.leadEnrichment.deleteLeadList.useMutation();
-  const deleteLead = trpc.leadEnrichment.deleteLead.useMutation();
-  const reEnrichLeads = trpc.leadEnrichment.reEnrichLeads.useMutation();
+  const createList = trpc.leadEnrichment.createList.useMutation();
+  const uploadLeads = trpc.leadEnrichment.uploadLeads.useMutation();
+  const enrichList = trpc.leadEnrichment.enrichList.useMutation();
+  const getLists = trpc.leadEnrichment.getLists.useQuery;
+  const getList = trpc.leadEnrichment.getList.useQuery;
+  const getLeads = trpc.leadEnrichment.getLeads.useQuery;
+  const enrichLead = trpc.leadEnrichment.enrichLead.useMutation();
+  const exportLeads = trpc.leadEnrichment.exportLeads.useQuery;
+  const deleteList = trpc.leadEnrichment.deleteList.useMutation();
+  // deleteLead doesn't exist - would need to be implemented in router
+  // reEnrichLeads doesn't exist - use enrichLead instead for individual re-enrichment
 
   return {
-    uploadList,
-    processLeads,
+    createList,
+    uploadLeads,
+    enrichList,
     getLists,
     getList,
-    getEnrichedLeads,
+    getLeads,
+    enrichLead,
     exportLeads,
-    deleteList,
-    deleteLead,
-    reEnrichLeads
+    deleteList
   };
 }

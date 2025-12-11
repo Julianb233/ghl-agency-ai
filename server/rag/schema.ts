@@ -40,6 +40,8 @@ export const websites = pgTable("rag_websites", {
 
   // Performance hints
   avgLoadTime: real("avg_load_time"),
+  // CHECK constraint: reliabilityScore should be between 0 and 1
+  // SQL: CHECK (reliability_score >= 0 AND reliability_score <= 1)
   reliabilityScore: real("reliability_score").default(0.5),
   lastCrawled: timestamp("last_crawled"),
 
@@ -56,7 +58,7 @@ export const websites = pgTable("rag_websites", {
  */
 export const pageKnowledge = pgTable("rag_page_knowledge", {
   id: serial("id").primaryKey(),
-  websiteId: integer("website_id").references(() => websites.id).notNull(),
+  websiteId: integer("website_id").references(() => websites.id, { onDelete: "cascade" }).notNull(),
 
   // Page identification
   urlPattern: text("url_pattern").notNull(), // Regex pattern to match URLs
@@ -98,8 +100,8 @@ export const pageKnowledge = pgTable("rag_page_knowledge", {
  */
 export const elementSelectors = pgTable("rag_element_selectors", {
   id: serial("id").primaryKey(),
-  pageId: integer("page_id").references(() => pageKnowledge.id),
-  websiteId: integer("website_id").references(() => websites.id).notNull(),
+  pageId: integer("page_id").references(() => pageKnowledge.id, { onDelete: "cascade" }),
+  websiteId: integer("website_id").references(() => websites.id, { onDelete: "cascade" }).notNull(),
 
   // Element identification
   elementName: varchar("element_name", { length: 255 }).notNull(),
@@ -116,6 +118,8 @@ export const elementSelectors = pgTable("rag_element_selectors", {
   // Reliability tracking
   successCount: integer("success_count").default(0),
   failureCount: integer("failure_count").default(0),
+  // CHECK constraint: reliabilityScore should be between 0 and 1
+  // SQL: CHECK (reliability_score >= 0 AND reliability_score <= 1)
   reliabilityScore: real("reliability_score").default(0.5),
   lastSuccess: timestamp("last_success"),
   lastFailure: timestamp("last_failure"),
@@ -132,6 +136,8 @@ export const elementSelectors = pgTable("rag_element_selectors", {
   pageIdx: index("rag_element_selectors_page_idx").on(table.pageId),
   typeIdx: index("rag_element_selectors_type_idx").on(table.elementType),
   reliabilityIdx: index("rag_element_selectors_reliability_idx").on(table.reliabilityScore),
+  // Unique constraint: websiteId + elementName should be unique
+  websiteElementUnique: uniqueIndex("rag_element_selectors_website_element_unique").on(table.websiteId, table.elementName),
 }));
 
 // ========================================
@@ -143,7 +149,7 @@ export const elementSelectors = pgTable("rag_element_selectors", {
  */
 export const actionSequences = pgTable("rag_action_sequences", {
   id: serial("id").primaryKey(),
-  websiteId: integer("website_id").references(() => websites.id).notNull(),
+  websiteId: integer("website_id").references(() => websites.id, { onDelete: "cascade" }).notNull(),
 
   // Sequence identification
   name: varchar("name", { length: 255 }).notNull(),
@@ -161,6 +167,8 @@ export const actionSequences = pgTable("rag_action_sequences", {
 
   // Performance tracking
   avgExecutionTime: real("avg_execution_time"),
+  // CHECK constraint: successRate should be between 0 and 1
+  // SQL: CHECK (success_rate >= 0 AND success_rate <= 1)
   successRate: real("success_rate").default(0.5),
   executionCount: integer("execution_count").default(0),
 
@@ -175,6 +183,8 @@ export const actionSequences = pgTable("rag_action_sequences", {
   websiteIdx: index("rag_action_sequences_website_idx").on(table.websiteId),
   taskTypeIdx: index("rag_action_sequences_task_idx").on(table.taskType),
   successRateIdx: index("rag_action_sequences_success_idx").on(table.successRate),
+  // Unique constraint: websiteId + name should be unique
+  websiteNameUnique: uniqueIndex("rag_action_sequences_website_name_unique").on(table.websiteId, table.name),
 }));
 
 // ========================================
@@ -186,7 +196,7 @@ export const actionSequences = pgTable("rag_action_sequences", {
  */
 export const errorPatterns = pgTable("rag_error_patterns", {
   id: serial("id").primaryKey(),
-  websiteId: integer("website_id").references(() => websites.id),
+  websiteId: integer("website_id").references(() => websites.id, { onDelete: "cascade" }),
 
   // Error identification
   errorType: varchar("error_type", { length: 100 }).notNull(), // 'element_not_found', 'timeout', 'auth_failed', 'captcha'
@@ -225,8 +235,8 @@ export const errorPatterns = pgTable("rag_error_patterns", {
  */
 export const executionLogs = pgTable("rag_execution_logs", {
   id: serial("id").primaryKey(),
-  websiteId: integer("website_id").references(() => websites.id),
-  actionSequenceId: integer("action_sequence_id").references(() => actionSequences.id),
+  websiteId: integer("website_id").references(() => websites.id, { onDelete: "cascade" }),
+  actionSequenceId: integer("action_sequence_id").references(() => actionSequences.id, { onDelete: "cascade" }),
 
   // Execution context
   sessionId: varchar("session_id", { length: 255 }),
@@ -246,6 +256,7 @@ export const executionLogs = pgTable("rag_execution_logs", {
 
   // Metadata
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => ({
   websiteIdx: index("rag_execution_logs_website_idx").on(table.websiteId),
   sequenceIdx: index("rag_execution_logs_sequence_idx").on(table.actionSequenceId),
@@ -262,7 +273,7 @@ export const executionLogs = pgTable("rag_execution_logs", {
  */
 export const supportDocuments = pgTable("rag_support_documents", {
   id: serial("id").primaryKey(),
-  websiteId: integer("website_id").references(() => websites.id),
+  websiteId: integer("website_id").references(() => websites.id, { onDelete: "cascade" }),
 
   // Document info
   title: varchar("title", { length: 500 }).notNull(),
@@ -287,6 +298,7 @@ export const supportDocuments = pgTable("rag_support_documents", {
   // Metadata
   lastUpdated: timestamp("last_updated"),
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 }, (table) => ({
   websiteIdx: index("rag_support_docs_website_idx").on(table.websiteId),
   typeIdx: index("rag_support_docs_type_idx").on(table.documentType),

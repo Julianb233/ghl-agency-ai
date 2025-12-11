@@ -51,20 +51,23 @@ export default function AICampaigns() {
   const [, setLocation] = useLocation();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [selectedCampaignId, setSelectedCampaignId] = useState<string | null>(null);
+  const [selectedCampaignId, setSelectedCampaignId] = useState<number | null>(null);
 
-  const { listCampaigns, createCampaign, startCampaign, pauseCampaign, stopCampaign, deleteCampaign } =
+  const { getCampaigns, createCampaign, startCampaign, pauseCampaign, deleteCampaign } =
     useAICalling();
   const { getLists } = useLeadEnrichment();
 
-  const { data: campaigns, isLoading } = listCampaigns();
-  const { data: leadLists } = getLists();
+  const { data: campaignsData, isLoading } = getCampaigns();
+  const { data: leadListsData } = getLists();
 
-  const createMutation = createCampaign();
-  const startMutation = startCampaign();
-  const pauseMutation = pauseCampaign();
-  const stopMutation = stopCampaign();
-  const deleteMutation = deleteCampaign();
+  // Extract arrays from response objects
+  const campaigns = campaignsData?.campaigns ?? [];
+  const leadLists = Array.isArray(leadListsData) ? leadListsData : (leadListsData?.lists ?? []);
+
+  const createMutation = createCampaign;
+  const startMutation = startCampaign;
+  const pauseMutation = pauseCampaign;
+  const deleteMutation = deleteCampaign;
 
   const handleCreateCampaign = async (data: any) => {
     try {
@@ -76,27 +79,27 @@ export default function AICampaigns() {
     }
   };
 
-  const handleStartCampaign = async (campaignId: string) => {
+  const handleStartCampaign = async (campaignId: number) => {
     try {
-      await startMutation.mutateAsync(campaignId);
+      await startMutation.mutateAsync({ campaignId });
       toast.success('Campaign started');
     } catch (error) {
       toast.error('Failed to start campaign');
     }
   };
 
-  const handlePauseCampaign = async (campaignId: string) => {
+  const handlePauseCampaign = async (campaignId: number) => {
     try {
-      await pauseMutation.mutateAsync(campaignId);
+      await pauseMutation.mutateAsync({ campaignId });
       toast.success('Campaign paused');
     } catch (error) {
       toast.error('Failed to pause campaign');
     }
   };
 
-  const handleStopCampaign = async (campaignId: string) => {
+  const handleStopCampaign = async (campaignId: number) => {
     try {
-      await stopMutation.mutateAsync(campaignId);
+      await pauseMutation.mutateAsync({ campaignId });
       toast.success('Campaign stopped');
     } catch (error) {
       toast.error('Failed to stop campaign');
@@ -107,7 +110,7 @@ export default function AICampaigns() {
     if (!selectedCampaignId) return;
 
     try {
-      await deleteMutation.mutateAsync(selectedCampaignId);
+      await deleteMutation.mutateAsync({ campaignId: selectedCampaignId });
       toast.success('Campaign deleted successfully');
       setDeleteDialogOpen(false);
       setSelectedCampaignId(null);
@@ -116,7 +119,7 @@ export default function AICampaigns() {
     }
   };
 
-  const confirmDelete = (campaignId: string) => {
+  const confirmDelete = (campaignId: number) => {
     setSelectedCampaignId(campaignId);
     setDeleteDialogOpen(true);
   };
@@ -161,7 +164,7 @@ export default function AICampaigns() {
             </Card>
           ))}
         </div>
-      ) : !campaigns || campaigns.length === 0 ? (
+      ) : campaigns.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16">
             <div className="rounded-full bg-accent p-6 mb-4">
@@ -354,7 +357,7 @@ export default function AICampaigns() {
             <DialogTitle>Create AI Campaign</DialogTitle>
           </DialogHeader>
           <CampaignForm
-            leadLists={leadLists || []}
+            leadLists={leadLists}
             onSubmit={handleCreateCampaign}
             onCancel={() => setCreateDialogOpen(false)}
           />

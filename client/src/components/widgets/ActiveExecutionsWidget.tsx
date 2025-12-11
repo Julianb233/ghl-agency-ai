@@ -58,7 +58,7 @@ export function ActiveExecutionsWidget({
 
   // Show toast notifications for execution status changes
   useEffect(() => {
-    const executionList = Array.from(executions.values());
+    const executionList = Array.from(executions.values()) as ExecutionState[];
 
     executionList.forEach((execution) => {
       // Only show notifications for recently updated executions (within last 2 seconds)
@@ -85,12 +85,12 @@ export function ActiveExecutionsWidget({
     });
   }, [executions]);
 
-  const activeExecutions = Array.from(executions.values())
+  const activeExecutions = (Array.from(executions.values()) as ExecutionState[])
     .filter((exec) => exec.status === 'running' || exec.status === 'queued')
     .sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime())
     .slice(0, maxExecutions);
 
-  const recentCompletedExecutions = Array.from(executions.values())
+  const recentCompletedExecutions = (Array.from(executions.values()) as ExecutionState[])
     .filter((exec) => exec.status === 'success' || exec.status === 'failed' || exec.status === 'timeout')
     .sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime())
     .slice(0, 3);

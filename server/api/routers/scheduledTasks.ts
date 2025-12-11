@@ -1,15 +1,15 @@
 import { z } from "zod";
 import { router, protectedProcedure } from "../../_core/trpc";
 import { TRPCError } from "@trpc/server";
-import { getDb } from "@/server/db";
+import { getDb } from "../../db";
 import {
   scheduledBrowserTasks,
   scheduledTaskExecutions,
   type ScheduledBrowserTask,
   type InsertScheduledBrowserTask,
-} from "@/drizzle/schema-scheduled-tasks";
+} from "../../../drizzle/schema";
 import { eq, and, desc, asc, gte, lte, count } from "drizzle-orm";
-import { cronSchedulerService } from "@/server/services/cronScheduler.service";
+import { cronSchedulerService } from "../../services/cronScheduler.service";
 
 /**
  * Calculate next run time for a cron expression

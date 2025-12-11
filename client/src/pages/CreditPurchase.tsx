@@ -24,14 +24,18 @@ export default function CreditPurchase() {
   const [, setLocation] = useLocation();
   const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null);
 
-  const { listPackages, purchaseCredits, getHistory, getBalance } = useCredits();
+  const { getPackages, purchaseCredits, getTransactionHistory, getBalance } = useCredits();
 
-  const { data: packages, isLoading: packagesLoading } = listPackages();
-  const { data: history, isLoading: historyLoading } = getHistory();
-  const { data: enrichmentBalance } = getBalance('enrichment');
-  const { data: callingBalance } = getBalance('calling');
+  const { data: packagesData, isLoading: packagesLoading } = getPackages();
+  const { data: historyData, isLoading: historyLoading } = getTransactionHistory();
+  const { data: enrichmentBalance } = getBalance({ creditType: 'enrichment' });
+  const { data: callingBalance } = getBalance({ creditType: 'calling' });
 
-  const purchaseMutation = purchaseCredits();
+  // Extract arrays from response objects
+  const packages = packagesData?.packages ?? [];
+  const history = historyData?.transactions ?? [];
+
+  const purchaseMutation = purchaseCredits;
 
   const handlePurchase = async (packageId: string) => {
     try {
@@ -125,7 +129,7 @@ export default function CreditPurchase() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {packages?.map((pkg: any, index: number) => (
+              {packages.map((pkg: any, index: number) => (
                 <CreditPackageCard
                   key={pkg.id}
                   package={pkg}
@@ -187,7 +191,7 @@ export default function CreditPurchase() {
                 <Skeleton className="h-64" />
               </CardContent>
             </Card>
-          ) : !history || history.length === 0 ? (
+          ) : history.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-16">
                 <div className="rounded-full bg-accent p-6 mb-4">

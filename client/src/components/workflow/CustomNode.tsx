@@ -50,8 +50,8 @@ const NODE_COLORS = {
 };
 
 export const CustomNode: React.FC<NodeProps<WorkflowNodeData>> = ({ data, selected }) => {
-  const Icon = NODE_ICONS[data.type] || Compass;
-  const gradient = NODE_COLORS[data.type] || 'from-gray-500 to-gray-600';
+  const Icon = NODE_ICONS[data.type as keyof typeof NODE_ICONS] || Compass;
+  const gradient = NODE_COLORS[data.type as keyof typeof NODE_COLORS] || 'from-gray-500 to-gray-600';
 
   return (
     <div

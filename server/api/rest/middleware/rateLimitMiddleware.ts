@@ -216,13 +216,13 @@ export async function apiKeyRateLimit(
   }
 
   try {
-    const db = await import("@/server/db").then((m) => m.getDb());
+    const db = await import("../../../db").then((m) => m.getDb());
     if (!db) {
       next();
       return;
     }
 
-    const { apiKeys } = await import("@/drizzle/schema-settings-media");
+    const { apiKeys } = await import("../../../../drizzle/schema");
     const { eq } = await import("drizzle-orm");
 
     // Fetch API key rate limits from database

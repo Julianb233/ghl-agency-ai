@@ -15,6 +15,13 @@
       "when": 1763704678765,
       "tag": "0001_moaning_annihilus",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1733871600000,
+      "tag": "0002_webhooks_and_task_board",
+      "breakpoints": true
     }
   ]
 }

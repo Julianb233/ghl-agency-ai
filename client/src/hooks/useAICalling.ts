@@ -4,22 +4,30 @@ export function useAICalling() {
   const createCampaign = trpc.aiCalling.createCampaign.useMutation();
   const startCampaign = trpc.aiCalling.startCampaign.useMutation();
   const pauseCampaign = trpc.aiCalling.pauseCampaign.useMutation();
-  const stopCampaign = trpc.aiCalling.stopCampaign.useMutation();
+  // stopCampaign doesn't exist - use pauseCampaign instead
   const getCampaign = trpc.aiCalling.getCampaign.useQuery;
-  const listCampaigns = trpc.aiCalling.listCampaigns.useQuery;
-  const getCampaignStats = trpc.aiCalling.getCampaignStats.useQuery;
-  const listCalls = trpc.aiCalling.listCalls.useQuery;
+  const getCampaigns = trpc.aiCalling.getCampaigns.useQuery;
+  // getCampaignStats doesn't exist - campaign stats are included in getCampaigns response
+  const getCalls = trpc.aiCalling.getCalls.useQuery;
+  const getCall = trpc.aiCalling.getCall.useQuery;
+  const makeCall = trpc.aiCalling.makeCall.useMutation();
+  const updateCall = trpc.aiCalling.updateCall.useMutation();
+  const updateCampaign = trpc.aiCalling.updateCampaign.useMutation();
+  const syncCallStatus = trpc.aiCalling.syncCallStatus.useMutation();
   const deleteCampaign = trpc.aiCalling.deleteCampaign.useMutation();
 
   return {
     createCampaign,
     startCampaign,
     pauseCampaign,
-    stopCampaign,
     getCampaign,
-    listCampaigns,
-    getCampaignStats,
-    listCalls,
+    getCampaigns,
+    getCalls,
+    getCall,
+    makeCall,
+    updateCall,
+    updateCampaign,
+    syncCallStatus,
     deleteCampaign
   };
 }

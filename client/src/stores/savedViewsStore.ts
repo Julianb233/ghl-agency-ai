@@ -24,7 +24,7 @@ export const useSavedViewsStore = create<SavedViewsState>()(
   persist(
     (set) => ({
       views: [],
-      addView: (view) =>
+      addView: (view: Omit<SavedView, 'id' | 'createdAt'>) =>
         set((state) => ({
           views: [
             ...state.views,
@@ -35,11 +35,11 @@ export const useSavedViewsStore = create<SavedViewsState>()(
             },
           ],
         })),
-      removeView: (id) =>
+      removeView: (id: string) =>
         set((state) => ({
           views: state.views.filter((v) => v.id !== id),
         })),
-      updateView: (id, updates) =>
+      updateView: (id: string, updates: Partial<SavedView>) =>
         set((state) => ({
           views: state.views.map((v) => (v.id === id ? { ...v, ...updates } : v)),
         })),

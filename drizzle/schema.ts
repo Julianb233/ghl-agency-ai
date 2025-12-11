@@ -341,3 +341,56 @@ export const quizAttempts = pgTable("quiz_attempts", {
 
 export type QuizAttempt = typeof quizAttempts.$inferSelect;
 export type InsertQuizAttempt = typeof quizAttempts.$inferInsert;
+
+// ========================================
+// API KEYS AND REQUEST LOGGING TABLES
+// ========================================
+
+/**
+ * API keys for REST API authentication
+ * Stores hashed API keys with rate limits and usage tracking
+ */
+export const apiKeys = pgTable("api_keys", {
+  id: serial("id").primaryKey(),
+  userId: integer("userId").references(() => users.id).notNull(),
+  name: varchar("name", { length: 100 }).notNull(),
+  description: text("description"),
+  keyHash: text("keyHash").notNull().unique(), // SHA256 hash of the API key
+  keyPrefix: varchar("keyPrefix", { length: 12 }).notNull(), // First 12 chars for display
+  scopes: jsonb("scopes").notNull(), // Array of permission scopes
+  isActive: boolean("isActive").default(true).notNull(),
+  rateLimitPerMinute: integer("rateLimitPerMinute").default(100).notNull(),
+  rateLimitPerHour: integer("rateLimitPerHour").default(1000).notNull(),
+  rateLimitPerDay: integer("rateLimitPerDay").default(10000).notNull(),
+  lastUsedAt: timestamp("lastUsedAt"),
+  totalRequests: integer("totalRequests").default(0).notNull(),
+  expiresAt: timestamp("expiresAt"),
+  revokedAt: timestamp("revokedAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+
+export type ApiKey = typeof apiKeys.$inferSelect;
+export type InsertApiKey = typeof apiKeys.$inferInsert;
+
+/**
+ * API request logs
+ * Tracks all API requests for analytics and debugging
+ */
+export const apiRequestLogs = pgTable("api_request_logs", {
+  id: serial("id").primaryKey(),
+  apiKeyId: integer("apiKeyId").references(() => apiKeys.id).notNull(),
+  userId: integer("userId").references(() => users.id).notNull(),
+  method: varchar("method", { length: 10 }).notNull(), // GET, POST, PUT, DELETE, etc.
+  endpoint: text("endpoint").notNull(),
+  statusCode: integer("statusCode").notNull(),
+  responseTime: integer("responseTime").notNull(), // Response time in milliseconds
+  ipAddress: varchar("ipAddress", { length: 45 }), // IPv4 or IPv6
+  userAgent: text("userAgent"),
+  referer: text("referer"),
+  requestBody: jsonb("requestBody"), // Sanitized request body
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type ApiRequestLog = typeof apiRequestLogs.$inferSelect;
+export type InsertApiRequestLog = typeof apiRequestLogs.$inferInsert;

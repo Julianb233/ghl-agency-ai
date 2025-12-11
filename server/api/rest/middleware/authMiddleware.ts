@@ -5,8 +5,8 @@
 
 import type { Request, Response, NextFunction } from "express";
 import crypto from "crypto";
-import { getDb } from "@/server/db";
-import { apiKeys, users } from "@/drizzle/schema-settings-media";
+import { getDb } from "../../../db";
+import { apiKeys, users } from "../../../../drizzle/schema";
 import { eq, and } from "drizzle-orm";
 
 /**

@@ -6,8 +6,8 @@
 import { z } from "zod";
 import { router, protectedProcedure } from "../../_core/trpc";
 import { TRPCError } from "@trpc/server";
-import { getDb } from "@/server/db";
-import { apiKeys, apiRequestLogs } from "@/drizzle/schema-settings-media";
+import { getDb } from "../../db";
+import { apiKeys, apiRequestLogs } from "../../../drizzle/schema";
 import { eq, and, desc, count, gte } from "drizzle-orm";
 import crypto from "crypto";
 
