@@ -177,7 +177,8 @@ export const aiRouter = router({
                 // Stagehand v3 requires model config as an object with modelName and apiKey
                 const stagehandConfig: any = {
                     env: "BROWSERBASE",
-                    verbose: 1,
+                    verbose: 0,
+                    enableCaching: false,
                     apiKey: process.env.BROWSERBASE_API_KEY,
                     projectId: process.env.BROWSERBASE_PROJECT_ID,
                     model: {
@@ -625,7 +626,8 @@ export const aiRouter = router({
 
                 const stagehand = new Stagehand({
                     env: "BROWSERBASE",
-                    verbose: 1,
+                    verbose: 0,
+                    enableCaching: false,
                     apiKey: process.env.BROWSERBASE_API_KEY,
                     projectId: process.env.BROWSERBASE_PROJECT_ID,
                     model: {
@@ -759,7 +761,8 @@ export const aiRouter = router({
 
                 const stagehand = new Stagehand({
                     env: "BROWSERBASE",
-                    verbose: 1,
+                    verbose: 0,
+                    enableCaching: false,
                     apiKey: process.env.BROWSERBASE_API_KEY,
                     projectId: process.env.BROWSERBASE_PROJECT_ID,
                     model: {
@@ -902,7 +905,8 @@ export const aiRouter = router({
 
                 const stagehand = new Stagehand({
                     env: "BROWSERBASE",
-                    verbose: 1,
+                    verbose: 0,
+                    enableCaching: false,
                     apiKey: process.env.BROWSERBASE_API_KEY,
                     projectId: process.env.BROWSERBASE_PROJECT_ID,
                     model: {
@@ -1054,7 +1058,8 @@ export const aiRouter = router({
 
                 const stagehand = new Stagehand({
                     env: "BROWSERBASE",
-                    verbose: 1,
+                    verbose: 0,
+                    enableCaching: false,
                     apiKey: process.env.BROWSERBASE_API_KEY,
                     projectId: process.env.BROWSERBASE_PROJECT_ID,
                     model: {

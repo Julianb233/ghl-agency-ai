@@ -273,8 +273,8 @@ export class TaskExecutionService {
 
       const stagehand = new Stagehand({
         env: "BROWSERBASE",
-        verbose: 1,
-        disablePino: true,
+        verbose: 0, // Disable verbose logging to prevent pino-pretty loading
+        enableCaching: false,
         model: modelName,
         apiKey: process.env.BROWSERBASE_API_KEY,
         projectId: process.env.BROWSERBASE_PROJECT_ID,
