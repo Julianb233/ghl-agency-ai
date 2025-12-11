@@ -242,6 +242,259 @@ class PerformanceTracker {
 | 3x sequential `act()` | ~8000ms | 3 |
 | `observe()` + loop `act()` | ~500ms | 1 |
 
+## API Speed Optimizations
+
+The browser router includes several optimized endpoints:
+
+### Fast Endpoints (Reduced Timeouts)
+
+```typescript
+// Fast act - 5s timeout instead of 30s
+await trpc.browser.fastAct.mutate({
+  sessionId: "...",
+  instruction: "click the 'Submit' button",
+  timeout: 5000  // Optional, default 5s
+});
+
+// Fast navigate - domcontentloaded default, auto DOM optimization
+await trpc.browser.fastNavigate.mutate({
+  sessionId: "...",
+  url: "https://example.com",
+  waitUntil: "domcontentloaded",  // Default (faster than "networkidle")
+  timeout: 15000,
+  optimizeDOM: true  // Auto-remove videos/iframes after navigation
+});
+```
+
+### Batch Actions (2-3x Faster!)
+
+```typescript
+// Instead of multiple act() calls, use observe + act pattern
+await trpc.browser.batchActions.mutate({
+  sessionId: "...",
+  instruction: "Find all form fields to fill",
+  actionType: "click",  // or "type", "select"
+  maxActions: 10
+});
+// Returns: { elementsFound, actionsPerformed, timing: { observeTimeMs, actTimeMs, totalTimeMs } }
+```
+
+### DOM Optimization
+
+```typescript
+// Clean up heavy elements before automation
+await trpc.browser.optimizeDOM.mutate({
+  sessionId: "...",
+  removeVideos: true,
+  removeIframes: true,
+  disableAnimations: true,
+  removeHiddenElements: false
+});
+```
+
+### History & Metrics
+
+```typescript
+// Get detailed operation history for debugging
+const history = await trpc.browser.getHistory.query({ sessionId: "..." });
+// Returns: { history, metrics, stats, slowestOperations, totalOperations, successCount, failedCount }
+```
+
+## Multi-Page Workflows
+
+Work with multiple browser tabs/pages simultaneously:
+
+```typescript
+// Create a new page
+const { pageIndex, totalPages } = await trpc.browser.newPage.mutate({
+  sessionId: "...",
+  url: "https://example.com/page2"  // Optional
+});
+
+// List all pages
+const { pages } = await trpc.browser.listPages.query({ sessionId: "..." });
+// Returns: [{ index, url, title }, ...]
+
+// Act on a specific page
+await trpc.browser.actOnPage.mutate({
+  sessionId: "...",
+  instruction: "click the submit button",
+  pageIndex: 1  // Target the second page
+});
+
+// Extract from a specific page with selector
+const data = await trpc.browser.extractFromPage.mutate({
+  sessionId: "...",
+  instruction: "extract all links",
+  pageIndex: 0,
+  schemaType: "links",  // Built-in: contactInfo, productInfo, tableData, links, custom
+  selector: "/html/body/nav"  // Optional XPath to narrow scope
+});
+```
+
+## Agent Workflows
+
+Use the autonomous agent for complex multi-step tasks:
+
+```typescript
+// Basic agent execution
+await trpc.browser.agentExecute.mutate({
+  sessionId: "...",
+  instruction: "Find Italian restaurants in Brooklyn that are open after 10pm, have outdoor seating, and are rated 4+ stars. Save the top 3 results.",
+  maxSteps: 25
+});
+
+// Computer Use Agent (CUA) with custom model
+await trpc.browser.agentExecute.mutate({
+  sessionId: "...",
+  instruction: "Apply for a library card at the San Francisco Public Library",
+  maxSteps: 30,
+  cua: true,
+  model: "anthropic/claude-sonnet-4-20250514",
+  systemPrompt: "You are a helpful assistant that can use a web browser. Do not ask follow up questions."
+});
+
+// Agent with MCP integrations
+await trpc.browser.agentExecute.mutate({
+  sessionId: "...",
+  instruction: "Search for the latest news about AI and summarize the top 3 articles",
+  maxSteps: 20,
+  integrations: [`https://mcp.exa.ai/mcp?exaApiKey=${process.env.EXA_API_KEY}`]
+});
+```
+
+## Deep Locator (Iframe Traversal)
+
+Work with elements inside iframes using the `>>` hop notation:
+
+```typescript
+// Click button inside an iframe
+await trpc.browser.deepLocatorAction.mutate({
+  sessionId: "...",
+  selector: "iframe#payment >> button.submit",
+  action: "click"
+});
+
+// Fill input in nested iframe
+await trpc.browser.deepLocatorAction.mutate({
+  sessionId: "...",
+  selector: "iframe#outer >> iframe#inner >> input#email",
+  action: "fill",
+  value: "user@example.com"
+});
+
+// Get text from element in iframe
+const result = await trpc.browser.deepLocatorAction.mutate({
+  sessionId: "...",
+  selector: "iframe#widget >> .error-message",
+  action: "getText"
+});
+console.log(result.result); // Error text
+
+// Check visibility
+const visible = await trpc.browser.deepLocatorAction.mutate({
+  sessionId: "...",
+  selector: "iframe#modal >> .dialog",
+  action: "isVisible"
+});
+
+// Highlight for debugging
+await trpc.browser.deepLocatorAction.mutate({
+  sessionId: "...",
+  selector: "iframe#app >> button.target",
+  action: "highlight",
+  options: { durationMs: 3000 }
+});
+
+// Count elements in iframe
+const count = await trpc.browser.deepLocatorCount.query({
+  sessionId: "...",
+  selector: "iframe#widget >> button"
+});
+console.log(`Found ${count.count} buttons`);
+
+// Get element coordinates
+const centroid = await trpc.browser.deepLocatorCentroid.query({
+  sessionId: "...",
+  selector: "iframe#payment >> input#card",
+  first: true  // Select first match
+});
+console.log(centroid.centroid); // { x: 100, y: 200 }
+```
+
+### Deep Locator Selector Syntax
+
+| Syntax | Example | Description |
+|--------|---------|-------------|
+| CSS with hops | `iframe#outer >> button` | CSS selector with iframe traversal |
+| XPath with hops | `//iframe >> //button` | XPath with hop notation |
+| Multiple hops | `iframe#a >> iframe#b >> div` | Nested iframes |
+| Deep XPath | `//iframe//button` | Auto iframe detection |
+| Mixed | `iframe.widget >> xpath=//div[@id='123']` | CSS then XPath |
+
+### Available Actions
+
+- `click` - Click the element
+- `fill` - Fill input (requires `value`)
+- `type` - Type text with optional delay (requires `value`)
+- `hover` - Hover over element
+- `highlight` - Highlight for debugging
+- `getText` - Get text content
+- `getHtml` - Get inner HTML
+- `isVisible` - Check visibility
+- `isChecked` - Check checkbox state
+- `inputValue` - Get input value
+
+## Auto-Caching (10-100x Faster)
+
+Enable caching when creating a session for dramatically faster subsequent runs:
+
+```typescript
+// Create session with caching enabled
+const session = await trpc.browser.createSession.mutate({
+  cacheDir: "login-workflow",  // Actions cached here
+  selfHeal: true,              // Adapt to minor page changes
+  browserSettings: {
+    blockAds: true,
+    solveCaptchas: true
+  }
+});
+
+// First run: ~20-30 seconds (full LLM inference)
+// Subsequent runs: ~2-3 seconds (cached actions, 0 tokens!)
+await trpc.browser.agentExecute.mutate({
+  sessionId: session.sessionId,
+  instruction: "Log in with username 'demo' and password 'test123'",
+  maxSteps: 10
+});
+```
+
+### Cache Management
+
+```typescript
+// List all caches
+const { caches } = await trpc.browser.listCaches.query();
+console.log(caches); // [{ name, createdAt, modifiedAt, ageDays }]
+
+// Clear specific cache (e.g., when website changes)
+await trpc.browser.clearCache.mutate({
+  cacheDir: "login-workflow"
+});
+
+// Clear only if older than 7 days
+await trpc.browser.clearCache.mutate({
+  cacheDir: "login-workflow",
+  olderThanDays: 7
+});
+```
+
+### When to Clear Cache
+
+- Website structure changed
+- Workflow logic needs to be re-explored
+- Cache is stale (use `olderThanDays`)
+- Getting errors from cached actions
+
 ## Debugging Tips
 
 1. Set `verbose: 1` or `verbose: 2` for debugging (not in production)
@@ -249,3 +502,8 @@ class PerformanceTracker {
 3. Log results at each step
 4. Start simple, add complexity gradually
 5. When prompts fail, be MORE specific, not less
+6. Use `getHistory` to identify slow operations
+7. Use `fastNavigate` with `optimizeDOM: true` for SPAs
+8. Use `listPages` to see all open pages and their URLs
+9. Use `deepLocatorAction` with `highlight` to debug iframe selectors
+10. Use `listCaches` to check cached workflows
