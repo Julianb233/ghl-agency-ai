@@ -27,6 +27,13 @@ const aliasPlugin = {
         path: fullPath + '.ts',
       };
     });
+
+    // Replace pino-pretty with stub to prevent serverless errors
+    build.onResolve({ filter: /^pino-pretty$/ }, args => {
+      return {
+        path: path.resolve(__dirname, 'server/_core/pino-stub.ts'),
+      };
+    });
   },
 };
 

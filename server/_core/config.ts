@@ -6,4 +6,11 @@ dotenv.config({ override: true });
 process.env.PINO_DISABLE_PRETTY = 'true';
 process.env.LOG_LEVEL = process.env.LOG_LEVEL || 'silent';
 
+// Additional pino configuration for serverless environments
+// Force pino to use stdout stream instead of worker thread transports
+if (process.env.NODE_ENV === 'production' || process.env.VERCEL === '1' || process.env.AWS_LAMBDA_FUNCTION_NAME) {
+  // In serverless, prevent pino from using worker threads
+  process.env.PINO_WORKER = 'false';
+}
+
 console.log("[Config] Environment variables loaded");
