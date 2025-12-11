@@ -148,7 +148,7 @@ async function getStagehandInstance(
 
   const stagehand = new Stagehand({
     env: "BROWSERBASE",
-    verbose: 1,
+    verbose: 0,
     disablePino: true,
     model: modelName,
     apiKey: process.env.BROWSERBASE_API_KEY,
