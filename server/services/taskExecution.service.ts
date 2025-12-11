@@ -11,7 +11,7 @@ import {
   outboundMessages,
   userWebhooks,
 } from "../../drizzle/schema-webhooks";
-import { getBrowserbaseService } from "../_core/browserbase";
+import { browserbaseSDK } from "../_core/browserbaseSDK";
 import { Stagehand } from "@browserbasehq/stagehand";
 
 // ========================================
@@ -254,15 +254,17 @@ export class TaskExecutionService {
       }
 
       // Create Browserbase session
-      const browserbaseService = getBrowserbaseService();
-      const session = await browserbaseService.createSession();
+      const session = await browserbaseSDK.createSession();
+
+      // Get debug URL for live view
+      const debugInfo = await browserbaseSDK.getSessionDebug(session.id);
 
       // Update execution with session info
       await db
         .update(taskExecutions)
         .set({
           browserSessionId: session.id,
-          debugUrl: session.url,
+          debugUrl: debugInfo.debuggerFullscreenUrl,
         })
         .where(eq(taskExecutions.id, executionId));
 
