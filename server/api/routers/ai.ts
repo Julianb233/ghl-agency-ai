@@ -175,6 +175,10 @@ export const aiRouter = router({
 
                 // Initialize Stagehand with Browserbase + explicit model configuration.
                 // Stagehand v3 requires model config as an object with modelName and apiKey
+                // Disable pino pretty transport before creating Stagehand
+                process.env.PINO_DISABLE_PRETTY = 'true';
+                process.env.LOG_LEVEL = 'silent';
+
                 const stagehandConfig: any = {
                     env: "BROWSERBASE",
                     verbose: 0,
@@ -624,6 +628,10 @@ export const aiRouter = router({
                 const observeModelId = input.modelName || "anthropic/claude-sonnet-4-20250514";
                 const observeModelApiKey = resolveModelApiKey(observeModelId);
 
+                // Disable pino pretty transport
+                process.env.PINO_DISABLE_PRETTY = 'true';
+                process.env.LOG_LEVEL = 'silent';
+
                 const stagehand = new Stagehand({
                     env: "BROWSERBASE",
                     verbose: 0,
@@ -758,6 +766,10 @@ export const aiRouter = router({
                 // Get model API key for Stagehand v3
                 const executeModelId = input.modelName || "anthropic/claude-sonnet-4-20250514";
                 const executeModelApiKey = resolveModelApiKey(executeModelId);
+
+                // Disable pino pretty transport
+                process.env.PINO_DISABLE_PRETTY = 'true';
+                process.env.LOG_LEVEL = 'silent';
 
                 const stagehand = new Stagehand({
                     env: "BROWSERBASE",
@@ -902,6 +914,10 @@ export const aiRouter = router({
                 // Get model API key for Stagehand v3
                 const extractModelId = input.modelName || "anthropic/claude-sonnet-4-20250514";
                 const extractModelApiKey = resolveModelApiKey(extractModelId);
+
+                // Disable pino pretty transport
+                process.env.PINO_DISABLE_PRETTY = 'true';
+                process.env.LOG_LEVEL = 'silent';
 
                 const stagehand = new Stagehand({
                     env: "BROWSERBASE",
@@ -1055,6 +1071,10 @@ export const aiRouter = router({
                 // Get model API key for Stagehand v3
                 const multiTabModelId = input.modelName || "anthropic/claude-sonnet-4-20250514";
                 const multiTabModelApiKey = resolveModelApiKey(multiTabModelId);
+
+                // Disable pino pretty transport
+                process.env.PINO_DISABLE_PRETTY = 'true';
+                process.env.LOG_LEVEL = 'silent';
 
                 const stagehand = new Stagehand({
                     env: "BROWSERBASE",

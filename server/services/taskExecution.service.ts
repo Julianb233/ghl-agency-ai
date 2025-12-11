@@ -271,6 +271,10 @@ export class TaskExecutionService {
       // Initialize Stagehand
       const modelName = process.env.STAGEHAND_MODEL || process.env.AI_MODEL || "google/gemini-2.0-flash";
 
+      // Disable pino pretty transport before creating Stagehand
+      process.env.PINO_DISABLE_PRETTY = 'true';
+      process.env.LOG_LEVEL = 'silent';
+
       const stagehand = new Stagehand({
         env: "BROWSERBASE",
         verbose: 0, // Disable verbose logging to prevent pino-pretty loading

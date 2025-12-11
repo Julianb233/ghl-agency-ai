@@ -42,8 +42,7 @@ await esbuild.build({
     '@tailwindcss/*', 
     'tailwindcss', 
     'lightningcss',
-    'pino-pretty',
-    'pino',
+    // Don't externalize pino - let it be bundled or handled by packages: 'external'
   ],
   plugins: [aliasPlugin],
 });
