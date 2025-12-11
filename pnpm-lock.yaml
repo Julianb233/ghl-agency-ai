@@ -155,12 +155,6 @@ importers:
       cookie:
         specifier: ^1.0.2
         version: 1.0.2
-      cron-parser:
-        specifier: ^4.9.0
-        version: 4.9.0
-      cronstrue:
-        specifier: ^2.51.0
-        version: 2.61.0
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
@@ -182,9 +176,6 @@ importers:
       input-otp:
         specifier: ^1.4.2
         version: 1.4.2(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
-      ioredis:
-        specifier: ^5.4.1
-        version: 5.8.2
       jose:
         specifier: 6.1.0
         version: 6.1.0
@@ -3256,11 +3247,6 @@ packages:
   cron-parser@4.9.0:
     resolution: {integrity: sha512-p0SaNjrHOnQeR8/VnfGbmg9te2kfyYSQ7Sc/j/6DtPL3JQvKxmjO9TSjNFpujqV3vEYYBvNNvXSxzyksBWAx1Q==}
     engines: {node: '>=12.0.0'}
-
-  cronstrue@2.61.0:
-    resolution: {integrity: sha512-ootN5bvXbIQI9rW94+QsXN5eROtXWwew6NkdGxIRpS/UFWRggL0G5Al7a9GTBFEsuvVhJ2K3CntIIVt7L2ILhA==}
-    deprecated: Non-backwards compatible Breaking changes
-    hasBin: true
 
   cross-spawn@7.0.6:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
@@ -9701,8 +9687,6 @@ snapshots:
   cron-parser@4.9.0:
     dependencies:
       luxon: 3.7.2
-
-  cronstrue@2.61.0: {}
 
   cross-spawn@7.0.6:
     dependencies:
