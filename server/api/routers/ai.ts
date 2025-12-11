@@ -174,13 +174,16 @@ export const aiRouter = router({
                 });
 
                 // Initialize Stagehand with Browserbase + explicit model configuration.
+                // Stagehand v3 requires model config as an object with modelName and apiKey
                 const stagehandConfig: any = {
                     env: "BROWSERBASE",
                     verbose: 1,
                     apiKey: process.env.BROWSERBASE_API_KEY,
                     projectId: process.env.BROWSERBASE_PROJECT_ID,
-                    model: modelId,
-                    modelApiKey,
+                    model: {
+                        modelName: modelId,
+                        apiKey: modelApiKey,
+                    },
                 };
 
                 if (input.sessionId) {
@@ -616,12 +619,19 @@ export const aiRouter = router({
                 sessionId = session.id;
                 console.log(`Session created: ${session.url}`);
 
+                // Get model API key for Stagehand v3
+                const observeModelId = input.modelName || "anthropic/claude-sonnet-4-20250514";
+                const observeModelApiKey = resolveModelApiKey(observeModelId);
+
                 const stagehand = new Stagehand({
                     env: "BROWSERBASE",
                     verbose: 1,
-                    disablePino: true,
                     apiKey: process.env.BROWSERBASE_API_KEY,
                     projectId: process.env.BROWSERBASE_PROJECT_ID,
+                    model: {
+                        modelName: observeModelId,
+                        apiKey: observeModelApiKey,
+                    },
                     browserbaseSessionCreateParams: {
                         projectId: process.env.BROWSERBASE_PROJECT_ID!,
                         proxies: true,
@@ -743,12 +753,19 @@ export const aiRouter = router({
                 sessionId = session.id;
                 console.log(`Session created: ${session.url}`);
 
+                // Get model API key for Stagehand v3
+                const executeModelId = input.modelName || "anthropic/claude-sonnet-4-20250514";
+                const executeModelApiKey = resolveModelApiKey(executeModelId);
+
                 const stagehand = new Stagehand({
                     env: "BROWSERBASE",
                     verbose: 1,
-                    disablePino: true,
                     apiKey: process.env.BROWSERBASE_API_KEY,
                     projectId: process.env.BROWSERBASE_PROJECT_ID,
+                    model: {
+                        modelName: executeModelId,
+                        apiKey: executeModelApiKey,
+                    },
                     browserbaseSessionCreateParams: {
                         projectId: process.env.BROWSERBASE_PROJECT_ID!,
                         proxies: true,
@@ -879,12 +896,19 @@ export const aiRouter = router({
                 sessionId = session.id;
                 console.log(`Session created: ${session.url}`);
 
+                // Get model API key for Stagehand v3
+                const extractModelId = input.modelName || "anthropic/claude-sonnet-4-20250514";
+                const extractModelApiKey = resolveModelApiKey(extractModelId);
+
                 const stagehand = new Stagehand({
                     env: "BROWSERBASE",
                     verbose: 1,
-                    disablePino: true,
                     apiKey: process.env.BROWSERBASE_API_KEY,
                     projectId: process.env.BROWSERBASE_PROJECT_ID,
+                    model: {
+                        modelName: extractModelId,
+                        apiKey: extractModelApiKey,
+                    },
                     browserbaseSessionCreateParams: {
                         projectId: process.env.BROWSERBASE_PROJECT_ID!,
                         proxies: true,
@@ -1024,12 +1048,19 @@ export const aiRouter = router({
                 sessionId = session.id;
                 console.log(`Session created: ${session.url}`);
 
+                // Get model API key for Stagehand v3
+                const multiTabModelId = input.modelName || "anthropic/claude-sonnet-4-20250514";
+                const multiTabModelApiKey = resolveModelApiKey(multiTabModelId);
+
                 const stagehand = new Stagehand({
                     env: "BROWSERBASE",
                     verbose: 1,
-                    disablePino: true,
                     apiKey: process.env.BROWSERBASE_API_KEY,
                     projectId: process.env.BROWSERBASE_PROJECT_ID,
+                    model: {
+                        modelName: multiTabModelId,
+                        apiKey: multiTabModelApiKey,
+                    },
                     browserbaseSessionCreateParams: {
                         projectId: process.env.BROWSERBASE_PROJECT_ID!,
                         proxies: true,
