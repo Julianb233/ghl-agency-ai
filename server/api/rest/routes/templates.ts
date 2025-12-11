@@ -8,7 +8,7 @@ import { z } from "zod";
 import { getDb } from "../../../db";
 import { automationTemplates } from "../../../../drizzle/schema";
 import { scheduledBrowserTasks } from "../../../../drizzle/schema-scheduled-tasks";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, count } from "drizzle-orm";
 import { requireApiKey, requireScopes, type AuthenticatedRequest } from "../middleware/authMiddleware";
 import { asyncHandler, ApiError } from "../middleware/errorMiddleware";
 
@@ -65,8 +65,8 @@ router.get(
       .offset(offset);
 
     // Get total count
-    const [{ count }] = await db
-      .select({ count: automationTemplates.id })
+    const [{ total }] = await db
+      .select({ total: count() })
       .from(automationTemplates);
 
     res.json({
@@ -74,8 +74,8 @@ router.get(
       pagination: {
         page: query.page,
         limit: query.limit,
-        total: Number(count),
-        pages: Math.ceil(Number(count) / query.limit),
+        total: Number(total),
+        pages: Math.ceil(Number(total) / query.limit),
       },
     });
   })
@@ -146,15 +146,15 @@ router.post(
       throw ApiError.notFound("Template not found");
     }
 
-    // Parse template configuration
-    const templateConfig =
-      typeof template.config === "string"
-        ? JSON.parse(template.config)
-        : template.config;
+    // Parse template steps as configuration
+    const templateSteps =
+      typeof template.steps === "string"
+        ? JSON.parse(template.steps)
+        : template.steps;
 
     // Merge custom inputs with template defaults
     const automationConfig = {
-      ...templateConfig,
+      steps: templateSteps,
       ...(data.customInputs || {}),
     };
 
@@ -181,6 +181,8 @@ router.post(
         notifyOnFailure: true,
         status: "active",
         isActive: true,
+        createdBy: req.user!.id,
+        lastModifiedBy: req.user!.id,
         createdAt: new Date(),
         updatedAt: new Date(),
       })

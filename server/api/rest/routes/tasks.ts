@@ -149,6 +149,8 @@ router.post(
         notifyOnFailure: data.notifyOnFailure,
         status: "active",
         isActive: true,
+        createdBy: req.user!.id,
+        lastModifiedBy: req.user!.id,
         createdAt: new Date(),
         updatedAt: new Date(),
       })

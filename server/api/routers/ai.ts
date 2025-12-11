@@ -298,7 +298,7 @@ export const aiRouter = router({
 
                         // If nothing meaningful left, just say we navigated
                         if (!modifiedPrompt || modifiedPrompt.length < 5) {
-                            modifiedPrompt = null; // Will skip action execution
+                            modifiedPrompt = ""; // Will skip action execution
                         }
 
                         console.log(`[Smart Navigation] Detected URL: ${targetUrl}`);

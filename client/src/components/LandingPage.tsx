@@ -1,49 +1,93 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from './ui/button';
-import { ArrowRight, CheckCircle2, Zap, Globe, Mail, Phone, BarChart3, Shield, Users, Clock, DollarSign, TrendingUp, Target, Sparkles, Crown, Rocket, Brain, Play } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Zap, Globe, Mail, Phone, BarChart3, Shield, Users, Clock, DollarSign, TrendingUp, Target, Sparkles, Crown, Rocket, Brain, Play, Menu, X } from 'lucide-react';
+import { SkipLink } from './SkipLink';
 
 interface LandingPageProps {
   onLogin: () => void;
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
+    e.preventDefault();
+    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' });
+    setIsMobileMenuOpen(false);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50/30 to-blue-50/40 flex flex-col font-sans text-slate-900">
+      {/* Skip Navigation Link for Accessibility */}
+      <SkipLink />
+
       {/* Navigation */}
-      <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-purple-100/50 shadow-sm">
+      <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-purple-100/50 shadow-sm" role="navigation" aria-label="Main navigation">
         <div className="container mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="w-8 h-8 sm:w-12 sm:h-12 bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-500 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/30 relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent animate-shimmer"></div>
-              <Sparkles className="w-4 h-4 sm:w-7 sm:h-7 text-white fill-white relative z-10" />
+              <Sparkles className="w-4 h-4 sm:w-7 sm:h-7 text-white fill-white relative z-10" aria-hidden="true" />
             </div>
             <div>
               <span className="text-base sm:text-xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 bg-clip-text text-transparent">GHL Agency AI</span>
-              <div className="hidden sm:block text-[10px] text-slate-500 font-medium -mt-1">The AI Workforce Platform</div>
+              <div className="hidden sm:block text-[11px] text-slate-700 font-semibold -mt-1">The AI Workforce Platform</div>
             </div>
           </div>
+
+          {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center gap-8 text-sm font-medium text-slate-600">
-            <a href="#problem" className="hover:text-purple-600 transition-colors">The Problem</a>
-            <a href="#solution" className="hover:text-purple-600 transition-colors">The Solution</a>
-            <a href="#proof" className="hover:text-purple-600 transition-colors">Proof</a>
-            <a href="#pricing" className="hover:text-purple-600 transition-colors">Investment</a>
+            <a href="#problem" onClick={(e) => scrollToSection(e, 'problem')} className="hover:text-purple-600 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-offset-2 rounded-md px-2 py-1">The Problem</a>
+            <a href="#solution" onClick={(e) => scrollToSection(e, 'solution')} className="hover:text-purple-600 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-offset-2 rounded-md px-2 py-1">The Solution</a>
+            <a href="#proof" onClick={(e) => scrollToSection(e, 'proof')} className="hover:text-purple-600 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-offset-2 rounded-md px-2 py-1">Proof</a>
+            <a href="#pricing" onClick={(e) => scrollToSection(e, 'pricing')} className="hover:text-purple-600 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-offset-2 rounded-md px-2 py-1">Investment</a>
           </div>
-          <div className="flex items-center gap-2 sm:gap-4">
+
+          {/* Mobile Menu Button */}
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="lg:hidden p-2 text-slate-600 hover:text-purple-600 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-offset-2 rounded-md"
+            aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+            aria-expanded={isMobileMenuOpen}
+          >
+            {isMobileMenuOpen ? <X className="w-6 h-6" aria-hidden="true" /> : <Menu className="w-6 h-6" aria-hidden="true" />}
+          </button>
+
+          <div className="hidden sm:flex items-center gap-2 sm:gap-4">
             <Button variant="ghost" onClick={onLogin} className="font-semibold text-xs sm:text-sm text-slate-700 hover:text-purple-600 px-2 sm:px-4">
               Log In
             </Button>
             <Button onClick={onLogin} className="bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 hover:from-purple-700 hover:via-blue-700 hover:to-cyan-700 text-white shadow-lg shadow-purple-500/40 rounded-full px-3 sm:px-6 text-xs sm:text-sm font-bold relative overflow-hidden group">
               <span className="relative z-10 flex items-center gap-1 sm:gap-2">
-                Start Free <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform" />
+                Start Free <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
               </span>
               <div className="absolute inset-0 bg-gradient-to-r from-cyan-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             </Button>
           </div>
         </div>
+
+        {/* Mobile Navigation Menu */}
+        {isMobileMenuOpen && (
+          <div className="lg:hidden absolute top-full left-0 right-0 bg-white border-b border-purple-100 shadow-lg z-50">
+            <nav className="flex flex-col p-4 gap-4">
+              <a href="#problem" onClick={(e) => scrollToSection(e, 'problem')} className="text-sm font-medium text-slate-600 hover:text-purple-600 py-2 px-4 rounded-md hover:bg-purple-50 transition-colors">The Problem</a>
+              <a href="#solution" onClick={(e) => scrollToSection(e, 'solution')} className="text-sm font-medium text-slate-600 hover:text-purple-600 py-2 px-4 rounded-md hover:bg-purple-50 transition-colors">The Solution</a>
+              <a href="#proof" onClick={(e) => scrollToSection(e, 'proof')} className="text-sm font-medium text-slate-600 hover:text-purple-600 py-2 px-4 rounded-md hover:bg-purple-50 transition-colors">Proof</a>
+              <a href="#pricing" onClick={(e) => scrollToSection(e, 'pricing')} className="text-sm font-medium text-slate-600 hover:text-purple-600 py-2 px-4 rounded-md hover:bg-purple-50 transition-colors">Investment</a>
+              <hr className="border-purple-100" />
+              <Button variant="ghost" onClick={onLogin} className="font-semibold text-sm text-slate-700 hover:text-purple-600 justify-start">
+                Log In
+              </Button>
+              <Button onClick={onLogin} className="bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 hover:from-purple-700 hover:via-blue-700 hover:to-cyan-700 text-white rounded-full font-bold">
+                Start Free <ArrowRight className="w-4 h-4 ml-2" aria-hidden="true" />
+              </Button>
+            </nav>
+          </div>
+        )}
       </nav>
 
       {/* Hero Section - Direct Response Style */}
-      <header className="relative pt-12 sm:pt-20 pb-12 sm:pb-16 overflow-hidden">
+      <header id="main-content" className="relative pt-12 sm:pt-20 pb-12 sm:pb-16 overflow-hidden" role="banner">
         {/* Animated background gradient */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-purple-100/50 via-blue-50/30 to-transparent opacity-70"></div>
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-cyan-100/40 via-transparent to-transparent opacity-50"></div>

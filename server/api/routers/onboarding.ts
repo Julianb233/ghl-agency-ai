@@ -1,8 +1,8 @@
 import { z } from "zod";
 import { router, protectedProcedure } from "../../_core/trpc";
 import { TRPCError } from "@trpc/server";
-import { getDb } from "@/server/db";
-import { userProfiles, users } from "@/drizzle/schema";
+import { getDb } from "../../db";
+import { userProfiles, users } from "../../../drizzle/schema";
 import { eq } from "drizzle-orm";
 import crypto from "crypto";
 

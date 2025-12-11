@@ -97,7 +97,7 @@ class RateLimitStore {
    */
   cleanup(maxAge: number = 3600000): void {
     const now = Date.now();
-    for (const [key, bucket] of this.buckets.entries()) {
+    for (const [key, bucket] of Array.from(this.buckets.entries())) {
       if (now - bucket.lastRefill > maxAge) {
         this.buckets.delete(key);
       }
@@ -226,7 +226,7 @@ export async function apiKeyRateLimit(
     const { eq } = await import("drizzle-orm");
 
     // Fetch API key rate limits from database
-    const [apiKeyRecord] = await db()
+    const [apiKeyRecord] = await db
       .select({
         rateLimitPerMinute: apiKeys.rateLimitPerMinute,
         rateLimitPerHour: apiKeys.rateLimitPerHour,

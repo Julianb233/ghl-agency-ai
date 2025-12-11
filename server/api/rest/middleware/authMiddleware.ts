@@ -182,7 +182,7 @@ export async function requireApiKey(
 
     req.user = {
       id: userRecord.id,
-      email: userRecord.email,
+      email: userRecord.email || "",
       role: userRecord.role,
     };
 

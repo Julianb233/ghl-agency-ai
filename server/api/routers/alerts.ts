@@ -128,15 +128,20 @@ export const alertsRouter = router({
       }
 
       const userId = ctx.user.id;
-      const filters = input || {};
+      const filters = {
+        isActive: input?.isActive,
+        ruleType: input?.ruleType,
+        limit: input?.limit ?? 50,
+        offset: input?.offset ?? 0,
+      };
 
       let query = database
         .select()
         .from(alertRules)
         .where(eq(alertRules.userId, userId))
         .orderBy(desc(alertRules.createdAt))
-        .limit(filters.limit || 50)
-        .offset(filters.offset || 0);
+        .limit(filters.limit)
+        .offset(filters.offset);
 
       // Apply filters
       if (filters.isActive !== undefined) {
@@ -145,7 +150,7 @@ export const alertsRouter = router({
             eq(alertRules.userId, userId),
             eq(alertRules.isActive, filters.isActive)
           )
-        );
+        ) as typeof query;
       }
 
       if (filters.ruleType) {
@@ -154,7 +159,7 @@ export const alertsRouter = router({
             eq(alertRules.userId, userId),
             eq(alertRules.ruleType, filters.ruleType)
           )
-        );
+        ) as typeof query;
       }
 
       const rules = await query;
@@ -168,8 +173,8 @@ export const alertsRouter = router({
       return {
         rules,
         total: count,
-        limit: filters.limit || 50,
-        offset: filters.offset || 0,
+        limit: filters.limit,
+        offset: filters.offset,
       };
     }),
 
@@ -456,7 +461,15 @@ export const alertsRouter = router({
         throw new Error("Database not available");
       }
 
-      const filters = input || {};
+      const filters = {
+        ruleId: input?.ruleId,
+        taskId: input?.taskId,
+        severity: input?.severity,
+        startDate: input?.startDate,
+        endDate: input?.endDate,
+        limit: input?.limit ?? 50,
+        offset: input?.offset ?? 0,
+      };
       const userId = ctx.user.id;
 
       let whereConditions = [eq(alertHistory.userId, userId)];
@@ -486,8 +499,8 @@ export const alertsRouter = router({
         .from(alertHistory)
         .where(and(...whereConditions))
         .orderBy(desc(alertHistory.triggeredAt))
-        .limit(filters.limit || 50)
-        .offset(filters.offset || 0);
+        .limit(filters.limit)
+        .offset(filters.offset);
 
       // Get total count
       const [{ count }] = await database
@@ -498,8 +511,8 @@ export const alertsRouter = router({
       return {
         alerts,
         total: count,
-        limit: filters.limit || 50,
-        offset: filters.offset || 0,
+        limit: filters.limit,
+        offset: filters.offset,
       };
     }),
 

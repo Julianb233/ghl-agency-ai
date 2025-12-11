@@ -27,10 +27,10 @@
 
 import express, { Request, Response } from "express";
 import crypto from "crypto";
-import { getDb } from "@/server/db";
-import { integrations } from "@/drizzle/schema";
+import { getDb } from "../../db";
+import { integrations } from "../../../drizzle/schema";
 import { eq, and } from "drizzle-orm";
-import { oauthStateService } from "@/server/services/oauthState.service";
+import { oauthStateService } from "../../services/oauthState.service";
 
 const router = express.Router();
 
