@@ -69,7 +69,7 @@ import {
 import { toast } from 'sonner';
 
 // Types
-type ApiKeyService = 'OpenAI' | 'Browserbase' | 'Custom';
+type ApiKeyService = 'OpenAI' | 'Browserbase' | 'GoHighLevel' | 'Custom';
 type ApiKeyStatus = 'valid' | 'invalid' | 'untested';
 
 interface ApiKey {
@@ -965,6 +965,7 @@ export const Settings: React.FC = () => {
                 <SelectContent>
                   <SelectItem value="OpenAI">OpenAI</SelectItem>
                   <SelectItem value="Browserbase">Browserbase</SelectItem>
+                  <SelectItem value="GoHighLevel">GoHighLevel (Agency API)</SelectItem>
                   <SelectItem value="Custom">Custom</SelectItem>
                 </SelectContent>
               </Select>

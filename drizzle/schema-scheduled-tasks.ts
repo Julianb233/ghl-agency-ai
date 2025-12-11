@@ -127,3 +127,41 @@ export type InsertScheduledBrowserTask = typeof scheduledBrowserTasks.$inferInse
 
 export type ScheduledTaskExecution = typeof scheduledTaskExecutions.$inferSelect;
 export type InsertScheduledTaskExecution = typeof scheduledTaskExecutions.$inferInsert;
+
+// ========================================
+// CRON JOB REGISTRY TABLE
+// ========================================
+
+/**
+ * Cron job registry
+ * Tracks registered cron jobs and their execution status
+ */
+export const cronJobRegistry = pgTable("cron_job_registry", {
+  id: serial("id").primaryKey(),
+  taskId: integer("taskId")
+    .references(() => scheduledBrowserTasks.id, { onDelete: "cascade" })
+    .notNull()
+    .unique(),
+
+  // Job identification
+  jobId: varchar("jobId", { length: 255 }).notNull().unique(), // Internal cron job ID
+  jobName: varchar("jobName", { length: 255 }).notNull(),
+
+  // Schedule info
+  cronExpression: varchar("cronExpression", { length: 255 }).notNull(),
+  timezone: varchar("timezone", { length: 100 }).default("UTC").notNull(),
+
+  // Status
+  isRunning: boolean("isRunning").default(false).notNull(),
+  lastStartedAt: timestamp("lastStartedAt"),
+  lastCompletedAt: timestamp("lastCompletedAt"),
+  nextRunAt: timestamp("nextRunAt"),
+
+  // Metadata
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+});
+
+export type CronJobRegistry = typeof cronJobRegistry.$inferSelect;
+export type InsertCronJobRegistry = typeof cronJobRegistry.$inferInsert;

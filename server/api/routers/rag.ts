@@ -13,7 +13,7 @@ import { router, publicProcedure, protectedProcedure } from "../../_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { ragService } from "../../services/rag.service";
 import { platformDetectionService } from "../../services/platformDetection.service";
-import { db } from "../../db";
+import { getDb } from "../../db";
 import { documentationSources, documentationChunks } from "../../../drizzle/schema-rag";
 import { eq, desc, sql, and } from "drizzle-orm";
 

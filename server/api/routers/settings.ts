@@ -232,6 +232,7 @@ const apiKeyServiceEnum = z.enum([
   "stripe",
   "twilio",
   "sendgrid",
+  "gohighlevel",
   "custom",
 ]);
 

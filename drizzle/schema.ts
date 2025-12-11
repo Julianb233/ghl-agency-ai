@@ -63,16 +63,9 @@ export type InsertUser = typeof users.$inferInsert;
 
 // TODO: Add your tables here
 
-export const leads = pgTable("leads", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  email: varchar("email", { length: 320 }),
-  phone: varchar("phone", { length: 20 }),
-  status: varchar("status", { length: 50 }).default("new"), // new, contacted, qualified, closed
-  campaignId: varchar("campaignId", { length: 64 }),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
-});
+// Note: The comprehensive leads table is defined in schema-lead-enrichment.ts
+// and re-exported below. This basic version is kept for reference only.
+// export const leads = pgTable("leads", { ... });
 
 export const documents = pgTable("documents", {
   id: serial("id").primaryKey(),
@@ -108,8 +101,7 @@ export const integrations = pgTable("integrations", {
   updatedAt: timestamp("updatedAt").defaultNow().notNull(),
 });
 
-export type Lead = typeof leads.$inferSelect;
-export type InsertLead = typeof leads.$inferInsert;
+// Lead types are defined in schema-lead-enrichment.ts and re-exported below
 
 export type Document = typeof documents.$inferSelect;
 export type InsertDocument = typeof documents.$inferInsert;
@@ -394,3 +386,59 @@ export const apiRequestLogs = pgTable("api_request_logs", {
 
 export type ApiRequestLog = typeof apiRequestLogs.$inferSelect;
 export type InsertApiRequestLog = typeof apiRequestLogs.$inferInsert;
+
+// ========================================
+// RE-EXPORTS FROM SEPARATE SCHEMA FILES
+// ========================================
+
+// Lead Enrichment & Credits
+export {
+  user_credits,
+  credit_packages,
+  credit_transactions,
+  lead_lists,
+  leads as enrichedLeads, // Renamed to avoid conflict with basic leads table above
+  ai_call_campaigns,
+  ai_calls,
+  type UserCredit,
+  type InsertUserCredit,
+  type CreditPackage,
+  type InsertCreditPackage,
+  type CreditTransaction,
+  type InsertCreditTransaction,
+  type LeadList,
+  type InsertLeadList,
+  type AiCallCampaign,
+  type InsertAiCallCampaign,
+  type AiCall,
+  type InsertAiCall,
+} from "./schema-lead-enrichment";
+
+// Scheduled Tasks
+export {
+  scheduledBrowserTasks,
+  scheduledTaskExecutions,
+  cronJobRegistry,
+  type ScheduledBrowserTask,
+  type InsertScheduledBrowserTask,
+  type ScheduledTaskExecution,
+  type InsertScheduledTaskExecution,
+  type CronJobRegistry,
+  type InsertCronJobRegistry,
+} from "./schema-scheduled-tasks";
+
+// Alerts & Notifications
+export {
+  alertRules,
+  alertHistory,
+  inAppNotifications,
+  alertDeliveryQueue,
+  type AlertRule,
+  type InsertAlertRule,
+  type AlertHistory,
+  type InsertAlertHistory,
+  type InAppNotification,
+  type InsertInAppNotification,
+  type AlertDeliveryQueueItem,
+  type InsertAlertDeliveryQueueItem,
+} from "./schema-alerts";

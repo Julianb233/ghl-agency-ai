@@ -28,10 +28,25 @@ export const AIBrowserPanel: React.FC<AIBrowserPanelProps> = ({ onLog }) => {
   // Execute form state
   const [executeUrl, setExecuteUrl] = useState('https://google.com');
   const [executeInstruction, setExecuteInstruction] = useState('');
-  const [geoCity, setGeoCity] = useState('');
-  const [geoState, setGeoState] = useState('');
-  const [geoCountry, setGeoCountry] = useState('US');
+  const [selectedLocation, setSelectedLocation] = useState('');
   const [onePasswordEmail, setOnePasswordEmail] = useState('');
+
+  // Predefined location options for cleaner UX
+  const locationOptions = [
+    { value: '', label: 'Auto (Default)', geo: undefined },
+    { value: 'nyc', label: 'New York, NY', geo: { city: 'NEW_YORK', state: 'NY', country: 'US' } },
+    { value: 'la', label: 'Los Angeles, CA', geo: { city: 'LOS_ANGELES', state: 'CA', country: 'US' } },
+    { value: 'chicago', label: 'Chicago, IL', geo: { city: 'CHICAGO', state: 'IL', country: 'US' } },
+    { value: 'miami', label: 'Miami, FL', geo: { city: 'MIAMI', state: 'FL', country: 'US' } },
+    { value: 'seattle', label: 'Seattle, WA', geo: { city: 'SEATTLE', state: 'WA', country: 'US' } },
+    { value: 'london', label: 'London, UK', geo: { city: 'LONDON', state: '', country: 'GB' } },
+    { value: 'toronto', label: 'Toronto, Canada', geo: { city: 'TORONTO', state: 'ON', country: 'CA' } },
+  ];
+
+  const getSelectedGeolocation = () => {
+    const location = locationOptions.find(l => l.value === selectedLocation);
+    return location?.geo;
+  };
 
   // Observe form state
   const [observeUrl, setObserveUrl] = useState('');
@@ -59,10 +74,11 @@ export const AIBrowserPanel: React.FC<AIBrowserPanelProps> = ({ onLog }) => {
     onLog?.(`Executing: ${executeInstruction}`);
 
     try {
+      const geolocation = getSelectedGeolocation();
       const result = await chatHook.execute({
         instruction: executeInstruction,
         startUrl: executeUrl,
-        geolocation: geoCity ? { city: geoCity, state: geoState, country: geoCountry } : undefined,
+        geolocation,
       });
 
       setResult(result);
@@ -178,16 +194,16 @@ export const AIBrowserPanel: React.FC<AIBrowserPanelProps> = ({ onLog }) => {
       )}
 
       {/* CONTROLS - Collapsible */}
-      <Card>
+      <Card className="overflow-hidden">
         <Collapsible open={controlsOpen} onOpenChange={setControlsOpen}>
-          <CollapsibleTrigger className="w-full">
-            <CardHeader className="p-3 sm:p-4 hover:bg-slate-50 cursor-pointer transition">
+          <CollapsibleTrigger asChild>
+            <CardHeader className="p-3 sm:p-4 hover:bg-slate-50 cursor-pointer transition bg-white">
               <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+                <CardTitle className="flex items-center gap-2 text-sm sm:text-base text-slate-800">
                   <Zap className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
                   Browser Controls
                 </CardTitle>
-                {controlsOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                {controlsOpen ? <ChevronUp className="h-5 w-5 text-slate-500" /> : <ChevronDown className="h-5 w-5 text-slate-500" />}
               </div>
             </CardHeader>
           </CollapsibleTrigger>
@@ -255,6 +271,29 @@ export const AIBrowserPanel: React.FC<AIBrowserPanelProps> = ({ onLog }) => {
                   />
                 </div>
 
+                {/* Browser Location */}
+                <div className="space-y-2">
+                  <Label htmlFor="location" className="text-xs flex items-center gap-2">
+                    <Globe className="h-3 w-3 text-slate-500" />
+                    Browser Location
+                  </Label>
+                  <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+                    <SelectTrigger id="location" className="text-sm bg-white">
+                      <SelectValue placeholder="Select location..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {locationOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-[10px] text-slate-500">
+                    Choose where the browser should appear to be located
+                  </p>
+                </div>
+
                 {/* 1Password Integration */}
                 <div className="space-y-2 bg-blue-50 p-3 rounded-lg border border-blue-200">
                   <Label htmlFor="onepassword-email" className="text-xs flex items-center gap-2">
@@ -271,39 +310,6 @@ export const AIBrowserPanel: React.FC<AIBrowserPanelProps> = ({ onLog }) => {
                   <p className="text-[10px] text-blue-600">
                     Connect your 1Password account to auto-fill credentials during browser automation
                   </p>
-                </div>
-
-                <div className="grid grid-cols-3 gap-2">
-                  <div className="space-y-1">
-                    <Label htmlFor="geo-city" className="text-[10px]">City</Label>
-                    <Input
-                      id="geo-city"
-                      value={geoCity}
-                      onChange={(e) => setGeoCity(e.target.value)}
-                      placeholder="NEW_YORK"
-                      className="text-xs h-8"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="geo-state" className="text-[10px]">State</Label>
-                    <Input
-                      id="geo-state"
-                      value={geoState}
-                      onChange={(e) => setGeoState(e.target.value)}
-                      placeholder="NY"
-                      className="text-xs h-8"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="geo-country" className="text-[10px]">Country</Label>
-                    <Input
-                      id="geo-country"
-                      value={geoCountry}
-                      onChange={(e) => setGeoCountry(e.target.value)}
-                      placeholder="US"
-                      className="text-xs h-8"
-                    />
-                  </div>
                 </div>
 
                 <Button
@@ -437,16 +443,16 @@ export const AIBrowserPanel: React.FC<AIBrowserPanelProps> = ({ onLog }) => {
       </Card>
 
       {/* TERMINAL & LOGS - Collapsible */}
-      <Card>
+      <Card className="overflow-hidden">
         <Collapsible open={logsOpen} onOpenChange={setLogsOpen}>
-          <CollapsibleTrigger className="w-full">
-            <CardHeader className="p-3 sm:p-4 hover:bg-slate-50 cursor-pointer transition">
+          <CollapsibleTrigger asChild>
+            <CardHeader className="p-3 sm:p-4 hover:bg-slate-50 cursor-pointer transition bg-white">
               <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+                <CardTitle className="flex items-center gap-2 text-sm sm:text-base text-slate-800">
                   <Terminal className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
                   Terminal & Logs
                 </CardTitle>
-                {logsOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                {logsOpen ? <ChevronUp className="h-5 w-5 text-slate-500" /> : <ChevronDown className="h-5 w-5 text-slate-500" />}
               </div>
             </CardHeader>
           </CollapsibleTrigger>
@@ -479,16 +485,16 @@ export const AIBrowserPanel: React.FC<AIBrowserPanelProps> = ({ onLog }) => {
       </Card>
 
       {/* SESSION REPLAY - Collapsible */}
-      <Card>
+      <Card className="overflow-hidden">
         <Collapsible open={replayOpen} onOpenChange={setReplayOpen}>
-          <CollapsibleTrigger className="w-full">
-            <CardHeader className="p-3 sm:p-4 hover:bg-slate-50 cursor-pointer transition">
+          <CollapsibleTrigger asChild>
+            <CardHeader className="p-3 sm:p-4 hover:bg-slate-50 cursor-pointer transition bg-white">
               <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+                <CardTitle className="flex items-center gap-2 text-sm sm:text-base text-slate-800">
                   <Video className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
                   Session Replay
                 </CardTitle>
-                {replayOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                {replayOpen ? <ChevronUp className="h-5 w-5 text-slate-500" /> : <ChevronDown className="h-5 w-5 text-slate-500" />}
               </div>
             </CardHeader>
           </CollapsibleTrigger>
@@ -542,12 +548,12 @@ export const AIBrowserPanel: React.FC<AIBrowserPanelProps> = ({ onLog }) => {
       </Card>
 
       {/* ACTIVE SESSIONS - Collapsible */}
-      <Card>
+      <Card className="overflow-hidden">
         <Collapsible open={sessionsOpen} onOpenChange={setSessionsOpen}>
-          <CollapsibleTrigger className="w-full">
-            <CardHeader className="p-3 sm:p-4 hover:bg-slate-50 cursor-pointer transition">
+          <CollapsibleTrigger asChild>
+            <CardHeader className="p-3 sm:p-4 hover:bg-slate-50 cursor-pointer transition bg-white">
               <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+                <CardTitle className="flex items-center gap-2 text-sm sm:text-base text-slate-800">
                   <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-orange-600" />
                   Active Sessions
                   {sessionsQuery.sessions.length > 0 && (
@@ -556,7 +562,7 @@ export const AIBrowserPanel: React.FC<AIBrowserPanelProps> = ({ onLog }) => {
                     </Badge>
                   )}
                 </CardTitle>
-                {sessionsOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+                {sessionsOpen ? <ChevronUp className="h-5 w-5 text-slate-500" /> : <ChevronDown className="h-5 w-5 text-slate-500" />}
               </div>
             </CardHeader>
           </CollapsibleTrigger>

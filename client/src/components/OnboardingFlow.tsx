@@ -36,6 +36,21 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
   const [employeeCount, setEmployeeCount] = useState('');
   const [websiteUrl, setWebsiteUrl] = useState('');
 
+  // Auto-add https:// to website URL if missing
+  const handleWebsiteUrlChange = (value: string) => {
+    setWebsiteUrl(value);
+  };
+
+  const handleWebsiteUrlBlur = () => {
+    if (websiteUrl && websiteUrl.trim()) {
+      const trimmed = websiteUrl.trim();
+      // Only add https:// if there's content and it doesn't already have a protocol
+      if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
+        setWebsiteUrl('https://' + trimmed);
+      }
+    }
+  };
+
   // Step 3: Your Goals
   const [goals, setGoals] = useState<string[]>([]);
   const [otherGoal, setOtherGoal] = useState('');
@@ -63,7 +78,8 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
       case 3:
         return goals.length > 0;
       case 4:
-        return ghlApiKey.trim();
+        // GHL API key is optional - users can skip and add later
+        return true;
       case 5:
         return true;
       default:
@@ -236,12 +252,14 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
                   <div>
                     <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Website URL (Optional)</label>
                     <input
-                      type="url"
+                      type="text"
                       value={websiteUrl}
-                      onChange={(e) => setWebsiteUrl(e.target.value)}
+                      onChange={(e) => handleWebsiteUrlChange(e.target.value)}
+                      onBlur={handleWebsiteUrlBlur}
                       className="w-full bg-white/50 border border-slate-200 rounded-xl px-4 py-4 text-slate-800 focus:ring-2 focus:ring-indigo-500/20 outline-none text-lg"
-                      placeholder="https://yourwebsite.com"
+                      placeholder="yourwebsite.com"
                     />
+                    <p className="text-xs text-slate-400 mt-1">https:// will be added automatically</p>
                   </div>
                 </div>
               </div>
@@ -318,7 +336,9 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
 
                 <div className="space-y-6">
                   <div>
-                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">GHL Agency API Key</label>
+                    <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
+                      GHL Agency API Key <span className="text-slate-300 font-normal">(Optional)</span>
+                    </label>
                     <div className="relative">
                       <input
                         type="password"
@@ -334,6 +354,12 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
                     <p className="text-xs text-slate-400 mt-2 flex items-center gap-1">
                       <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
                       Your key is encrypted with AES-256 before storage.
+                    </p>
+                  </div>
+
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                    <p className="text-sm text-slate-600">
+                      <span className="font-medium text-slate-700">Don't have an API key yet?</span> No problem! You can skip this step and add your GoHighLevel API key later from the Settings page.
                     </p>
                   </div>
                 </div>

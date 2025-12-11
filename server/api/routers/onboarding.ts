@@ -77,10 +77,12 @@ const onboardingDataSchema = z.object({
     "21-50",
     "50+",
   ]),
+  // Website URL is optional - accepts valid URL, empty string, or undefined
   websiteUrl: z.string().url().optional().or(z.literal("")),
   goals: z.array(z.string()).min(1, "At least one goal is required"),
   otherGoal: z.string().optional(),
-  ghlApiKey: z.string().min(1, "GHL API key is required"),
+  // GHL API key is optional - users can add it later from settings
+  ghlApiKey: z.string().optional().or(z.literal("")),
 });
 
 // ========================================
@@ -104,8 +106,10 @@ export const onboardingRouter = router({
           });
         }
 
-        // Encrypt the GHL API key
-        const encryptedApiKey = encrypt(input.ghlApiKey);
+        // Encrypt the GHL API key only if provided
+        const encryptedApiKey = input.ghlApiKey && input.ghlApiKey.trim()
+          ? encrypt(input.ghlApiKey)
+          : null;
 
         // Prepare goals array (include other goal if specified)
         const goals = [...input.goals];
