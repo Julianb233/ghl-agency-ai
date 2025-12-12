@@ -756,27 +756,29 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
           <div className="max-w-7xl mx-auto grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
 
             {/* Starter Tier */}
-            <div className="bg-white rounded-2xl sm:rounded-3xl p-6 border border-gray-200 shadow-lg hover:shadow-xl transition-shadow">
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-6 border border-gray-200 shadow-lg hover:shadow-xl transition-shadow relative">
               <div className="text-center mb-6">
                 <div className="inline-block bg-gray-100 text-gray-700 text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wide mb-4">
                   Starter
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 mb-1">For Growing Agencies</h3>
-                <div className="bg-emerald-100 text-emerald-800 text-sm font-bold px-3 py-1.5 rounded-lg mb-4">
+                <div className="bg-emerald-100 text-emerald-800 text-sm font-bold px-3 py-1.5 rounded-lg mb-2">
                   3 AI Team Members
                 </div>
-                <p className="text-xs text-gray-500 mb-3">Replaces 1-2 full-time VAs</p>
-                <div className="mb-2">
+                <p className="text-xs text-gray-500 mb-1">Replaces 1-2 full-time VAs</p>
+                <p className="text-xs text-amber-600 font-medium mb-3">Up to 25 clients</p>
+                <div className="mb-1">
                   <span className="text-3xl sm:text-4xl font-black text-gray-900">$997</span>
                   <span className="text-lg text-gray-600">/mo</span>
                 </div>
-                <p className="text-sm text-gray-600 font-medium">$1,497 one-time setup</p>
-                <p className="text-xs text-emerald-600 font-medium mt-2">or $274/week (+10%)</p>
+                <p className="text-xs text-emerald-700 font-bold mb-2">Just $332/AI Team Member</p>
+                <p className="text-sm text-gray-600 font-medium">$997 White-Glove Setup</p>
+                <p className="text-xs text-gray-500 mt-1">or $274/week</p>
               </div>
 
               <div className="space-y-3 mb-6">
                 {[
-                  "AI Email & Voice Agents",
+                  "AI Email Agents",
                   "Operations Dashboard",
                   "GHL Integration",
                   "Email Support",
@@ -811,25 +813,27 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                   Growth
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 mb-1">For Scaling Agencies</h3>
-                <div className="bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-800 text-sm font-bold px-3 py-1.5 rounded-lg mb-4">
+                <div className="bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-800 text-sm font-bold px-3 py-1.5 rounded-lg mb-2">
                   5 AI Team Members
                 </div>
-                <p className="text-xs text-gray-500 mb-3">Replaces 2-3 full-time VAs</p>
-                <div className="mb-2">
+                <p className="text-xs text-gray-500 mb-1">Replaces 2-3 full-time VAs</p>
+                <p className="text-xs text-emerald-600 font-medium mb-3">Unlimited clients</p>
+                <div className="mb-1">
                   <span className="text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500">$1,697</span>
                   <span className="text-lg text-gray-600">/mo</span>
                 </div>
-                <p className="text-sm text-gray-600 font-medium">$1,297 one-time setup</p>
-                <p className="text-xs text-emerald-600 font-medium mt-2">or $467/week (+10%)</p>
+                <p className="text-xs text-emerald-700 font-bold mb-2">Just $339/AI Team Member</p>
+                <p className="text-sm text-gray-600 font-medium">$997 White-Glove Setup</p>
+                <p className="text-xs text-gray-500 mt-1">or $467/week</p>
               </div>
 
               <div className="space-y-3 mb-6">
                 {[
                   "Everything in Starter, plus:",
+                  "AI Voice Agents",
                   "AI Ad Manager & Optimizer",
                   "Multi-Tab Workflow Builder",
-                  "Priority Support (< 2hr)",
-                  "Zapier & Make Integration"
+                  "Priority Support (< 2hr)"
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-2 text-sm text-gray-700">
                     <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
@@ -854,16 +858,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                   Professional
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 mb-1">For Established Agencies</h3>
-                <div className="bg-blue-100 text-blue-800 text-sm font-bold px-3 py-1.5 rounded-lg mb-4">
+                <div className="bg-blue-100 text-blue-800 text-sm font-bold px-3 py-1.5 rounded-lg mb-2">
                   8 AI Team Members
                 </div>
-                <p className="text-xs text-gray-500 mb-3">Replaces 4-5 full-time VAs</p>
-                <div className="mb-2">
+                <p className="text-xs text-gray-500 mb-1">Replaces 4-5 full-time VAs</p>
+                <p className="text-xs text-blue-600 font-medium mb-3">Unlimited clients</p>
+                <div className="mb-1">
                   <span className="text-3xl sm:text-4xl font-black text-gray-900">$3,197</span>
                   <span className="text-lg text-gray-600">/mo</span>
                 </div>
-                <p className="text-sm text-gray-600 font-medium">$1,097 one-time setup</p>
-                <p className="text-xs text-emerald-600 font-medium mt-2">or $879/week (+10%)</p>
+                <p className="text-xs text-blue-700 font-bold mb-2">Just $400/AI Team Member</p>
+                <p className="text-sm text-gray-600 font-medium">$997 White-Glove Setup</p>
+                <p className="text-xs text-gray-500 mt-1">or $879/week</p>
               </div>
 
               <div className="space-y-3 mb-6">
@@ -890,23 +896,30 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
               </Button>
             </div>
 
-            {/* Enterprise Tier */}
-            <div className="bg-white rounded-2xl sm:rounded-3xl p-6 border border-gray-200 shadow-lg hover:shadow-xl transition-shadow">
+            {/* Enterprise Tier - Best Value */}
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-6 border border-gray-200 shadow-lg hover:shadow-xl transition-shadow relative">
+              <div className="absolute -top-3 right-4">
+                <span className="bg-amber-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow">
+                  Best Value
+                </span>
+              </div>
               <div className="text-center mb-6">
                 <div className="inline-block bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-700 text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wide mb-4">
                   Enterprise
                 </div>
                 <h3 className="text-lg font-bold text-gray-900 mb-1">For Industry Leaders</h3>
-                <div className="bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 text-sm font-bold px-3 py-1.5 rounded-lg mb-4">
+                <div className="bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 text-sm font-bold px-3 py-1.5 rounded-lg mb-2">
                   15+ AI Team Members
                 </div>
-                <p className="text-xs text-gray-500 mb-3">Replaces 8-10+ full-time VAs</p>
-                <div className="mb-2">
+                <p className="text-xs text-gray-500 mb-1">Replaces 8-10+ full-time VAs</p>
+                <p className="text-xs text-amber-600 font-medium mb-3">Unlimited everything</p>
+                <div className="mb-1">
                   <span className="text-3xl sm:text-4xl font-black text-gray-900">$4,997</span>
                   <span className="text-lg text-gray-600">/mo</span>
                 </div>
-                <p className="text-sm text-gray-600 font-medium">$997 one-time setup</p>
-                <p className="text-xs text-emerald-600 font-medium mt-2">or $1,374/week (+10%)</p>
+                <p className="text-xs text-amber-700 font-bold mb-2">Just $333/AI Team Member</p>
+                <p className="text-sm text-gray-600 font-medium">$997 White-Glove Setup</p>
+                <p className="text-xs text-gray-500 mt-1">or $1,374/week</p>
               </div>
 
               <div className="space-y-3 mb-6">
@@ -930,15 +943,27 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                 className="w-full rounded-full h-12 font-bold border-2 border-amber-400 hover:border-amber-500 hover:bg-amber-50 text-amber-700 transition-colors"
               >
                 <Crown className="w-4 h-4 mr-2" />
-                Contact Sales
+                Book a Demo
               </Button>
+            </div>
+          </div>
+
+          {/* Urgency Banner */}
+          <div className="max-w-3xl mx-auto text-center mb-6">
+            <div className="bg-gradient-to-r from-red-50 to-orange-50 border border-red-200 rounded-xl px-6 py-4">
+              <p className="text-sm font-bold text-red-700 mb-1">
+                Limited Availability: Only accepting 15 new agencies this month
+              </p>
+              <p className="text-xs text-gray-600">
+                Due to onboarding capacity, we limit new sign-ups to ensure quality setup for every client.
+              </p>
             </div>
           </div>
 
           {/* Weekly Payment Note */}
           <div className="max-w-3xl mx-auto text-center mb-8">
-            <p className="text-sm text-gray-600 bg-emerald-50 border border-emerald-200 rounded-xl px-6 py-3">
-              <span className="font-bold text-emerald-700">Cash flow tight?</span> We offer weekly payments at just 10% above monthly rates. Same great service, easier on your budget.
+            <p className="text-sm text-gray-600 bg-gray-50 border border-gray-200 rounded-xl px-6 py-3">
+              <span className="font-medium text-gray-700">Prefer weekly billing?</span> We offer weekly payments for added flexibility. Same great service, your preferred schedule.
             </p>
           </div>
 
