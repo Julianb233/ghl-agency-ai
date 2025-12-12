@@ -3,8 +3,6 @@ import { usersRouter } from "./users";
 import { systemRouter } from "./system";
 import { auditRouter } from "./audit";
 import { configRouter } from "./config";
-// Temporarily disabled to debug serverless crash
-// import { securityRouter } from "./security";
 
 /**
  * Admin Router Aggregator
@@ -14,7 +12,6 @@ import { configRouter } from "./config";
  * - system: System health and monitoring
  * - audit: Audit logs and activity tracking
  * - config: Feature flags, system configuration, and maintenance mode
- * - security: Security events monitoring and IP blocking
  *
  * Usage:
  * ```typescript
@@ -40,10 +37,6 @@ import { configRouter } from "./config";
  * // Manage feature flags
  * await trpc.admin.config.flags.list.query();
  * await trpc.admin.config.flags.toggle.mutate({ id: 1, enabled: true });
- *
- * // Security events
- * await trpc.admin.security.list.query({ limit: 20 });
- * await trpc.admin.security.blockIp.mutate({ ipAddress: "1.2.3.4", reason: "Suspicious activity" });
  * ```
  *
  * All procedures in this router are protected with adminProcedure middleware,
@@ -54,5 +47,4 @@ export const adminRouter = router({
   system: systemRouter,
   audit: auditRouter,
   config: configRouter,
-  // security: securityRouter, // Temporarily disabled to debug serverless crash
 });

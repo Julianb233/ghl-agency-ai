@@ -147,8 +147,6 @@ export const usersRouter = router({
             loginMethod: users.loginMethod,
             role: users.role,
             onboardingCompleted: users.onboardingCompleted,
-            suspendedAt: users.suspendedAt,
-            suspensionReason: users.suspensionReason,
             createdAt: users.createdAt,
             updatedAt: users.updatedAt,
             lastSignedIn: users.lastSignedIn,
@@ -333,7 +331,8 @@ export const usersRouter = router({
 
   /**
    * Suspend user account
-   * Marks the user as suspended and terminates all their sessions
+   * Note: This marks the user as suspended. Implement actual suspension logic
+   * by adding a 'suspended' field to the users table schema
    */
   suspend: adminProcedure
     .input(suspendUserSchema)
@@ -369,25 +368,8 @@ export const usersRouter = router({
           });
         }
 
-        // Check if user is already suspended
-        if (user.suspendedAt) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "User is already suspended",
-          });
-        }
-
-        // Update user to set suspended status
-        await db
-          .update(users)
-          .set({
-            suspendedAt: new Date(),
-            suspensionReason: input.reason || null,
-            updatedAt: new Date(),
-          })
-          .where(eq(users.id, input.userId));
-
-        // Invalidate all their sessions
+        // TODO: Add 'suspended' and 'suspensionReason' fields to users table
+        // For now, we'll invalidate all their sessions
         await db
           .delete(sessions)
           .where(eq(sessions.userId, input.userId));
@@ -413,7 +395,6 @@ export const usersRouter = router({
 
   /**
    * Unsuspend user account
-   * Removes suspension status and allows user to log in again
    */
   unsuspend: adminProcedure
     .input(unsuspendUserSchema)
@@ -441,24 +422,7 @@ export const usersRouter = router({
           });
         }
 
-        // Check if user is actually suspended
-        if (!user.suspendedAt) {
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "User is not suspended",
-          });
-        }
-
-        // Update user to remove suspended status
-        await db
-          .update(users)
-          .set({
-            suspendedAt: null,
-            suspensionReason: null,
-            updatedAt: new Date(),
-          })
-          .where(eq(users.id, input.userId));
-
+        // TODO: Add 'suspended' field to users table and set it to false here
         console.log(`[Admin] User ${input.userId} unsuspended by admin ${ctx.user.id}`);
 
         return {
