@@ -2,6 +2,7 @@ import React from 'react';
 import { useLocation } from 'wouter';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { Activity, Calendar, Settings, Users, Plus, Zap, FileText } from 'lucide-react';
 
 export default function DashboardHome() {
@@ -10,7 +11,12 @@ export default function DashboardHome() {
   return (
     <div className="space-y-6">
       <div data-tour="dashboard-header">
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <Breadcrumb
+          items={[
+            { label: 'Dashboard' },
+          ]}
+        />
+        <h1 className="text-3xl font-bold tracking-tight mt-4">Dashboard</h1>
         <p className="text-muted-foreground mt-2">
           Welcome to your GHL Agency AI Dashboard
         </p>

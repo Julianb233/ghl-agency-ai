@@ -1,4 +1,5 @@
 import React, { useCallback, useRef, useEffect } from 'react';
+import { useLocation } from 'wouter';
 import ReactFlow, {
   Background,
   Controls,
@@ -11,6 +12,7 @@ import ReactFlow, {
 import 'reactflow/dist/style.css';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Breadcrumb } from '@/components/ui/breadcrumb';
 import {
   Dialog,
   DialogContent,
@@ -48,6 +50,7 @@ const nodeTypes = {
 };
 
 const WorkflowCanvas: React.FC = () => {
+  const [, setLocation] = useLocation();
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const { project } = useReactFlow();
   const [reactFlowInstance, setReactFlowInstance] = React.useState<ReactFlowInstance | null>(null);
@@ -220,11 +223,22 @@ const WorkflowCanvas: React.FC = () => {
       {/* Top Toolbar */}
       <div className="h-14 border-b bg-background flex items-center justify-between px-4 gap-4" data-tour="workflow-header">
         <div className="flex items-center gap-2">
-          <Zap className="h-5 w-5 text-primary" />
-          <h1 className="text-lg font-semibold">
-            {workflow?.name || 'Workflow Builder'}
-          </h1>
-          {isDirty && <span className="text-xs text-muted-foreground">• Unsaved changes</span>}
+          <div className="flex flex-col">
+            <Breadcrumb
+              items={[
+                { label: 'Dashboard', onClick: () => setLocation('/') },
+                { label: 'Workflow Builder' },
+              ]}
+              className="mb-0"
+            />
+            <div className="flex items-center gap-2">
+              <Zap className="h-5 w-5 text-primary" />
+              <h1 className="text-lg font-semibold">
+                {workflow?.name || 'Workflow Builder'}
+              </h1>
+              {isDirty && <span className="text-xs text-muted-foreground">• Unsaved changes</span>}
+            </div>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">

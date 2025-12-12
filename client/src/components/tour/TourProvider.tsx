@@ -34,12 +34,12 @@ export function TourProvider({ children, onboardingCompleted = false, isDashboar
   const currentTour = activeTour ? getTourById(activeTour) : null;
   const currentStep = currentTour?.steps[currentStepIndex];
 
+  // Only auto-start tour when:
+  // 1. autoStartTours is enabled
+  // 2. User hasn't seen the welcome tour yet
+  // 3. User has completed onboarding (agency setup)
+  // 4. User is currently on the dashboard
   useEffect(() => {
-    // Only auto-start tour when:
-    // 1. autoStartTours is enabled
-    // 2. User hasn't seen the welcome tour yet
-    // 3. User has completed onboarding (agency setup)
-    // 4. User is currently on the dashboard
     if (autoStartTours && !hasSeenWelcome && onboardingCompleted && isDashboardActive) {
       const timer = setTimeout(() => {
         startTour('welcome');

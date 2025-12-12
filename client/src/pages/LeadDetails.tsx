@@ -217,8 +217,8 @@ export default function LeadDetails() {
                 <p className="text-sm font-medium text-muted-foreground">Total Leads</p>
                 <p className="text-2xl font-bold">{stats.totalLeads}</p>
               </div>
-              <div className="rounded-full bg-blue-100 dark:bg-blue-950 p-3">
-                <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              <div className="rounded-full bg-blue-100 p-3">
+                <Users className="h-6 w-6 text-blue-600" />
               </div>
             </div>
           </CardContent>
@@ -237,8 +237,8 @@ export default function LeadDetails() {
                   %
                 </p>
               </div>
-              <div className="rounded-full bg-green-100 dark:bg-green-950 p-3">
-                <CheckCircle2 className="h-6 w-6 text-green-600 dark:text-green-400" />
+              <div className="rounded-full bg-green-100 p-3">
+                <CheckCircle2 className="h-6 w-6 text-green-600" />
               </div>
             </div>
           </CardContent>
@@ -251,8 +251,8 @@ export default function LeadDetails() {
                 <p className="text-sm font-medium text-muted-foreground">Failed</p>
                 <p className="text-2xl font-bold">{stats.failed}</p>
               </div>
-              <div className="rounded-full bg-red-100 dark:bg-red-950 p-3">
-                <XCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
+              <div className="rounded-full bg-red-100 p-3">
+                <XCircle className="h-6 w-6 text-red-600" />
               </div>
             </div>
           </CardContent>
@@ -265,8 +265,8 @@ export default function LeadDetails() {
                 <p className="text-sm font-medium text-muted-foreground">Credits Used</p>
                 <p className="text-2xl font-bold">{stats.creditsUsed}</p>
               </div>
-              <div className="rounded-full bg-yellow-100 dark:bg-yellow-950 p-3">
-                <Coins className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
+              <div className="rounded-full bg-yellow-100 p-3">
+                <Coins className="h-6 w-6 text-yellow-600" />
               </div>
             </div>
           </CardContent>

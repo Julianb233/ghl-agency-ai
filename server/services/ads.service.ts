@@ -10,10 +10,20 @@ import { getDb } from '../db';
 import { integrations, jobs } from '../../drizzle/schema';
 import { eq } from 'drizzle-orm';
 
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Initialize OpenAI client (lazy initialization to handle missing API key)
+let openai: OpenAI | null = null;
+
+function getOpenAI(): OpenAI {
+  if (!openai) {
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error('OPENAI_API_KEY is not configured. Please set the environment variable.');
+    }
+    openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+  }
+  return openai;
+}
 
 // Types
 export interface AdMetrics {
@@ -97,7 +107,7 @@ class AdsService {
    */
   async analyzeAdScreenshot(imageUrl: string): Promise<AdAnalysisResult> {
     try {
-      const response = await openai.chat.completions.create({
+      const response = await getOpenAI().chat.completions.create({
         model: 'gpt-4o',
         messages: [
           {
@@ -204,7 +214,7 @@ Format as JSON array:
   }
 ]`;
 
-      const response = await openai.chat.completions.create({
+      const response = await getOpenAI().chat.completions.create({
         model: 'gpt-4o',
         messages: [
           {
@@ -289,7 +299,7 @@ Format as JSON array:
 
 Make each variation distinct with different angles: emotional, logical, urgency, social proof, etc.`;
 
-      const response = await openai.chat.completions.create({
+      const response = await getOpenAI().chat.completions.create({
         model: 'gpt-4o',
         messages: [
           {

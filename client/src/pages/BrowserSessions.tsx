@@ -3,6 +3,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Breadcrumb } from '@/components/ui/breadcrumb';
+import {
+  Empty,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+  EmptyDescription,
+  EmptyContent
+} from '@/components/ui/empty';
 import {
   Select,
   SelectContent,
@@ -38,11 +47,13 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { TourPrompt } from '@/components/tour';
+import { useLocation } from 'wouter';
 
 type SessionStatus = 'all' | 'running' | 'completed' | 'failed' | 'expired';
 type DateRange = 'all' | 'today' | 'week' | 'month' | 'custom';
 
 export default function BrowserSessions() {
+  const [, setLocation] = useLocation();
   const {
     sessions,
     isLoading,
@@ -213,7 +224,13 @@ export default function BrowserSessions() {
       {/* Header */}
       <div className="flex items-center justify-between" data-tour="browser-header">
         <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
+          <Breadcrumb
+            items={[
+              { label: 'Dashboard', onClick: () => setLocation('/') },
+              { label: 'Browser Sessions' },
+            ]}
+          />
+          <h1 className="text-3xl font-bold flex items-center gap-2 mt-4">
             <Globe className="h-8 w-8" />
             Browser Sessions
           </h1>
@@ -373,21 +390,25 @@ export default function BrowserSessions() {
             </CardContent>
           </Card>
         ) : paginatedSessions.length === 0 ? (
-          <Card>
-            <CardContent className="p-12 text-center">
-              <Globe className="h-16 w-16 mx-auto mb-4 text-slate-300" />
-              <h3 className="text-lg font-semibold mb-2">No sessions found</h3>
-              <p className="text-slate-600 mb-4">
+          <Empty className="border">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <Globe className="h-6 w-6" />
+              </EmptyMedia>
+              <EmptyTitle>No sessions found</EmptyTitle>
+              <EmptyDescription>
                 {searchQuery || statusFilter !== 'all' || dateRange !== 'all'
-                  ? 'Try adjusting your filters'
-                  : 'Create your first automation to get started'}
-              </p>
+                  ? 'No sessions match your filters. Try adjusting your search or filter criteria.'
+                  : 'Create your first browser automation session to start automating tasks and workflows.'}
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
               <Button onClick={handleNewSession} className="gap-2">
                 <Plus className="h-4 w-4" />
                 New Session
               </Button>
-            </CardContent>
-          </Card>
+            </EmptyContent>
+          </Empty>
         ) : (
           paginatedSessions.map((session: any) => (
             <BrowserSessionCard

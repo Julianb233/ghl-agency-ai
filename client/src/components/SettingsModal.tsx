@@ -100,21 +100,21 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         <div className="w-64 bg-slate-50 border-r border-slate-200 p-6 flex flex-col gap-1">
           <h2 className="text-xl font-bold text-slate-800 mb-6 px-2">Settings</h2>
           
-          <button onClick={() => setActiveTab('GENERAL')} className={`text-left px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'GENERAL' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:bg-slate-100 hover:text-indigo-600'}`}>
+          <button onClick={() => setActiveTab('GENERAL')} className={`text-left px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'GENERAL' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/20' : 'text-slate-500 hover:bg-slate-100 hover:text-emerald-600'}`}>
             General
           </button>
-          <button onClick={() => setActiveTab('INTEGRATIONS')} className={`text-left px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'INTEGRATIONS' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:bg-slate-100 hover:text-indigo-600'}`}>
+          <button onClick={() => setActiveTab('INTEGRATIONS')} className={`text-left px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'INTEGRATIONS' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/20' : 'text-slate-500 hover:bg-slate-100 hover:text-emerald-600'}`}>
             Integrations
           </button>
-          <button onClick={() => setActiveTab('BILLING')} className={`text-left px-4 py-3 rounded-xl text-sm font-bold transition-all flex justify-between items-center ${activeTab === 'BILLING' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:bg-slate-100 hover:text-indigo-600'}`}>
+          <button onClick={() => setActiveTab('BILLING')} className={`text-left px-4 py-3 rounded-xl text-sm font-bold transition-all flex justify-between items-center ${activeTab === 'BILLING' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/20' : 'text-slate-500 hover:bg-slate-100 hover:text-emerald-600'}`}>
             Billing & Usage
             <span className="bg-white/20 px-1.5 rounded text-[10px]">${availableCredits.toFixed(0)}</span>
           </button>
-          <button onClick={() => setActiveTab('ADDONS')} className={`text-left px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'ADDONS' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:bg-slate-100 hover:text-indigo-600'}`}>
+          <button onClick={() => setActiveTab('ADDONS')} className={`text-left px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'ADDONS' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/20' : 'text-slate-500 hover:bg-slate-100 hover:text-emerald-600'}`}>
             Add-ons & Power-ups
           </button>
           {userRole === 'OWNER' && (
-            <button onClick={() => setActiveTab('WHITELABEL')} className={`text-left px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'WHITELABEL' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-500 hover:bg-slate-100 hover:text-indigo-600'}`}>
+            <button onClick={() => setActiveTab('WHITELABEL')} className={`text-left px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'WHITELABEL' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/20' : 'text-slate-500 hover:bg-slate-100 hover:text-emerald-600'}`}>
               White Label
             </button>
           )}
@@ -168,7 +168,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" className="sr-only peer" checked={localSlackConfig.enabled} onChange={(e) => setLocalSlackConfig({...localSlackConfig, enabled: e.target.checked})} />
-                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
                   </label>
                 </div>
                 {localSlackConfig.enabled && (
@@ -186,7 +186,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
               <button 
                 onClick={() => onSaveConfig(localSlackConfig)}
-                className="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-700 transition-all"
+                className="bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-emerald-700 transition-all"
               >
                 Save Changes
               </button>
@@ -200,13 +200,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 <div>
                   <h3 className="text-2xl font-bold text-slate-800 mb-2">Credits & Usage</h3>
                   <p className="text-slate-500 text-sm">
-                    Pricing Model: <span className="font-bold text-indigo-600">$1.00 = 1 Credit</span>. <br/>
+                    Pricing Model: <span className="font-bold text-emerald-600">$1.00 = 1 Credit</span>. <br/>
                     Agents are charged based on execution time (~$0.20 / min).
                   </p>
                 </div>
                 <div className="text-right">
                   <p className="text-xs text-slate-400 font-bold uppercase tracking-wider">Current Balance</p>
-                  <p className="text-4xl font-bold text-indigo-600">${availableCredits.toFixed(2)}</p>
+                  <p className="text-4xl font-bold text-emerald-600">${availableCredits.toFixed(2)}</p>
                 </div>
               </div>
 
@@ -216,11 +216,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   <button 
                     key={amt}
                     onClick={() => handleTopUp(amt)}
-                    className="bg-white border border-slate-200 hover:border-indigo-500 p-6 rounded-2xl text-center group transition-all hover:shadow-xl hover:-translate-y-1"
+                    className="bg-white border border-slate-200 hover:border-emerald-500 p-6 rounded-2xl text-center group transition-all hover:shadow-xl hover:-translate-y-1"
                   >
-                    <p className="text-lg font-bold text-slate-600 group-hover:text-indigo-600">Buy {amt} Credits</p>
+                    <p className="text-lg font-bold text-slate-600 group-hover:text-emerald-600">Buy {amt} Credits</p>
                     <p className="text-3xl font-bold text-slate-800 my-2">${amt}</p>
-                    <span className="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">One-time charge</span>
+                    <span className="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors">One-time charge</span>
                   </button>
                 ))}
               </div>
@@ -258,20 +258,20 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
               <div className="grid md:grid-cols-2 gap-4">
                 {addOns.map(addon => (
-                  <div key={addon.id} className={`p-6 rounded-2xl border transition-all ${addon.active ? 'bg-indigo-50 border-indigo-200 ring-1 ring-indigo-200' : 'bg-white border-slate-200 hover:border-indigo-300'}`}>
+                  <div key={addon.id} className={`p-6 rounded-2xl border transition-all ${addon.active ? 'bg-emerald-50 border-emerald-200 ring-1 ring-emerald-200' : 'bg-white border-slate-200 hover:border-emerald-300'}`}>
                     <div className="flex justify-between items-start mb-4">
                       <div className="text-3xl">{addon.icon}</div>
                       <button 
                         onClick={() => toggleAddOn(addon.id)}
-                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-colors ${addon.active ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                        className={`px-4 py-2 rounded-lg text-xs font-bold transition-colors ${addon.active ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
                       >
                         {addon.active ? 'ACTIVE' : 'ENABLE'}
                       </button>
                     </div>
                     <h4 className="text-lg font-bold text-slate-800">{addon.title}</h4>
                     <p className="text-sm text-slate-500 my-2 min-h-[40px]">{addon.description}</p>
-                    <div className="pt-4 mt-4 border-t border-indigo-100/50 flex items-center justify-between">
-                      <span className="text-lg font-bold text-indigo-900">${addon.price}<span className="text-xs font-normal text-slate-500">{addon.type === 'MONTHLY' ? '/mo' : ' one-time'}</span></span>
+                    <div className="pt-4 mt-4 border-t border-emerald-100/50 flex items-center justify-between">
+                      <span className="text-lg font-bold text-emerald-900">${addon.price}<span className="text-xs font-normal text-slate-500">{addon.type === 'MONTHLY' ? '/mo' : ' one-time'}</span></span>
                     </div>
                   </div>
                 ))}

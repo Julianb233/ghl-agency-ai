@@ -138,7 +138,7 @@ export const CommandBar: React.FC<CommandBarProps> = ({ onSend, disabled, hasAct
         {/* Attach File Button (Visual Only) */}
         <button
           type="button"
-          className="p-3 rounded-xl bg-white border border-white text-slate-400 hover:text-indigo-600 hover:shadow-md transition-all shadow-sm"
+          className="p-3 rounded-xl bg-white border border-white text-slate-400 hover:text-emerald-600 hover:shadow-md transition-all shadow-sm"
           title="Attach Context (Screenshot/Markdown)"
         >
            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -153,7 +153,7 @@ export const CommandBar: React.FC<CommandBarProps> = ({ onSend, disabled, hasAct
           className={`p-3 rounded-xl transition-all duration-300 border shadow-sm relative overflow-hidden ${
             isListening 
               ? 'bg-red-50 border-red-200 text-red-500' 
-              : 'bg-white border-white text-slate-400 hover:text-indigo-600 hover:shadow-md'
+              : 'bg-white border-white text-slate-400 hover:text-emerald-600 hover:shadow-md'
           }`}
           title={isListening ? "Stop Listening" : "Voice Dictation"}
         >
@@ -174,7 +174,7 @@ export const CommandBar: React.FC<CommandBarProps> = ({ onSend, disabled, hasAct
              placeholder={isListening ? "Listening..." : "Describe the task or reference URL (e.g., 'Clone stylediver.com to GHL')..."}
              disabled={disabled}
              rows={1}
-             className={`w-full bg-white/50 border rounded-xl px-4 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500/50 transition-all font-mono resize-none text-sm shadow-inner ${
+             className={`w-full bg-white/50 border rounded-xl px-4 py-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500/50 transition-all font-mono resize-none text-sm shadow-inner ${
                  isListening ? 'border-red-300 ring-2 ring-red-200' : 'border-white/60'
              }`}
            />
@@ -186,7 +186,7 @@ export const CommandBar: React.FC<CommandBarProps> = ({ onSend, disabled, hasAct
         <button
           onClick={handleSubmit}
           disabled={disabled || !input.trim()}
-          className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white px-6 py-3.5 rounded-xl font-bold transition-all shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed flex items-center gap-2"
+          className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white px-6 py-3.5 rounded-xl font-bold transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed flex items-center gap-2"
         >
           <span>EXECUTE</span>
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

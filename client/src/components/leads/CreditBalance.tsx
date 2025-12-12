@@ -21,15 +21,15 @@ export function CreditBalance({ creditType, onBuyCredits, className }: CreditBal
   const credits = balance?.balance || 0;
 
   const getColorClass = () => {
-    if (credits >= 100) return 'text-green-600 dark:text-green-400';
-    if (credits >= 10) return 'text-yellow-600 dark:text-yellow-400';
-    return 'text-red-600 dark:text-red-400';
+    if (credits >= 100) return 'text-green-600';
+    if (credits >= 10) return 'text-yellow-600';
+    return 'text-red-600';
   };
 
   const getBgClass = () => {
-    if (credits >= 100) return 'bg-green-50 dark:bg-green-950/20';
-    if (credits >= 10) return 'bg-yellow-50 dark:bg-yellow-950/20';
-    return 'bg-red-50 dark:bg-red-950/20';
+    if (credits >= 100) return 'bg-green-50';
+    if (credits >= 10) return 'bg-yellow-50';
+    return 'bg-red-50';
   };
 
   return (

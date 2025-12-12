@@ -42,25 +42,25 @@ export function EnrichmentProgress({
 
       {showDetails && (
         <div className="grid grid-cols-2 gap-4">
-          <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-950/20 rounded-lg">
-            <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+          <div className="flex items-center gap-2 p-3 bg-green-50 rounded-lg">
+            <CheckCircle2 className="h-4 w-4 text-green-600" />
             <div>
-              <p className="text-sm font-semibold text-green-700 dark:text-green-400">
+              <p className="text-sm font-semibold text-green-700">
                 {enriched}
               </p>
-              <p className="text-xs text-green-600 dark:text-green-500">
+              <p className="text-xs text-green-600">
                 Enriched ({successRate.toFixed(1)}%)
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-950/20 rounded-lg">
-            <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+          <div className="flex items-center gap-2 p-3 bg-red-50 rounded-lg">
+            <XCircle className="h-4 w-4 text-red-600" />
             <div>
-              <p className="text-sm font-semibold text-red-700 dark:text-red-400">
+              <p className="text-sm font-semibold text-red-700">
                 {failed}
               </p>
-              <p className="text-xs text-red-600 dark:text-red-500">
+              <p className="text-xs text-red-600">
                 Failed ({total > 0 ? ((failed / total) * 100).toFixed(1) : 0}%)
               </p>
             </div>

@@ -274,8 +274,8 @@ export default function CampaignDetails() {
                   of {campaign.totalLeads} total
                 </p>
               </div>
-              <div className="rounded-full bg-blue-100 dark:bg-blue-950 p-3">
-                <Phone className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              <div className="rounded-full bg-blue-100 p-3">
+                <Phone className="h-6 w-6 text-blue-600" />
               </div>
             </div>
           </CardContent>
@@ -302,8 +302,8 @@ export default function CampaignDetails() {
                   % success rate
                 </p>
               </div>
-              <div className="rounded-full bg-green-100 dark:bg-green-950 p-3">
-                <CheckCircle2 className="h-6 w-6 text-green-600 dark:text-green-400" />
+              <div className="rounded-full bg-green-100 p-3">
+                <CheckCircle2 className="h-6 w-6 text-green-600" />
               </div>
             </div>
           </CardContent>
@@ -316,8 +316,8 @@ export default function CampaignDetails() {
                 <p className="text-sm font-medium text-muted-foreground">Failed</p>
                 <p className="text-2xl font-bold">{campaign.failed}</p>
               </div>
-              <div className="rounded-full bg-red-100 dark:bg-red-950 p-3">
-                <XCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
+              <div className="rounded-full bg-red-100 p-3">
+                <XCircle className="h-6 w-6 text-red-600" />
               </div>
             </div>
           </CardContent>
@@ -330,8 +330,8 @@ export default function CampaignDetails() {
                 <p className="text-sm font-medium text-muted-foreground">Avg Duration</p>
                 <p className="text-2xl font-bold">0:00</p>
               </div>
-              <div className="rounded-full bg-purple-100 dark:bg-purple-950 p-3">
-                <Clock className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+              <div className="rounded-full bg-purple-100 p-3">
+                <Clock className="h-6 w-6 text-purple-600" />
               </div>
             </div>
           </CardContent>

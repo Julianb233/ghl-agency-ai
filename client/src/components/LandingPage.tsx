@@ -8,6 +8,7 @@ import { CountdownTimer } from './CountdownTimer';
 import { TrustBadges, TrustBadgesInline } from './TrustBadges';
 import { LiveChat } from './LiveChat';
 
+
 // Optimized image component with lazy loading and CLS prevention
 const OptimizedImage: React.FC<{
   src: string;
@@ -43,7 +44,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/20 to-accent/10 flex flex-col font-sans text-foreground">
+    <div className="min-h-screen bg-white flex flex-col font-sans text-gray-900">
       {/* Exit Intent Popup */}
       <ExitIntentPopup onSignUp={onLogin} />
 
@@ -51,31 +52,31 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
       <SkipLink />
 
       {/* Navigation */}
-      <nav className="sticky top-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-b border-emerald-100 dark:border-emerald-900 shadow-sm" role="navigation" aria-label="Main navigation">
+      <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-xl border-b border-gray-200 shadow-sm" role="navigation" aria-label="Main navigation">
         <div className="container mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="w-8 h-8 sm:w-12 sm:h-12 bg-gradient-to-br from-emerald-600 via-green-500 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/30 relative overflow-hidden">
+            <div className="w-8 h-8 sm:w-12 sm:h-12 bg-gradient-to-br from-emerald-600 via-green-500 to-teal-500 rounded-2xl flex items-center justify-center shadow-md relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent animate-shimmer"></div>
               <Sparkles className="w-4 h-4 sm:w-7 sm:h-7 text-white fill-white relative z-10" aria-hidden="true" />
             </div>
             <div>
               <span className="text-base sm:text-xl font-bold bg-gradient-to-r from-emerald-600 via-green-500 to-teal-500 bg-clip-text text-transparent">GHL Agency AI</span>
-              <div className="hidden sm:block text-[11px] text-slate-700 dark:text-slate-300 font-semibold -mt-1">Buy Back Your Freedom</div>
+              <div className="hidden sm:block text-[11px] text-gray-600 font-semibold -mt-1">Buy Back Your Freedom</div>
             </div>
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center gap-8 text-sm font-medium text-slate-600 dark:text-slate-300">
-            <a href="#problem" onClick={(e) => scrollToSection(e, 'problem')} className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 rounded-md px-2 py-1">The Problem</a>
-            <a href="#solution" onClick={(e) => scrollToSection(e, 'solution')} className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 rounded-md px-2 py-1">The Solution</a>
-            <a href="#proof" onClick={(e) => scrollToSection(e, 'proof')} className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 rounded-md px-2 py-1">Proof</a>
-            <a href="#pricing" onClick={(e) => scrollToSection(e, 'pricing')} className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 rounded-md px-2 py-1">Investment</a>
+          <div className="hidden lg:flex items-center gap-8 text-sm font-medium text-gray-700">
+            <a href="#problem" onClick={(e) => scrollToSection(e, 'problem')} className="hover:text-emerald-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 rounded-md px-2 py-1">The Problem</a>
+            <a href="#solution" onClick={(e) => scrollToSection(e, 'solution')} className="hover:text-emerald-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 rounded-md px-2 py-1">The Solution</a>
+            <a href="#proof" onClick={(e) => scrollToSection(e, 'proof')} className="hover:text-emerald-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 rounded-md px-2 py-1">Proof</a>
+            <a href="#pricing" onClick={(e) => scrollToSection(e, 'pricing')} className="hover:text-emerald-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 rounded-md px-2 py-1">Investment</a>
           </div>
 
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="lg:hidden p-2 text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 rounded-md"
+            className="lg:hidden min-h-[44px] min-w-[44px] flex items-center justify-center p-2 text-gray-700 hover:text-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 rounded-md"
             aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
             aria-expanded={isMobileMenuOpen}
           >
@@ -83,28 +84,36 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
           </button>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4">
-            <Button variant="ghost" onClick={onLogin} className="font-semibold text-xs sm:text-sm text-slate-700 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 px-2 sm:px-4">
-              Log In
-            </Button>
-            <Button onClick={onLogin} className="bg-gradient-to-r from-emerald-600 via-green-500 to-teal-500 hover:from-emerald-700 hover:via-green-600 hover:to-teal-600 text-white shadow-lg shadow-emerald-500/40 rounded-full px-3 sm:px-6 text-xs sm:text-sm font-bold relative overflow-hidden group">
+            <Button onClick={onLogin} className="lg:hidden bg-gradient-to-r from-emerald-600 via-green-500 to-teal-500 hover:from-emerald-700 hover:via-green-600 hover:to-teal-600 text-white shadow-md hover:shadow-lg rounded-full px-3 sm:px-6 text-xs sm:text-sm font-bold relative overflow-hidden group">
               <span className="relative z-10 flex items-center gap-1 sm:gap-2">
                 Start Free <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
               </span>
               <div className="absolute inset-0 bg-gradient-to-r from-teal-600 to-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
             </Button>
+            <div className="hidden lg:flex items-center gap-2 sm:gap-4">
+              <Button variant="ghost" onClick={onLogin} className="font-semibold text-xs sm:text-sm text-gray-700 hover:text-emerald-600 px-2 sm:px-4">
+                Log In
+              </Button>
+              <Button onClick={onLogin} className="bg-gradient-to-r from-emerald-600 via-green-500 to-teal-500 hover:from-emerald-700 hover:via-green-600 hover:to-teal-600 text-white shadow-md hover:shadow-lg rounded-full px-3 sm:px-6 text-xs sm:text-sm font-bold relative overflow-hidden group">
+                <span className="relative z-10 flex items-center gap-1 sm:gap-2">
+                  Start Free <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
+                </span>
+                <div className="absolute inset-0 bg-gradient-to-r from-teal-600 to-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              </Button>
+            </div>
           </div>
         </div>
 
         {/* Mobile Navigation Menu */}
         {isMobileMenuOpen && (
-          <div className="lg:hidden absolute top-full left-0 right-0 bg-white dark:bg-slate-900 border-b border-emerald-100 dark:border-emerald-900 shadow-lg z-50">
+          <div className="lg:hidden absolute top-full left-0 right-0 bg-white border-b border-gray-200 shadow-lg z-50">
             <nav className="flex flex-col p-4 gap-4">
-              <a href="#problem" onClick={(e) => scrollToSection(e, 'problem')} className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 py-2 px-4 rounded-md hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors">The Problem</a>
-              <a href="#solution" onClick={(e) => scrollToSection(e, 'solution')} className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 py-2 px-4 rounded-md hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors">The Solution</a>
-              <a href="#proof" onClick={(e) => scrollToSection(e, 'proof')} className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 py-2 px-4 rounded-md hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors">Proof</a>
-              <a href="#pricing" onClick={(e) => scrollToSection(e, 'pricing')} className="text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 py-2 px-4 rounded-md hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors">Investment</a>
-              <hr className="border-emerald-100 dark:border-emerald-900" />
-              <Button variant="ghost" onClick={onLogin} className="font-semibold text-sm text-slate-700 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 justify-start">
+              <a href="#problem" onClick={(e) => scrollToSection(e, 'problem')} className="text-sm font-medium text-gray-700 hover:text-emerald-600 py-3 px-4 min-h-[44px] flex items-center rounded-md hover:bg-gray-50 transition-colors">The Problem</a>
+              <a href="#solution" onClick={(e) => scrollToSection(e, 'solution')} className="text-sm font-medium text-gray-700 hover:text-emerald-600 py-3 px-4 min-h-[44px] flex items-center rounded-md hover:bg-gray-50 transition-colors">The Solution</a>
+              <a href="#proof" onClick={(e) => scrollToSection(e, 'proof')} className="text-sm font-medium text-gray-700 hover:text-emerald-600 py-3 px-4 min-h-[44px] flex items-center rounded-md hover:bg-gray-50 transition-colors">Proof</a>
+              <a href="#pricing" onClick={(e) => scrollToSection(e, 'pricing')} className="text-sm font-medium text-gray-700 hover:text-emerald-600 py-3 px-4 min-h-[44px] flex items-center rounded-md hover:bg-gray-50 transition-colors">Investment</a>
+              <hr className="border-gray-200" />
+              <Button variant="ghost" onClick={onLogin} className="font-semibold text-sm text-gray-700 hover:text-emerald-600 justify-start">
                 Log In
               </Button>
               <Button onClick={onLogin} className="bg-gradient-to-r from-emerald-600 via-green-500 to-teal-500 hover:from-emerald-700 hover:via-green-600 hover:to-teal-600 text-white rounded-full font-bold">
@@ -116,44 +125,44 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
       </nav>
 
       {/* Hero Section - Direct Response Style */}
-      <header id="main-content" className="relative pt-12 sm:pt-20 pb-12 sm:pb-16 overflow-hidden" role="banner">
+      <header id="main-content" className="relative pt-12 sm:pt-20 pb-12 sm:pb-16 overflow-hidden bg-gradient-to-b from-gray-50 to-white" role="banner">
         {/* Animated background gradient */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-emerald-100/50 via-green-50/30 to-transparent opacity-70"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-teal-100/40 via-transparent to-transparent opacity-50"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-emerald-50/80 via-green-50/40 to-transparent opacity-60"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-teal-50/60 via-transparent to-transparent opacity-40"></div>
 
         {/* Floating elements */}
-        <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-emerald-400/20 to-green-400/20 rounded-full blur-3xl animate-float"></div>
-        <div className="absolute bottom-20 right-10 w-40 h-40 bg-gradient-to-br from-teal-400/20 to-emerald-400/20 rounded-full blur-3xl animate-float-delayed"></div>
+        <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-emerald-200/30 to-green-200/30 rounded-full blur-3xl animate-float"></div>
+        <div className="absolute bottom-20 right-10 w-40 h-40 bg-gradient-to-br from-teal-200/30 to-emerald-200/30 rounded-full blur-3xl animate-float-delayed"></div>
 
         <div className="container mx-auto px-4 sm:px-6 relative z-10">
           {/* Attention-grabbing badge */}
           <div className="text-center mb-6 sm:mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div className="inline-flex items-center gap-2 sm:gap-3 bg-gradient-to-r from-emerald-50 to-green-50 border-2 border-emerald-200/50 rounded-full px-3 sm:px-6 py-2 sm:py-2.5 shadow-lg shadow-emerald-500/10">
-              <Crown className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 animate-pulse" />
-              <span className="text-xs sm:text-sm font-bold bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent uppercase tracking-wide">
+            <div className="inline-flex items-center gap-2 sm:gap-3 bg-white border border-emerald-200 rounded-full px-3 sm:px-6 py-2 sm:py-2.5 shadow-sm">
+              <Crown className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
+              <span className="text-xs sm:text-sm font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent uppercase tracking-wide">
                 For Agency Owners Who Are Done Being Babysitters
               </span>
             </div>
           </div>
 
           {/* Big Promise Headline - Alex Hormozi Style */}
-          <h1 className="text-3xl sm:text-5xl md:text-7xl font-black tracking-tight text-slate-900 mb-4 sm:mb-6 max-w-5xl mx-auto leading-[1.1] text-center animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
+          <h1 className="text-3xl sm:text-5xl md:text-7xl font-black tracking-tight text-gray-900 mb-4 sm:mb-6 max-w-5xl mx-auto leading-[1.1] text-center animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
             Stop Managing.
             <span className="block sm:inline"> Start Living.</span>
             <br className="hidden sm:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-green-500 to-teal-500">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-green-500 to-teal-600">
               Buy Back Your Time, Peace, and Freedom.
             </span>
           </h1>
 
           {/* Subheadline - The Big Claim */}
-          <p className="text-base sm:text-xl md:text-2xl text-slate-700 mb-4 sm:mb-6 max-w-4xl mx-auto leading-relaxed text-center font-semibold animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
+          <p className="text-base sm:text-xl md:text-2xl text-gray-700 mb-4 sm:mb-6 max-w-4xl mx-auto leading-relaxed text-center font-semibold animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
             Finally. An AI workforce that actually shows up, delivers what it promised, and gives you your evenings and weekends back.
           </p>
 
           {/* Objection Handler / Proof Element */}
-          <p className="text-sm sm:text-lg text-slate-600 mb-8 sm:mb-12 max-w-3xl mx-auto text-center animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
-            <span className="font-bold text-slate-800">Real talk:</span> This isn't another chatbot that "sounds smart but does nothing." This is the AI workforce that handles your fulfillment while you're at dinner with your family. <span className="underline decoration-emerald-400 decoration-2">No more 2am emergency Slack messages.</span>
+          <p className="text-sm sm:text-lg text-gray-600 mb-8 sm:mb-12 max-w-3xl mx-auto text-center animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
+            <span className="font-bold text-gray-900">Real talk:</span> This isn't another chatbot that "sounds smart but does nothing." This is the AI workforce that handles your fulfillment while you're at dinner with your family. <span className="underline decoration-emerald-400 decoration-2">No more 2am emergency Slack messages.</span>
           </p>
 
           {/* CTA Buttons - Classic Direct Response */}
@@ -161,7 +170,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
             <Button
               onClick={onLogin}
               size="lg"
-              className="w-full sm:w-auto bg-gradient-to-r from-emerald-600 via-green-500 to-teal-500 hover:from-emerald-700 hover:via-green-600 hover:to-teal-600 text-white shadow-2xl shadow-emerald-500/50 rounded-full px-6 sm:px-10 h-12 sm:h-16 text-base sm:text-xl font-black relative overflow-hidden group animate-gradient animate-bounce-subtle active:scale-95 transition-transform"
+              className="w-full sm:w-auto bg-gradient-to-r from-emerald-600 via-green-500 to-teal-500 hover:from-emerald-700 hover:via-green-600 hover:to-teal-600 text-white shadow-lg hover:shadow-xl rounded-full px-6 sm:px-10 h-12 sm:h-16 text-base sm:text-xl font-black relative overflow-hidden group animate-gradient animate-bounce-subtle active:scale-95 transition-transform"
             >
               <span className="relative z-10 flex items-center gap-2">
                 <Rocket className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -176,7 +185,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                 // Scroll to features section as an alternative to demo video
                 document.getElementById('solution')?.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="w-full sm:w-auto rounded-full px-6 sm:px-10 h-12 sm:h-16 text-base sm:text-xl font-bold border-2 border-emerald-200 hover:bg-emerald-50 text-emerald-700 hover:text-emerald-800 shadow-lg animate-bounce-subtle active:scale-95 transition-transform"
+              className="w-full sm:w-auto rounded-full px-6 sm:px-10 h-12 sm:h-16 text-base sm:text-xl font-bold border-2 border-gray-300 hover:bg-gray-50 text-gray-700 hover:text-gray-900 shadow-sm hover:shadow-md animate-bounce-subtle active:scale-95 transition-transform"
             >
               <Play className="w-5 h-5 sm:w-6 sm:h-6 mr-2" />
               See The Magic
@@ -184,12 +193,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
           </div>
 
           {/* Social Proof Element */}
-          <div className="text-center text-xs sm:text-sm text-slate-600 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-500 px-4">
+          <div className="text-center text-xs sm:text-sm text-gray-600 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-500 px-4">
             <div className="flex items-center justify-center gap-1 sm:gap-2 mb-2">
               {[...Array(5)].map((_, i) => (
                 <span key={i} className="text-yellow-400 text-base sm:text-lg">★</span>
               ))}
-              <span className="font-bold text-slate-800 ml-1 sm:ml-2">5.0</span>
+              <span className="font-bold text-gray-900 ml-1 sm:ml-2">5.0</span>
             </div>
             <p className="font-medium">
               <span className="font-bold text-emerald-600">487 agency owners</span> have reclaimed their time and sanity
@@ -198,8 +207,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
 
           {/* Hero Dashboard Preview */}
           <div className="mt-12 sm:mt-20 relative max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-600 px-4">
-            <div className="absolute -inset-4 sm:-inset-6 bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 rounded-2xl sm:rounded-3xl opacity-30 blur-3xl animate-pulse-slow"></div>
-            <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border-2 border-white/50 bg-white/80 backdrop-blur-sm">
+            <div className="absolute -inset-4 sm:-inset-6 bg-gradient-to-r from-emerald-200/40 via-green-200/40 to-teal-200/40 rounded-2xl sm:rounded-3xl blur-3xl"></div>
+            <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border border-gray-200 bg-white">
               <OptimizedImage
                 src="/assets/demo/global_ops_view_1763563925931.png"
                 alt="Live AI Agent Dashboard - Real-time operations view"
@@ -212,42 +221,42 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
       </header>
 
       {/* Trusted By Social Proof Bar */}
-      <section className="py-8 sm:py-12 bg-white border-b border-slate-100">
+      <section className="py-8 sm:py-12 bg-gray-50 border-b border-gray-200">
         <div className="container mx-auto px-4 sm:px-6">
-          <p className="text-center text-xs sm:text-sm text-slate-500 font-medium mb-6 uppercase tracking-wider">Trusted by 487+ agencies worldwide</p>
+          <p className="text-center text-xs sm:text-sm text-gray-500 font-medium mb-6 uppercase tracking-wider">Trusted by 487+ agencies worldwide</p>
           <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-12 opacity-60 grayscale hover:opacity-100 hover:grayscale-0 transition-all duration-500">
             {/* Logo-style company representations */}
-            <div className="flex items-center gap-2 text-slate-600">
+            <div className="flex items-center gap-2 text-gray-600">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
                 <span className="text-white font-bold text-xs">GF</span>
               </div>
               <span className="text-sm font-semibold hidden sm:inline">GrowthForge</span>
             </div>
-            <div className="flex items-center gap-2 text-slate-600">
+            <div className="flex items-center gap-2 text-gray-600">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center">
                 <span className="text-white font-bold text-xs">BP</span>
               </div>
               <span className="text-sm font-semibold hidden sm:inline">BrightPath</span>
             </div>
-            <div className="flex items-center gap-2 text-slate-600">
+            <div className="flex items-center gap-2 text-gray-600">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center">
                 <span className="text-white font-bold text-xs">SU</span>
               </div>
               <span className="text-sm font-semibold hidden sm:inline">ScaleUp</span>
             </div>
-            <div className="flex items-center gap-2 text-slate-600">
+            <div className="flex items-center gap-2 text-gray-600">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center">
                 <span className="text-white font-bold text-xs">LP</span>
               </div>
               <span className="text-sm font-semibold hidden sm:inline">LaunchPad</span>
             </div>
-            <div className="flex items-center gap-2 text-slate-600">
+            <div className="flex items-center gap-2 text-gray-600">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-pink-500 to-pink-600 flex items-center justify-center">
                 <span className="text-white font-bold text-xs">VX</span>
               </div>
               <span className="text-sm font-semibold hidden sm:inline">Voxel</span>
             </div>
-            <div className="flex items-center gap-2 text-slate-600">
+            <div className="flex items-center gap-2 text-gray-600">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center">
                 <span className="text-white font-bold text-xs">NX</span>
               </div>
@@ -257,72 +266,80 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
         </div>
       </section>
 
-      {/* Problem/Agitate Section - Dan Kennedy Style */}
-      <section id="problem" className="py-12 sm:py-24 bg-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-50/50 to-white"></div>
+      {/* Problem/Agitate Section - Agency Tools Focus */}
+      <section id="problem" className="py-12 sm:py-24 bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 relative overflow-hidden">
+        {/* Decorative background elements */}
+        <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-rose-100/40 to-orange-100/40 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-br from-emerald-100/40 to-teal-100/40 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
+
         <div className="container mx-auto px-4 sm:px-6 relative z-10">
           <div className="max-w-4xl mx-auto text-center mb-12 sm:mb-16">
-            <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-slate-900 mb-4 sm:mb-6">
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-orange-600">Remember Why You Started</span> Your Agency?
+            <div className="inline-flex items-center gap-2 bg-rose-50 border border-rose-200 rounded-full px-4 py-1.5 mb-6">
+              <span className="text-xs font-bold text-rose-700 uppercase tracking-wide">The Daily Struggle</span>
+            </div>
+            <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-gray-900 mb-4 sm:mb-6">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-600 via-orange-500 to-amber-500">Remember Why You Started</span> Your Agency?
             </h2>
-            <p className="text-base sm:text-xl text-slate-700 leading-relaxed">
-              It wasn't to become a <span className="font-bold text-red-600">babysitter for VAs who ghost you</span> or spend your evenings fixing someone else's mistakes.
+            <p className="text-base sm:text-xl text-gray-700 leading-relaxed">
+              You mastered <span className="font-bold text-emerald-600">GoHighLevel</span>, <span className="font-bold text-blue-600">Facebook Ads</span>, and <span className="font-bold text-purple-600">client funnels</span>—only to become a <span className="font-bold text-rose-600">babysitter for VAs who ghost you</span>.
             </p>
           </div>
 
-          {/* Pain Points Grid */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 max-w-6xl mx-auto">
+          {/* Pain Points Grid - Centered Icons with Color */}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
             {[
-              { icon: Users, title: "Stolen Family Time", pain: "Every hour spent micromanaging VAs is an hour stolen from your kids, your partner, your life. You didn't build a business to miss bedtime stories." },
-              { icon: Brain, title: "Mental Exhaustion", pain: "The 2am client emergencies. The endless Slack pings. The constant firefighting. You're mentally drained and it's killing your creativity, your relationships, your joy." },
-              { icon: Clock, title: "The VA Nightmare", pain: "They promise the world in the interview. Week 1 they're great. Week 3 quality drops. Week 6 they ghost you. Now you're back to square one, scrambling." },
-              { icon: Target, title: "Quality Russian Roulette", pain: "You can't trust them to handle clients without your oversight. So you check everything. Review everything. Redo everything. What's the point of having help?" },
-              { icon: TrendingUp, title: "Growth Handcuffs", pain: "You could close 10 more clients tomorrow, but you're maxed out managing the team you have. Your income ceiling isn't your sales—it's your ability to babysit." },
-              { icon: DollarSign, title: "Margin Erosion", pain: "Paying $4,000/mo per VA. Charging clients $2,000. The math doesn't math. You're working harder to make less. This isn't freedom—it's a trap." }
+              { icon: Globe, title: "GHL Sub-Account Chaos", pain: "Logging into 50+ sub-accounts daily. Checking automations. Fixing broken workflows. Your VAs can't keep up and you're drowning in the weeds.", color: "from-blue-500 to-cyan-500", bgColor: "bg-blue-50", borderColor: "border-blue-200", textColor: "text-blue-700" },
+              { icon: BarChart3, title: "Meta Ads on Fire", pain: "You wake up to ROAS tanking at 3am. By the time your VA sees it, you've burned $500. Who's actually watching your ad accounts?", color: "from-indigo-500 to-purple-500", bgColor: "bg-indigo-50", borderColor: "border-indigo-200", textColor: "text-indigo-700" },
+              { icon: Mail, title: "Lead Follow-Up Falls Through", pain: "Hot leads sitting in GHL for 6+ hours before anyone responds. Speed-to-lead is everything—and you're losing the race every single day.", color: "from-emerald-500 to-teal-500", bgColor: "bg-emerald-50", borderColor: "border-emerald-200", textColor: "text-emerald-700" },
+              { icon: Phone, title: "Missed Calls = Lost Revenue", pain: "Your AI caller couldn't handle objections. The VA forgot to follow up. Another $5K deal walked out the door while you were in a meeting.", color: "from-amber-500 to-orange-500", bgColor: "bg-amber-50", borderColor: "border-amber-200", textColor: "text-amber-700" },
+              { icon: Users, title: "Client Reporting Nightmare", pain: "Pulling data from GHL, Facebook, Google—manually. Creating reports until midnight. Your clients want weekly updates and it's crushing you.", color: "from-rose-500 to-pink-500", bgColor: "bg-rose-50", borderColor: "border-rose-200", textColor: "text-rose-700" },
+              { icon: Zap, title: "Zapier Breaks at 2AM", pain: "Your automation failed. 200 leads didn't get tagged. The follow-up sequence never fired. Now you're in damage control mode. Again.", color: "from-violet-500 to-purple-500", bgColor: "bg-violet-50", borderColor: "border-violet-200", textColor: "text-violet-700" }
             ].map((item, i) => (
               <div
                 key={i}
-                className="group bg-gradient-to-br from-slate-50 to-red-50/30 p-4 sm:p-6 rounded-xl sm:rounded-2xl border-2 border-slate-200 hover:border-red-300 transition-all duration-300 animate-card-lift"
+                className={`group ${item.bgColor} p-6 sm:p-8 rounded-2xl border-2 ${item.borderColor} hover:shadow-xl transition-all duration-300 text-center`}
                 style={{ animationDelay: `${i * 100}ms` }}
               >
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-red-500 to-orange-500 rounded-xl flex items-center justify-center text-white mb-3 sm:mb-4 group-hover:scale-110 transition-transform">
-                  <item.icon className="w-5 h-5 sm:w-6 sm:h-6" />
+                <div className={`w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br ${item.color} rounded-2xl flex items-center justify-center text-white mx-auto mb-4 sm:mb-5 group-hover:scale-110 transition-transform shadow-lg`}>
+                  <item.icon className="w-8 h-8 sm:w-10 sm:h-10" />
                 </div>
-                <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-2">{item.title}</h3>
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">{item.pain}</p>
+                <h3 className={`text-lg sm:text-xl font-bold ${item.textColor} mb-3`}>{item.title}</h3>
+                <p className="text-sm sm:text-base text-gray-600 leading-relaxed">{item.pain}</p>
               </div>
             ))}
           </div>
 
           {/* Transition statement */}
-          <div className="mt-12 sm:mt-16 text-center max-w-3xl mx-auto">
-            <p className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900 mb-3 sm:mb-4">
-              What if you could <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600">wake up to clients served, problems solved, and peace of mind</span>...
-            </p>
-            <p className="text-base sm:text-xl text-slate-700">
-              ...without managing a single person? Without checking work at midnight? Without the knot in your stomach every morning?
-            </p>
+          <div className="mt-12 sm:mt-20 text-center max-w-3xl mx-auto">
+            <div className="bg-white/80 backdrop-blur-sm p-8 sm:p-10 rounded-3xl border border-emerald-200 shadow-lg">
+              <p className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">
+                What if your <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600">GHL, Meta Ads, and lead follow-up ran themselves</span>...
+              </p>
+              <p className="text-base sm:text-xl text-gray-700">
+                ...24/7, without VAs, without Zapier breaking, without checking your phone at dinner?
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Solution Section - Russell Brunson Style with Features */}
-      <section id="solution" className="py-12 sm:py-24 bg-gradient-to-br from-purple-50/50 via-blue-50/30 to-cyan-50/30 relative overflow-hidden">
+      <section id="solution" className="py-12 sm:py-24 bg-gradient-to-br from-gray-50 via-gray-50 to-gray-50 relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5"></div>
 
         <div className="container mx-auto px-4 sm:px-6 relative z-10">
           <div className="text-center mb-12 sm:mb-20">
-            <div className="inline-block bg-gradient-to-r from-purple-100 to-blue-100 border border-purple-200 rounded-full px-4 sm:px-6 py-1.5 sm:py-2 mb-4 sm:mb-6">
-              <span className="text-xs sm:text-sm font-bold text-purple-700 uppercase tracking-wide">The Freedom Machine</span>
+            <div className="inline-block bg-white border border-emerald-200 rounded-full px-4 sm:px-6 py-1.5 sm:py-2 mb-4 sm:mb-6 shadow-sm">
+              <span className="text-xs sm:text-sm font-bold text-emerald-700 uppercase tracking-wide">The Freedom Machine</span>
             </div>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 mb-4 sm:mb-6 max-w-4xl mx-auto leading-tight">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-900 mb-4 sm:mb-6 max-w-4xl mx-auto leading-tight">
               Get Your Life Back.
               <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-green-500 to-teal-600">
                 Sleep Through The Night. Take Real Vacations.
               </span>
             </h2>
-            <p className="text-base sm:text-xl text-slate-700 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-base sm:text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
               An AI workforce that works 24/7, never complains, never ghosts, and <span className="font-bold">actually gives you the freedom you started your agency for.</span>
             </p>
           </div>
@@ -334,15 +351,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
             <div className="flex flex-col lg:flex-row items-center gap-8 sm:gap-12">
               <div className="flex-1 space-y-4 sm:space-y-6 order-2 lg:order-1">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 sm:w-14 sm:h-14 bg-gradient-to-br from-purple-500 to-blue-500 rounded-xl sm:rounded-2xl flex items-center justify-center text-white shadow-lg shadow-purple-500/30">
+                  <div className="w-10 h-10 sm:w-14 sm:h-14 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl sm:rounded-2xl flex items-center justify-center text-white shadow-md">
                     <Globe className="w-5 h-5 sm:w-7 sm:h-7" />
                   </div>
-                  <span className="inline-block bg-purple-100 text-purple-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">Peace of Mind</span>
+                  <span className="inline-block bg-emerald-50 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide border border-emerald-200">Peace of Mind</span>
                 </div>
-                <h3 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900">
+                <h3 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900">
                   Sleep Through The Night<br />Knowing Nothing's On Fire
                 </h3>
-                <p className="text-base sm:text-lg text-slate-700 leading-relaxed">
+                <p className="text-base sm:text-lg text-gray-700 leading-relaxed">
                   One dashboard. Complete visibility. Watch your AI agents handle everything in real-time—or don't watch at all. That's the beauty. <span className="font-bold">You can finally trust the work is getting done while you're living your life.</span>
                 </p>
 
@@ -357,26 +374,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                     <div key={i} className="flex items-start gap-3 group">
                       <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-green-500 mt-0.5 flex-shrink-0 group-hover:scale-110 transition-transform" />
                       <div>
-                        <span className="text-sm sm:text-base text-slate-800 font-medium">{benefit.text}</span>
-                        <div className="text-xs sm:text-sm text-purple-600 font-bold mt-1">{benefit.metric}</div>
+                        <span className="text-sm sm:text-base text-gray-800 font-medium">{benefit.text}</span>
+                        <div className="text-xs sm:text-sm text-emerald-600 font-bold mt-1">{benefit.metric}</div>
                       </div>
                     </div>
                   ))}
                 </div>
 
                 {/* Social Proof Snippet */}
-                <div className="bg-white/80 backdrop-blur-sm p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-purple-200/50 shadow-lg">
+                <div className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-gray-200 shadow-md">
                   <div className="flex items-start gap-3">
                     <OptimizedImage
                       src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=96&h=96&fit=crop&crop=face"
                       alt="Marcus T."
-                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-purple-200 flex-shrink-0"
+                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-emerald-200 flex-shrink-0"
                     />
                     <div>
-                      <p className="text-xs sm:text-sm text-slate-700 italic mb-2">
+                      <p className="text-xs sm:text-sm text-gray-700 italic mb-2">
                         "I took my first real vacation in 4 years. Didn't check my phone once. The AI handled 47 clients flawlessly. I cried when I realized what I'd been missing."
                       </p>
-                      <p className="text-xs sm:text-sm font-bold text-slate-900">— Marcus T., Founder @ GrowthForge Media</p>
+                      <p className="text-xs sm:text-sm font-bold text-gray-900">— Marcus T., Founder @ GrowthForge Media</p>
                       <div className="flex items-center gap-1 mt-1">
                         {[...Array(5)].map((_, i) => (
                           <span key={i} className="text-yellow-400 text-xs">★</span>
@@ -389,8 +406,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
 
               <div className="flex-1 order-1 lg:order-2 w-full">
                 <div className="relative group">
-                  <div className="absolute -inset-2 sm:-inset-4 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl sm:rounded-2xl opacity-20 group-hover:opacity-30 blur-2xl transition-opacity"></div>
-                  <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border-2 border-white/50 bg-white/80 backdrop-blur-sm transform group-hover:scale-[1.02] transition-transform duration-300">
+                  <div className="absolute -inset-2 sm:-inset-4 bg-gradient-to-r from-emerald-100 to-teal-100 rounded-xl sm:rounded-2xl opacity-50 blur-2xl"></div>
+                  <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-xl border border-gray-200 bg-white transform group-hover:scale-[1.02] transition-transform duration-300">
                     <OptimizedImage
                       src="/assets/demo/global_ops_view_1763563925931.png"
                       alt="Global Operations Command Center - Real-time agent monitoring"
@@ -405,15 +422,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
             <div className="flex flex-col lg:flex-row-reverse items-center gap-8 sm:gap-12">
               <div className="flex-1 space-y-4 sm:space-y-6 order-2">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 sm:w-14 sm:h-14 bg-gradient-to-br from-pink-500 to-rose-500 rounded-xl sm:rounded-2xl flex items-center justify-center text-white shadow-lg shadow-pink-500/30">
+                  <div className="w-10 h-10 sm:w-14 sm:h-14 bg-gradient-to-br from-teal-500 to-green-600 rounded-xl sm:rounded-2xl flex items-center justify-center text-white shadow-md">
                     <BarChart3 className="w-5 h-5 sm:w-7 sm:h-7" />
                   </div>
-                  <span className="inline-block bg-pink-100 text-pink-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">Never Sleeps</span>
+                  <span className="inline-block bg-teal-50 text-teal-700 border border-teal-200 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">Never Sleeps</span>
                 </div>
-                <h3 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900">
+                <h3 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900">
                   24/7 Ad Optimization<br />While You're With Your Family
                 </h3>
-                <p className="text-base sm:text-lg text-slate-700 leading-relaxed">
+                <p className="text-base sm:text-lg text-gray-700 leading-relaxed">
                   Your AI ad manager watches campaigns while you're at your kid's soccer game. It never forgets to check. Never misses an opportunity. <span className="font-bold">You finally get to be present in your life.</span>
                 </p>
 
@@ -427,25 +444,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                     <div key={i} className="flex items-start gap-3 group">
                       <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-green-500 mt-0.5 flex-shrink-0 group-hover:scale-110 transition-transform" />
                       <div>
-                        <span className="text-sm sm:text-base text-slate-800 font-medium">{benefit.text}</span>
-                        <div className="text-xs sm:text-sm text-pink-600 font-bold mt-1">{benefit.metric}</div>
+                        <span className="text-sm sm:text-base text-gray-800 font-medium">{benefit.text}</span>
+                        <div className="text-xs sm:text-sm text-teal-600 font-bold mt-1">{benefit.metric}</div>
                       </div>
                     </div>
                   ))}
                 </div>
 
-                <div className="bg-white/80 backdrop-blur-sm p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-pink-200/50 shadow-lg">
+                <div className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-gray-200 shadow-md">
                   <div className="flex items-start gap-3">
                     <OptimizedImage
                       src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=96&h=96&fit=crop&crop=face"
                       alt="Sarah K."
-                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-pink-200 flex-shrink-0"
+                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-teal-200 flex-shrink-0"
                     />
                     <div>
-                      <p className="text-xs sm:text-sm text-slate-700 italic mb-2">
+                      <p className="text-xs sm:text-sm text-gray-700 italic mb-2">
                         "I used to wake up at 5am to check campaigns before my media buyer logged on. Now I sleep till 7, have coffee with my wife, and the work's already done. Life-changing."
                       </p>
-                      <p className="text-xs sm:text-sm font-bold text-slate-900">— Sarah K., CEO @ BrightPath Digital</p>
+                      <p className="text-xs sm:text-sm font-bold text-gray-900">— Sarah K., CEO @ BrightPath Digital</p>
                       <div className="flex items-center gap-1 mt-1">
                         {[...Array(5)].map((_, i) => (
                           <span key={i} className="text-yellow-400 text-xs">★</span>
@@ -458,13 +475,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
 
               <div className="flex-1 order-1 w-full">
                 <div className="relative group">
-                  <div className="absolute -inset-2 sm:-inset-4 bg-gradient-to-r from-pink-500 to-rose-500 rounded-xl sm:rounded-2xl opacity-20 group-hover:opacity-30 blur-2xl transition-opacity"></div>
-                  <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border-2 border-white/50 bg-white/80 backdrop-blur-sm transform group-hover:scale-[1.02] transition-transform duration-300">
-                    <div className="aspect-video bg-gradient-to-br from-pink-50 to-rose-50 flex items-center justify-center">
+                  <div className="absolute -inset-2 sm:-inset-4 bg-gradient-to-r from-teal-100 to-green-100 rounded-xl sm:rounded-2xl opacity-50 blur-2xl transition-opacity"></div>
+                  <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-xl border border-gray-200 bg-white transform group-hover:scale-[1.02] transition-transform duration-300">
+                    <div className="aspect-video bg-gradient-to-br from-teal-50 to-green-50 flex items-center justify-center">
                       <div className="text-center p-8">
-                        <BarChart3 className="w-16 h-16 sm:w-24 sm:h-24 text-pink-400 mx-auto mb-4" />
-                        <p className="text-sm sm:text-base text-pink-600 font-bold">AI Ad Manager Dashboard</p>
-                        <p className="text-xs sm:text-sm text-slate-600 mt-2">Automated campaign optimization in real-time</p>
+                        <BarChart3 className="w-16 h-16 sm:w-24 sm:h-24 text-teal-400 mx-auto mb-4" />
+                        <p className="text-sm sm:text-base text-teal-600 font-bold">AI Ad Manager Dashboard</p>
+                        <p className="text-xs sm:text-sm text-gray-600 mt-2">Automated campaign optimization in real-time</p>
                       </div>
                     </div>
                   </div>
@@ -476,15 +493,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
             <div className="flex flex-col lg:flex-row items-center gap-8 sm:gap-12">
               <div className="flex-1 space-y-4 sm:space-y-6 order-2 lg:order-1">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 sm:w-14 sm:h-14 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-xl sm:rounded-2xl flex items-center justify-center text-white shadow-lg shadow-cyan-500/30">
+                  <div className="w-10 h-10 sm:w-14 sm:h-14 bg-gradient-to-br from-lime-500 to-green-600 rounded-xl sm:rounded-2xl flex items-center justify-center text-white shadow-md">
                     <Zap className="w-5 h-5 sm:w-7 sm:h-7" />
                   </div>
-                  <span className="inline-block bg-cyan-100 text-cyan-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">Time Freedom</span>
+                  <span className="inline-block bg-lime-50 text-lime-700 border border-lime-200 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">Time Freedom</span>
                 </div>
-                <h3 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900">
+                <h3 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900">
                   Stop Doing Grunt Work<br />Start Living Your Life
                 </h3>
-                <p className="text-base sm:text-lg text-slate-700 leading-relaxed">
+                <p className="text-base sm:text-lg text-gray-700 leading-relaxed">
                   All those tedious tasks eating your day? Gone. The AI handles research, data entry, reporting—<span className="font-bold">all the soul-crushing busywork that keeps you from what matters.</span> Get your weekends back.
                 </p>
 
@@ -498,25 +515,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                     <div key={i} className="flex items-start gap-3 group">
                       <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-green-500 mt-0.5 flex-shrink-0 group-hover:scale-110 transition-transform" />
                       <div>
-                        <span className="text-sm sm:text-base text-slate-800 font-medium">{benefit.text}</span>
-                        <div className="text-xs sm:text-sm text-cyan-600 font-bold mt-1">{benefit.metric}</div>
+                        <span className="text-sm sm:text-base text-gray-800 font-medium">{benefit.text}</span>
+                        <div className="text-xs sm:text-sm text-lime-600 font-bold mt-1">{benefit.metric}</div>
                       </div>
                     </div>
                   ))}
                 </div>
 
-                <div className="bg-white/80 backdrop-blur-sm p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-cyan-200/50 shadow-lg">
+                <div className="bg-white p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-gray-200 shadow-md">
                   <div className="flex items-start gap-3">
                     <OptimizedImage
                       src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=96&h=96&fit=crop&crop=face"
                       alt="David R."
-                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-cyan-200 flex-shrink-0"
+                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-lime-200 flex-shrink-0"
                     />
                     <div>
-                      <p className="text-xs sm:text-sm text-slate-700 italic mb-2">
+                      <p className="text-xs sm:text-sm text-gray-700 italic mb-2">
                         "I used to spend Sundays doing research and reports. Last Sunday I went hiking with my daughter. The work was done Monday morning. I actually felt like a human again."
                       </p>
-                      <p className="text-xs sm:text-sm font-bold text-slate-900">— David R., Founder @ ScaleUp Agency</p>
+                      <p className="text-xs sm:text-sm font-bold text-gray-900">— David R., Founder @ ScaleUp Agency</p>
                       <div className="flex items-center gap-1 mt-1">
                         {[...Array(5)].map((_, i) => (
                           <span key={i} className="text-yellow-400 text-xs">★</span>
@@ -529,13 +546,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
 
               <div className="flex-1 order-1 lg:order-2 w-full">
                 <div className="relative group">
-                  <div className="absolute -inset-2 sm:-inset-4 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-xl sm:rounded-2xl opacity-20 group-hover:opacity-30 blur-2xl transition-opacity"></div>
-                  <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border-2 border-white/50 bg-white/80 backdrop-blur-sm transform group-hover:scale-[1.02] transition-transform duration-300">
-                    <div className="aspect-video bg-gradient-to-br from-cyan-50 to-blue-50 flex items-center justify-center">
+                  <div className="absolute -inset-2 sm:-inset-4 bg-gradient-to-r from-lime-100 to-green-100 rounded-xl sm:rounded-2xl opacity-50 blur-2xl transition-opacity"></div>
+                  <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-xl border border-gray-200 bg-white transform group-hover:scale-[1.02] transition-transform duration-300">
+                    <div className="aspect-video bg-gradient-to-br from-lime-50 to-green-50 flex items-center justify-center">
                       <div className="text-center p-8">
-                        <Zap className="w-16 h-16 sm:w-24 sm:h-24 text-cyan-400 mx-auto mb-4" />
-                        <p className="text-sm sm:text-base text-cyan-600 font-bold">AI Browser Automation</p>
-                        <p className="text-xs sm:text-sm text-slate-600 mt-2">Extract data, automate tasks, save hours</p>
+                        <Zap className="w-16 h-16 sm:w-24 sm:h-24 text-lime-400 mx-auto mb-4" />
+                        <p className="text-sm sm:text-base text-lime-600 font-bold">AI Browser Automation</p>
+                        <p className="text-xs sm:text-sm text-gray-600 mt-2">Extract data, automate tasks, save hours</p>
                       </div>
                     </div>
                   </div>
@@ -552,10 +569,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                   </div>
                   <span className="inline-block bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide">Scale Freedom</span>
                 </div>
-                <h3 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900">
+                <h3 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900">
                   Scale Without The Stress<br />Grow Without The Chaos
                 </h3>
-                <p className="text-base sm:text-lg text-slate-700 leading-relaxed">
+                <p className="text-base sm:text-lg text-gray-700 leading-relaxed">
                   Need more capacity? Click a button. That's it. No recruiting. No training. No drama. <span className="font-bold">Your business grows without stealing more of your life.</span> This is what freedom looks like.
                 </p>
 
@@ -569,7 +586,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                     <div key={i} className="flex items-start gap-3 group">
                       <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-green-500 mt-0.5 flex-shrink-0 group-hover:scale-110 transition-transform" />
                       <div>
-                        <span className="text-sm sm:text-base text-slate-800 font-medium">{benefit.text}</span>
+                        <span className="text-sm sm:text-base text-gray-800 font-medium">{benefit.text}</span>
                         <div className="text-xs sm:text-sm text-emerald-600 font-bold mt-1">{benefit.metric}</div>
                       </div>
                     </div>
@@ -580,12 +597,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
               <div className="flex-1 order-1 w-full">
                 <div className="relative group">
                   <div className="absolute -inset-2 sm:-inset-4 bg-gradient-to-r from-emerald-500 to-green-500 rounded-xl sm:rounded-2xl opacity-20 group-hover:opacity-30 blur-2xl transition-opacity"></div>
-                  <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border-2 border-white/50 bg-white/80 backdrop-blur-sm transform group-hover:scale-[1.02] transition-transform duration-300">
+                  <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-xl border border-gray-200 bg-white transform group-hover:scale-[1.02] transition-transform duration-300">
                     <div className="aspect-video bg-gradient-to-br from-emerald-50 to-green-50 flex items-center justify-center">
                       <div className="text-center p-8">
                         <Rocket className="w-16 h-16 sm:w-24 sm:h-24 text-emerald-400 mx-auto mb-4" />
                         <p className="text-sm sm:text-base text-emerald-600 font-bold">Agent Marketplace</p>
-                        <p className="text-xs sm:text-sm text-slate-600 mt-2">Scale your AI workforce instantly</p>
+                        <p className="text-xs sm:text-sm text-gray-600 mt-2">Scale your AI workforce instantly</p>
                       </div>
                     </div>
                   </div>
@@ -601,10 +618,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
       <section id="proof" className="py-12 sm:py-24 bg-white">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="text-center mb-12 sm:mb-16">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-slate-900 mb-4">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-900 mb-4">
               Real Agency Owners. Real Life Back.
             </h2>
-            <p className="text-base sm:text-xl text-slate-600 max-w-3xl mx-auto">
+            <p className="text-base sm:text-xl text-gray-600 max-w-3xl mx-auto">
               Time reclaimed. Stress eliminated. Freedom restored.
             </p>
           </div>
@@ -618,11 +635,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
               { number: "24/7", label: "Working For You (While You Sleep)", suffix: "" }
             ].map((stat, i) => (
               <div key={i} className="text-center group">
-                <div className="bg-gradient-to-br from-purple-50 to-blue-50 p-6 sm:p-8 rounded-2xl border-2 border-purple-200/50 group-hover:border-purple-400 transition-all duration-300 animate-card-lift">
-                  <div className="text-3xl sm:text-5xl font-black bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2 animate-count-up" style={{ animationDelay: `${i * 150}ms` }}>
+                <div className="bg-gradient-to-br from-emerald-50 to-green-50 p-6 sm:p-8 rounded-2xl border-2 border-emerald-200/50 group-hover:border-emerald-400 transition-all duration-300 animate-card-lift">
+                  <div className="text-3xl sm:text-5xl font-black bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent mb-2 animate-count-up" style={{ animationDelay: `${i * 150}ms` }}>
                     {stat.number}{stat.suffix}
                   </div>
-                  <div className="text-xs sm:text-sm text-slate-600 font-medium">{stat.label}</div>
+                  <div className="text-xs sm:text-sm text-gray-600 font-medium">{stat.label}</div>
                 </div>
               </div>
             ))}
@@ -674,26 +691,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                 result: "True vacation"
               }
             ].map((testimonial, i) => (
-              <div key={i} className="bg-white p-6 rounded-2xl border-2 border-slate-200 hover:border-purple-300 hover:shadow-xl transition-all duration-300 group">
+              <div key={i} className="bg-white p-6 rounded-2xl border-2 border-gray-200 hover:border-emerald-300 hover:shadow-xl transition-all duration-300 group">
                 <div className="flex items-center gap-1 mb-4">
                   {[...Array(5)].map((_, j) => (
                     <span key={j} className="text-yellow-400 text-sm">★</span>
                   ))}
                 </div>
-                <p className="text-sm sm:text-base text-slate-700 mb-4 leading-relaxed italic">"{testimonial.quote}"</p>
+                <p className="text-sm sm:text-base text-gray-700 mb-4 leading-relaxed italic">"{testimonial.quote}"</p>
                 <div className="flex items-center gap-3">
                   <OptimizedImage
                     src={testimonial.image}
                     alt={testimonial.name}
-                    className="w-12 h-12 rounded-full object-cover border-2 border-purple-200 group-hover:border-purple-400 transition-colors"
+                    className="w-12 h-12 rounded-full object-cover border-2 border-emerald-200 group-hover:border-emerald-400 transition-colors"
                   />
                   <div>
-                    <p className="font-bold text-slate-900 text-sm">{testimonial.name}</p>
-                    <p className="text-xs text-slate-600">{testimonial.role}</p>
+                    <p className="font-bold text-gray-900 text-sm">{testimonial.name}</p>
+                    <p className="text-xs text-gray-600">{testimonial.role}</p>
                   </div>
                 </div>
-                <div className="mt-4 pt-4 border-t border-slate-100">
-                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-purple-600 bg-purple-50 px-3 py-1 rounded-full">
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full">
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     {testimonial.result}
                   </span>
@@ -704,108 +721,230 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
         </div>
       </section>
 
-      {/* Pricing Section - Investment Reframe */}
-      <section id="pricing" className="py-12 sm:py-24 bg-gradient-to-br from-slate-900 via-purple-900 to-blue-900 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
+      {/* Pricing Section - 3-Tier Structure */}
+      <section id="pricing" className="py-12 sm:py-24 bg-gray-50 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5"></div>
 
         <div className="container mx-auto px-4 sm:px-6 relative z-10">
           <div className="text-center mb-12 sm:mb-16">
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black mb-4 sm:mb-6">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black mb-4 sm:mb-6 text-gray-900">
               What's Your Freedom Worth?
             </h2>
-            <p className="text-lg sm:text-2xl text-purple-200 max-w-3xl mx-auto mb-4">
-              <span className="font-bold text-white">You're already paying the price—in time, stress, and sanity.</span>
+            <p className="text-lg sm:text-2xl text-gray-700 max-w-3xl mx-auto mb-4">
+              <span className="font-bold text-gray-900">You're already paying the price—in time, stress, and sanity.</span>
             </p>
-            <p className="text-sm sm:text-base text-purple-300 max-w-2xl mx-auto">
-              3 VAs at $4K/month = <span className="font-bold text-red-400">$144,000/year</span> in labor costs.
+            <p className="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto">
+              3 VAs at $4K/month = <span className="font-bold text-red-600">$144,000/year</span> in labor costs.
               <br className="hidden sm:block" />
-              But what about the cost of <span className="font-bold text-red-400">missing your kid's childhood? Your mental health? Your marriage?</span>
+              Buy back your freedom for a fraction of that cost.
             </p>
           </div>
 
-          <div className="max-w-5xl mx-auto">
-            <div className="bg-white/10 backdrop-blur-xl rounded-2xl sm:rounded-3xl p-6 sm:p-12 border-2 border-white/20 shadow-2xl">
-              <div className="text-center mb-8 sm:mb-12">
-                <div className="inline-block bg-gradient-to-r from-yellow-400 to-orange-400 text-slate-900 text-xs sm:text-sm font-black px-4 sm:px-6 py-2 rounded-full uppercase tracking-wide mb-6">
-                  Founder Pricing - First 100 Agencies Only
+          {/* 3-Tier Pricing Grid */}
+          <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-6 sm:gap-8 mb-12">
+
+            {/* Starter Tier */}
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 border border-gray-200 shadow-lg hover:shadow-xl transition-shadow">
+              <div className="text-center mb-6">
+                <div className="inline-block bg-gray-100 text-gray-700 text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wide mb-4">
+                  Starter
                 </div>
-                <div className="mb-6">
-                  <div className="text-4xl sm:text-6xl md:text-7xl font-black mb-2">
-                    $497<span className="text-2xl sm:text-3xl md:text-4xl text-purple-300">/mo</span>
-                  </div>
-                  <div className="text-base sm:text-xl text-purple-200">
-                    Buy back your time, peace of mind, and freedom for less than <span className="font-bold">one dinner out per week</span>
-                  </div>
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">For Growing Agencies</h3>
+                <p className="text-sm text-gray-600 mb-4">5-15 GHL sub-accounts</p>
+                <div className="mb-2">
+                  <span className="text-3xl sm:text-4xl font-black text-gray-900">$244</span>
+                  <span className="text-lg text-gray-600">/mo</span>
                 </div>
-                <div className="text-xs sm:text-sm text-red-300 font-bold animate-pulse mb-6">
-                  Regular Price: $997/mo
-                </div>
-                {/* Countdown Timer */}
-                <CountdownTimer label="Founder pricing ends in:" />
+                <p className="text-xs text-gray-500">per client • billed monthly</p>
               </div>
 
-              {/* What's Included */}
-              <div className="grid sm:grid-cols-2 gap-3 sm:gap-4 mb-8 sm:mb-12">
+              <div className="space-y-3 mb-6">
                 {[
-                  "Unlimited AI Agents (Email, Voice, Browser)",
-                  "Global Operations Command Center",
-                  "AI Ad Manager & Campaign Optimizer",
-                  "Browser Automation Engine",
-                  "1,000 Monthly Credits (Renews)",
-                  "Session Replay & Debugging",
-                  "Multi-Tab Workflow Builder",
-                  "Priority Support (< 2min response)",
-                  "Weekly Training & Office Hours",
-                  "White-Label Option Available",
-                  "Integration with GHL, Zapier, Make",
-                  "Lifetime Founder Pricing Lock"
+                  "AI Email & Voice Agents",
+                  "Basic Browser Automation",
+                  "500 Monthly Credits",
+                  "Operations Dashboard",
+                  "Email Support (< 24hr)",
+                  "GHL Integration",
+                  "Basic Reporting"
                 ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-3 text-sm sm:text-base">
-                    <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-green-400 flex-shrink-0" />
+                  <div key={i} className="flex items-center gap-2 text-sm text-gray-700">
+                    <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0" />
                     <span>{item}</span>
                   </div>
                 ))}
               </div>
 
-              {/* CTA */}
-              <div className="text-center">
-                <Button
-                  onClick={onLogin}
-                  size="lg"
-                  className="w-full sm:w-auto bg-gradient-to-r from-yellow-400 via-orange-400 to-red-400 hover:from-yellow-500 hover:via-orange-500 hover:to-red-500 text-slate-900 shadow-2xl shadow-yellow-500/50 rounded-full px-8 sm:px-16 h-14 sm:h-20 text-lg sm:text-2xl font-black mb-4 sm:mb-6 animate-gradient animate-bounce-subtle active:scale-95 transition-transform"
-                >
-                  <Rocket className="w-6 h-6 sm:w-8 sm:h-8 mr-2 sm:mr-3" />
-                  Reclaim My Freedom Now
-                </Button>
-                <p className="text-xs sm:text-sm text-purple-300 mb-6">
-                  30-Day Money-Back Guarantee • No Credit Card Required for Demo • Cancel Anytime
-                </p>
-                {/* Trust Badges */}
-                <TrustBadges variant="dark" />
-              </div>
+              <Button
+                onClick={onLogin}
+                variant="outline"
+                className="w-full rounded-full h-12 font-bold border-2 border-gray-300 hover:border-emerald-500 hover:text-emerald-600 transition-colors"
+              >
+                Start Free Trial
+              </Button>
             </div>
 
-            {/* ROI Calculator */}
-            <div className="mt-8 sm:mt-12 bg-white/5 backdrop-blur-lg rounded-xl sm:rounded-2xl p-6 sm:p-8 border border-white/10">
-              <h3 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-center">What You Get Back in 12 Months:</h3>
-              <div className="grid sm:grid-cols-3 gap-4 sm:gap-6 text-center">
-                <div>
-                  <div className="text-red-400 font-bold text-xs sm:text-sm mb-2">Old Life (Chaos)</div>
-                  <div className="text-2xl sm:text-3xl font-black">$150K + Sanity</div>
-                </div>
-                <div>
-                  <div className="text-green-400 font-bold text-xs sm:text-sm mb-2">New Life (Freedom)</div>
-                  <div className="text-2xl sm:text-3xl font-black">$5,964</div>
-                </div>
-                <div>
-                  <div className="text-yellow-400 font-bold text-xs sm:text-sm mb-2">Your Gain</div>
-                  <div className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-green-400">Life Reclaimed</div>
-                </div>
+            {/* Growth Tier - Most Popular */}
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 border-2 border-emerald-500 shadow-xl relative transform md:-translate-y-4">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                <span className="bg-gradient-to-r from-emerald-600 to-teal-500 text-white text-xs font-black px-4 py-1.5 rounded-full uppercase tracking-wide shadow-lg">
+                  Most Popular
+                </span>
               </div>
-              <p className="text-center text-xs sm:text-sm text-purple-300 mt-4 sm:mt-6">
-                That's enough to finally take that trip, be at every soccer game, and sleep through the night. Remember why you started this?
-              </p>
+
+              <div className="text-center mb-6 pt-2">
+                <div className="inline-block bg-emerald-100 text-emerald-700 text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wide mb-4">
+                  Growth
+                </div>
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">For Scaling Agencies</h3>
+                <p className="text-sm text-gray-600 mb-4">20-50 GHL sub-accounts</p>
+                <div className="mb-2">
+                  <span className="text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500">$189</span>
+                  <span className="text-lg text-gray-600">/mo</span>
+                </div>
+                <p className="text-xs text-gray-500">per client • billed monthly</p>
+                <p className="text-xs text-emerald-600 font-semibold mt-1">Save 22% vs Starter</p>
+              </div>
+
+              <div className="space-y-3 mb-6">
+                {[
+                  "Everything in Starter, plus:",
+                  "Advanced Browser Automation",
+                  "1,500 Monthly Credits",
+                  "AI Ad Manager & Optimizer",
+                  "Multi-Tab Workflow Builder",
+                  "Priority Support (< 2hr)",
+                  "Session Replay & Debugging",
+                  "Zapier & Make Integration",
+                  "Weekly Office Hours"
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-2 text-sm text-gray-700">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                    <span className={i === 0 ? "font-semibold text-emerald-700" : ""}>{item}</span>
+                  </div>
+                ))}
+              </div>
+
+              <Button
+                onClick={onLogin}
+                className="w-full bg-gradient-to-r from-emerald-600 via-green-500 to-teal-500 hover:from-emerald-700 hover:via-green-600 hover:to-teal-600 text-white rounded-full h-12 font-black shadow-lg hover:shadow-xl transition-shadow"
+              >
+                <Rocket className="w-4 h-4 mr-2" />
+                Start Free Trial
+              </Button>
             </div>
+
+            {/* Enterprise Tier */}
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 border border-gray-200 shadow-lg hover:shadow-xl transition-shadow">
+              <div className="text-center mb-6">
+                <div className="inline-block bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-700 text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wide mb-4">
+                  Enterprise
+                </div>
+                <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">For Industry Leaders</h3>
+                <p className="text-sm text-gray-600 mb-4">100+ GHL sub-accounts</p>
+                <div className="mb-2">
+                  <span className="text-3xl sm:text-4xl font-black text-gray-900">$104</span>
+                  <span className="text-lg text-gray-600">/mo</span>
+                </div>
+                <p className="text-xs text-gray-500">per client • billed monthly</p>
+                <p className="text-xs text-amber-600 font-semibold mt-1">Save 57% vs Starter</p>
+              </div>
+
+              <div className="space-y-3 mb-6">
+                {[
+                  "Everything in Growth, plus:",
+                  "Unlimited AI Agents",
+                  "5,000+ Monthly Credits",
+                  "White-Label Branding",
+                  "Dedicated Account Manager",
+                  "Priority Support (< 30min)",
+                  "Custom Integrations",
+                  "SLA & Uptime Guarantee",
+                  "Enterprise Security"
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-2 text-sm text-gray-700">
+                    <CheckCircle2 className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                    <span className={i === 0 ? "font-semibold text-amber-700" : ""}>{item}</span>
+                  </div>
+                ))}
+              </div>
+
+              <Button
+                onClick={onLogin}
+                variant="outline"
+                className="w-full rounded-full h-12 font-bold border-2 border-amber-400 hover:border-amber-500 hover:bg-amber-50 text-amber-700 transition-colors"
+              >
+                <Crown className="w-4 h-4 mr-2" />
+                Contact Sales
+              </Button>
+            </div>
+          </div>
+
+          {/* Credit Packages Section */}
+          <div className="max-w-4xl mx-auto bg-white rounded-2xl p-6 sm:p-8 border border-gray-200 shadow-md mb-8">
+            <h3 className="text-xl sm:text-2xl font-bold text-center text-gray-900 mb-2">Need More Credits?</h3>
+            <p className="text-center text-sm text-gray-600 mb-6">Top up anytime. Unused credits roll over.</p>
+            <div className="grid sm:grid-cols-3 gap-4">
+              <div className="text-center p-4 bg-gray-50 rounded-xl border border-gray-200">
+                <div className="text-2xl font-black text-gray-900">500</div>
+                <div className="text-sm text-gray-600 mb-2">Credits</div>
+                <div className="text-lg font-bold text-emerald-600">$50</div>
+              </div>
+              <div className="text-center p-4 bg-emerald-50 rounded-xl border border-emerald-200">
+                <div className="text-2xl font-black text-emerald-700">2,000</div>
+                <div className="text-sm text-gray-600 mb-2">Credits</div>
+                <div className="text-lg font-bold text-emerald-600">$150 <span className="text-xs text-gray-500 line-through">$200</span></div>
+              </div>
+              <div className="text-center p-4 bg-gray-50 rounded-xl border border-gray-200">
+                <div className="text-2xl font-black text-gray-900">5,000</div>
+                <div className="text-sm text-gray-600 mb-2">Credits</div>
+                <div className="text-lg font-bold text-emerald-600">$300 <span className="text-xs text-gray-500 line-through">$500</span></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Guarantees & CTA */}
+          <div className="max-w-3xl mx-auto text-center">
+            <div className="flex flex-wrap justify-center gap-4 sm:gap-8 mb-8">
+              <div className="flex items-center gap-2 text-sm text-gray-700">
+                <Shield className="w-5 h-5 text-emerald-500" />
+                <span className="font-medium">30-Day Money-Back Guarantee</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-700">
+                <Zap className="w-5 h-5 text-emerald-500" />
+                <span className="font-medium">No Credit Card for Trial</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-700">
+                <Clock className="w-5 h-5 text-emerald-500" />
+                <span className="font-medium">Cancel Anytime</span>
+              </div>
+            </div>
+            <TrustBadges variant="light" />
+          </div>
+
+          {/* ROI Calculator */}
+          <div className="mt-12 max-w-4xl mx-auto bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl sm:rounded-2xl p-6 sm:p-8 border border-emerald-200 shadow-md">
+            <h3 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-center text-gray-900">Your ROI in 12 Months</h3>
+            <div className="grid sm:grid-cols-3 gap-4 sm:gap-6 text-center mb-6">
+              <div className="bg-white/80 p-4 rounded-xl">
+                <div className="text-red-600 font-bold text-xs sm:text-sm mb-2">Current VA Costs</div>
+                <div className="text-2xl sm:text-3xl font-black text-gray-900">$144,000</div>
+                <div className="text-xs text-gray-500">3 VAs × $4K/mo × 12</div>
+              </div>
+              <div className="bg-white/80 p-4 rounded-xl">
+                <div className="text-emerald-700 font-bold text-xs sm:text-sm mb-2">With GHL Agency AI</div>
+                <div className="text-2xl sm:text-3xl font-black text-emerald-600">$6,615</div>
+                <div className="text-xs text-gray-500">Growth tier × 35 clients × 12</div>
+              </div>
+              <div className="bg-white/80 p-4 rounded-xl">
+                <div className="text-amber-700 font-bold text-xs sm:text-sm mb-2">Your Annual Savings</div>
+                <div className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-600 to-green-600">$137,385</div>
+                <div className="text-xs text-gray-500">+ your time back</div>
+              </div>
+            </div>
+            <p className="text-center text-xs sm:text-sm text-gray-600">
+              That's enough to finally take that vacation, be at every soccer game, and sleep through the night. Remember why you started this?
+            </p>
           </div>
         </div>
       </section>
@@ -814,7 +953,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
       <section className="py-12 sm:py-24 bg-white">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 text-center mb-12 sm:mb-16">
+            <h2 className="text-3xl sm:text-4xl font-black text-gray-900 text-center mb-12 sm:mb-16">
               Questions You're Probably Asking...
             </h2>
 
@@ -853,13 +992,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                   a: "We get it. Here's the honest truth: AI won't replace your creative strategy, your client relationships, or your vision. What it WILL do is handle the repetitive execution work that eats 60% of your week. The 'catch' is you still need to set up your workflows initially (we help), and complex edge cases still benefit from human review. But for the 80% of tasks that are predictable and repeatable? That's where the magic happens. We're not promising unicorns—we're promising your weekends back."
                 }
               ].map((faq, i) => (
-                <div key={i} className="bg-gradient-to-br from-slate-50 to-purple-50/30 p-4 sm:p-6 rounded-xl sm:rounded-2xl border-2 border-slate-200 hover:border-purple-300 transition-all duration-300 hover:shadow-lg">
+                <div key={i} className="bg-gradient-to-br from-gray-50 to-emerald-50/30 p-4 sm:p-6 rounded-xl sm:rounded-2xl border-2 border-gray-200 hover:border-emerald-300 transition-all duration-300 hover:shadow-lg">
                   <details className="group">
-                    <summary className="cursor-pointer text-base sm:text-lg font-bold text-slate-900 flex items-center justify-between">
+                    <summary className="cursor-pointer text-base sm:text-lg font-bold text-gray-900 flex items-center justify-between">
                       {faq.q}
-                      <ArrowRight className="w-5 h-5 text-purple-600 transition-transform group-open:rotate-90" />
+                      <ArrowRight className="w-5 h-5 text-emerald-600 transition-transform group-open:rotate-90" />
                     </summary>
-                    <p className="mt-3 sm:mt-4 text-sm sm:text-base text-slate-700 leading-relaxed pl-0">
+                    <p className="mt-3 sm:mt-4 text-sm sm:text-base text-gray-700 leading-relaxed pl-0">
                       {faq.a}
                     </p>
                   </details>
@@ -871,7 +1010,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
       </section>
 
       {/* Final CTA Section */}
-      <section className="py-16 sm:py-24 bg-gradient-to-br from-purple-600 via-blue-600 to-cyan-600 text-white relative overflow-hidden">
+      <section className="py-16 sm:py-24 bg-gradient-to-br from-emerald-600 via-green-500 to-teal-500 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
         <div className="absolute top-0 left-0 w-64 sm:w-96 h-64 sm:h-96 bg-gradient-to-br from-white/10 to-transparent rounded-full blur-3xl"></div>
         <div className="absolute bottom-0 right-0 w-64 sm:w-96 h-64 sm:h-96 bg-gradient-to-tl from-white/10 to-transparent rounded-full blur-3xl"></div>
@@ -889,7 +1028,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
           <Button
             onClick={onLogin}
             size="lg"
-            className="bg-white hover:bg-slate-100 text-purple-600 shadow-2xl rounded-full px-8 sm:px-16 h-14 sm:h-20 text-lg sm:text-2xl font-black mb-4 sm:mb-6 group animate-bounce-subtle active:scale-95 transition-transform"
+            className="bg-white hover:bg-gray-100 text-emerald-800 shadow-2xl rounded-full px-8 sm:px-16 h-14 sm:h-20 text-lg sm:text-2xl font-black mb-4 sm:mb-6 group animate-bounce-subtle active:scale-95 transition-transform"
           >
             <span className="flex items-center gap-2 sm:gap-3">
               <Rocket className="w-6 h-6 sm:w-8 sm:h-8" />
@@ -914,47 +1053,47 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-slate-900 text-slate-400 py-8 sm:py-12">
+      <footer className="bg-gray-100 text-gray-600 py-8 sm:py-12 border-t border-gray-200">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-8 mb-8">
             <div>
-              <h3 className="font-bold text-white text-sm sm:text-base mb-3 sm:mb-4">Product</h3>
+              <h3 className="font-bold text-gray-900 text-sm sm:text-base mb-3 sm:mb-4">Product</h3>
               <ul className="space-y-2 text-xs sm:text-sm">
-                <li><a href="#features" className="hover:text-white transition-colors">Features</a></li>
-                <li><a href="#pricing" className="hover:text-white transition-colors">Pricing</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Integrations</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Changelog</a></li>
+                <li><a href="#features" className="hover:text-emerald-600 transition-colors">Features</a></li>
+                <li><a href="#pricing" className="hover:text-emerald-600 transition-colors">Pricing</a></li>
+                <li><a href="#" className="hover:text-emerald-600 transition-colors">Integrations</a></li>
+                <li><a href="#" className="hover:text-emerald-600 transition-colors">Changelog</a></li>
               </ul>
             </div>
             <div>
-              <h3 className="font-bold text-white text-sm sm:text-base mb-3 sm:mb-4">Company</h3>
+              <h3 className="font-bold text-gray-900 text-sm sm:text-base mb-3 sm:mb-4">Company</h3>
               <ul className="space-y-2 text-xs sm:text-sm">
-                <li><a href="#" className="hover:text-white transition-colors">About</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
+                <li><a href="#" className="hover:text-emerald-600 transition-colors">About</a></li>
+                <li><a href="#" className="hover:text-emerald-600 transition-colors">Blog</a></li>
+                <li><a href="#" className="hover:text-emerald-600 transition-colors">Careers</a></li>
+                <li><a href="#" className="hover:text-emerald-600 transition-colors">Contact</a></li>
               </ul>
             </div>
             <div>
-              <h3 className="font-bold text-white text-sm sm:text-base mb-3 sm:mb-4">Resources</h3>
+              <h3 className="font-bold text-gray-900 text-sm sm:text-base mb-3 sm:mb-4">Resources</h3>
               <ul className="space-y-2 text-xs sm:text-sm">
-                <li><a href="#" className="hover:text-white transition-colors">Documentation</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Community</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Status</a></li>
+                <li><a href="#" className="hover:text-emerald-600 transition-colors">Documentation</a></li>
+                <li><a href="#" className="hover:text-emerald-600 transition-colors">Help Center</a></li>
+                <li><a href="#" className="hover:text-emerald-600 transition-colors">Community</a></li>
+                <li><a href="#" className="hover:text-emerald-600 transition-colors">Status</a></li>
               </ul>
             </div>
             <div>
-              <h3 className="font-bold text-white text-sm sm:text-base mb-3 sm:mb-4">Legal</h3>
+              <h3 className="font-bold text-gray-900 text-sm sm:text-base mb-3 sm:mb-4">Legal</h3>
               <ul className="space-y-2 text-xs sm:text-sm">
-                <li><a href="#" className="hover:text-white transition-colors">Privacy</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Terms</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Security</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Compliance</a></li>
+                <li><a href="#" className="hover:text-emerald-600 transition-colors">Privacy</a></li>
+                <li><a href="#" className="hover:text-emerald-600 transition-colors">Terms</a></li>
+                <li><a href="#" className="hover:text-emerald-600 transition-colors">Security</a></li>
+                <li><a href="#" className="hover:text-emerald-600 transition-colors">Compliance</a></li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-slate-800 pt-6 sm:pt-8 text-center text-xs sm:text-sm">
+          <div className="border-t border-gray-300 pt-6 sm:pt-8 text-center text-xs sm:text-sm">
             <p>&copy; 2025 GHL Agency AI. All rights reserved. Built for agency owners who refuse to sacrifice their lives for their business.</p>
           </div>
         </div>

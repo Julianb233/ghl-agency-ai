@@ -74,8 +74,8 @@ export const VoiceAgentPanel: React.FC = () => {
             <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center shrink-0">
                 <div>
                     <h2 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-                        <Phone className="w-6 h-6 text-indigo-600" />
-                        Voice Agent <Badge className="bg-indigo-600">Enterprise</Badge>
+                        <Phone className="w-6 h-6 text-emerald-600" />
+                        Voice Agent <Badge className="bg-emerald-600">Enterprise</Badge>
                     </h2>
                     <p className="text-slate-500 text-sm">Autonomous outbound calling and appointment setting.</p>
                 </div>

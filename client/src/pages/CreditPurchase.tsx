@@ -3,6 +3,7 @@ import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { CreditPackageCard } from '@/components/leads/CreditPackageCard';
 import { CreditBalance } from '@/components/leads/CreditBalance';
 import { useCredits } from '@/hooks/useCredits';
@@ -52,15 +53,14 @@ export default function CreditPurchase() {
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => setLocation('/lead-lists')}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
-        </Button>
-      </div>
-
       <div data-tour="credits-header">
-        <div className="flex items-center gap-2">
+        <Breadcrumb
+          items={[
+            { label: 'Dashboard', onClick: () => setLocation('/') },
+            { label: 'Credits' },
+          ]}
+        />
+        <div className="flex items-center gap-2 mt-4">
           <h1 className="text-3xl font-bold">Credits</h1>
           <FeatureTip
             tipId="credits-consumption"
@@ -86,8 +86,8 @@ export default function CreditPurchase() {
                   {enrichmentBalance?.balance.toLocaleString() || 0}
                 </p>
               </div>
-              <div className="rounded-full bg-purple-100 dark:bg-purple-950 p-4">
-                <Coins className="h-8 w-8 text-purple-600 dark:text-purple-400" />
+              <div className="rounded-full bg-emerald-100 p-4">
+                <Coins className="h-8 w-8 text-emerald-600" />
               </div>
             </div>
           </CardContent>
@@ -104,8 +104,8 @@ export default function CreditPurchase() {
                   {callingBalance?.balance.toLocaleString() || 0}
                 </p>
               </div>
-              <div className="rounded-full bg-blue-100 dark:bg-blue-950 p-4">
-                <Coins className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+              <div className="rounded-full bg-teal-100 p-4">
+                <Coins className="h-8 w-8 text-teal-600" />
               </div>
             </div>
           </CardContent>

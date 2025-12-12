@@ -1,8 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
-
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -43,144 +41,85 @@
 }
 
 :root {
-  /* Emerald Green (Primary Action) */
-  --primary: oklch(0.70 0.17 155);
-  --primary-foreground: oklch(0.99 0.005 90);
+  /* Border radius - slightly more pronounced for modern look */
+  --radius: 0.5rem;
 
-  /* Sidebar with emerald tones */
-  --sidebar-primary: oklch(0.70 0.17 155);
-  --sidebar-primary-foreground: oklch(0.99 0.005 90);
+  /* Background - Pure white for clean, premium feel */
+  --background: 0 0% 100%;
+  --foreground: 222 47% 11%; /* Dark charcoal text */
 
-  /* Chart colors with green palette */
-  --chart-1: oklch(0.70 0.17 155);  /* Emerald */
-  --chart-2: oklch(0.75 0.14 195);  /* Teal */
-  --chart-3: oklch(0.80 0.12 165);  /* Mint green */
-  --chart-4: oklch(0.55 0.15 150);  /* Forest green */
-  --chart-5: oklch(0.75 0.14 135);  /* Lime/yellow-green */
-
-  --radius: 0.65rem;
-
-  /* Very light warm white base */
-  --background: oklch(0.99 0.005 90);
-  --foreground: oklch(0.20 0.02 150);
-
-  /* Cards with pure white or slight green tint */
-  --card: oklch(1.0 0.0 0);
-  --card-foreground: oklch(0.20 0.02 150);
+  /* Cards - Pure white with subtle shadows */
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
 
   /* Popovers */
-  --popover: oklch(1.0 0.0 0);
-  --popover-foreground: oklch(0.20 0.02 150);
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
 
-  /* Soft Sage Secondary */
-  --secondary: oklch(0.92 0.04 145);
-  --secondary-foreground: oklch(0.30 0.04 145);
-  /* Muted elements with green tint */
-  --muted: oklch(0.93 0.02 145);
-  --muted-foreground: oklch(0.50 0.03 150);
+  /* Primary - Clean emerald green for brand/CTA */
+  --primary: 160 84% 39%; /* #10b981 */
+  --primary-foreground: 0 0% 100%;
 
-  /* Teal/Cyan Accent */
-  --accent: oklch(0.75 0.14 195);
-  --accent-foreground: oklch(0.15 0.02 195);
+  /* Secondary - Very light gray background for secondary elements */
+  --secondary: 210 40% 96%;
+  --secondary-foreground: 222 47% 11%;
 
-  /* Destructive (keep red for errors) */
-  --destructive: oklch(0.60 0.22 30);
-  --destructive-foreground: oklch(0.99 0.005 90);
+  /* Muted - Subtle backgrounds and text */
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 16% 47%; /* Medium gray */
 
-  /* Very light gray borders with subtle green */
-  --border: oklch(0.90 0.02 145);
-  --input: oklch(0.90 0.02 145);
+  /* Accent - Teal for variety and highlights */
+  --accent: 174 72% 40%; /* #14b8a6 */
+  --accent-foreground: 0 0% 100%;
 
-  /* Ring colors match emerald primary */
-  --ring: oklch(0.70 0.17 155);
+  /* Destructive - Clean red for errors/danger */
+  --destructive: 0 84% 60%; /* #ef4444 */
+  --destructive-foreground: 0 0% 100%;
 
-  /* Additional custom properties */
-  --highlight: oklch(0.85 0.12 155);
-  --success: oklch(0.68 0.18 145);
+  /* Borders - Very light gray, subtle but defined */
+  --border: 214 32% 91%; /* #e5e7eb */
+  --input: 214 32% 91%;
 
-  /* Sidebar colors */
-  --sidebar: oklch(1.0 0.0 0);
-  --sidebar-foreground: oklch(0.20 0.02 150);
-  --sidebar-accent: oklch(0.93 0.02 145);
-  --sidebar-accent-foreground: oklch(0.20 0.02 150);
-  --sidebar-border: oklch(0.90 0.02 145);
-  --sidebar-ring: oklch(0.70 0.17 155);
-}
+  /* Ring - Matches primary for focus states */
+  --ring: 160 84% 39%;
 
-.dark {
-  /* Brighter emerald for dark mode visibility */
-  --primary: oklch(0.72 0.18 155);
-  --primary-foreground: oklch(0.99 0.005 90);
+  /* Success - Green for positive states */
+  --success: 142 71% 45%; /* #22c55e */
 
-  /* Sidebar maintains emerald */
-  --sidebar-primary: oklch(0.72 0.18 155);
-  --sidebar-primary-foreground: oklch(0.99 0.005 90);
+  /* Warning - Amber for caution states */
+  --warning: 38 92% 50%; /* #f59e0b */
 
-  /* Dark mode: Very dark green-tinted gray base */
-  --background: oklch(0.15 0.02 150);
-  --foreground: oklch(0.95 0.01 90);
+  /* Chart colors - Harmonious palette */
+  --chart-1: 160 84% 39%;  /* Emerald */
+  --chart-2: 174 72% 40%;  /* Teal */
+  --chart-3: 142 71% 45%;  /* Green */
+  --chart-4: 201 96% 32%;  /* Blue */
+  --chart-5: 271 81% 56%;  /* Purple */
 
-  /* Cards slightly lighter than background */
-  --card: oklch(0.18 0.02 150);
-  --card-foreground: oklch(0.95 0.01 90);
-
-  /* Popovers */
-  --popover: oklch(0.18 0.02 150);
-  --popover-foreground: oklch(0.95 0.01 90);
-
-  /* Dark sage secondary */
-  --secondary: oklch(0.28 0.05 145);
-  --secondary-foreground: oklch(0.88 0.03 145);
-
-  /* Muted with green tint */
-  --muted: oklch(0.25 0.02 150);
-  --muted-foreground: oklch(0.65 0.02 150);
-
-  /* Brighter teal accent for dark mode */
-  --accent: oklch(0.68 0.14 195);
-  --accent-foreground: oklch(0.96 0.01 195);
-
-  /* Destructive red */
-  --destructive: oklch(0.65 0.20 30);
-  --destructive-foreground: oklch(0.99 0.005 90);
-
-  /* Dark gray borders with green tint */
-  --border: oklch(0.32 0.02 150);
-  --input: oklch(0.32 0.02 150);
-
-  /* Ring matches emerald */
-  --ring: oklch(0.72 0.18 155);
-
-  /* Additional properties */
-  --highlight: oklch(0.78 0.14 155);
-  --success: oklch(0.70 0.16 145);
-
-  /* Chart colors for dark mode */
-  --chart-1: oklch(0.72 0.18 155);  /* Emerald */
-  --chart-2: oklch(0.68 0.14 195);  /* Teal */
-  --chart-3: oklch(0.78 0.12 165);  /* Mint green */
-  --chart-4: oklch(0.58 0.15 150);  /* Forest green */
-  --chart-5: oklch(0.72 0.14 135);  /* Lime/yellow-green */
-
-  /* Sidebar dark mode */
-  --sidebar: oklch(0.18 0.02 150);
-  --sidebar-foreground: oklch(0.95 0.01 90);
-  --sidebar-accent: oklch(0.25 0.02 150);
-  --sidebar-accent-foreground: oklch(0.96 0.01 90);
-  --sidebar-border: oklch(0.32 0.02 150);
-  --sidebar-ring: oklch(0.72 0.18 155);
+  /* Sidebar colors - Clean white with subtle accents */
+  --sidebar: 0 0% 100%;
+  --sidebar-foreground: 222 47% 11%;
+  --sidebar-primary: 160 84% 39%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 210 40% 96%;
+  --sidebar-accent-foreground: 222 47% 11%;
+  --sidebar-border: 214 32% 91%;
+  --sidebar-ring: 160 84% 39%;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
-    @apply bg-background text-foreground;
-    /* Minimum font size for accessibility */
+    @apply bg-background text-foreground antialiased;
     font-size: 16px;
-    line-height: 1.5;
+    line-height: 1.6;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
+
+  /* Interactive element cursor */
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
   [type="button"]:not(:disabled),
@@ -193,7 +132,7 @@
     @apply cursor-pointer;
   }
 
-  /* Global focus styles for accessibility (WCAG 2.4.7) */
+  /* Focus styles for accessibility (WCAG 2.4.7) */
   *:focus-visible {
     @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
   }
@@ -201,7 +140,7 @@
   /* High contrast mode support */
   @media (prefers-contrast: high) {
     *:focus-visible {
-      @apply ring-4 ring-black;
+      @apply ring-4 ring-foreground;
     }
   }
 
@@ -241,10 +180,7 @@
     white-space: normal;
   }
 
-  /**
-   * Skip link for keyboard navigation (WCAG 2.4.1 compliance)
-   * Hidden by default, appears on focus for keyboard users
-   */
+  /* Skip link for keyboard navigation (WCAG 2.4.1 compliance) */
   .skip-link {
     position: absolute;
     width: 1px;
@@ -269,34 +205,60 @@
     overflow: visible;
     clip: auto;
     white-space: normal;
-    background-color: oklch(0.70 0.17 155);
-    color: oklch(0.99 0.005 90);
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
     border-radius: 0.375rem;
-    box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.2);
+    box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.1),
+                0 4px 6px -4px rgba(16, 185, 129, 0.1);
     outline: none;
-    ring: 2px solid oklch(0.70 0.17 155);
+  }
+
+  /* Headings */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+
+  h1 {
+    @apply text-4xl;
+  }
+
+  h2 {
+    @apply text-3xl;
+  }
+
+  h3 {
+    @apply text-2xl;
+  }
+
+  h4 {
+    @apply text-xl;
+  }
+
+  /* Links */
+  a {
+    @apply text-primary hover:underline transition-colors;
+  }
+
+  /* Form elements */
+  input,
+  textarea,
+  select {
+    @apply bg-background border-input text-foreground;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    @apply text-muted-foreground;
   }
 }
 
 @layer components {
-  /**
-   * Custom container utility that centers content and adds responsive padding.
-   *
-   * This overrides Tailwind's default container behavior to:
-   * - Auto-center content (mx-auto)
-   * - Add responsive horizontal padding
-   * - Set max-width for large screens
-   *
-   * Usage: <div className="container">...</div>
-   *
-   * For custom widths, use max-w-* utilities directly:
-   * <div className="max-w-6xl mx-auto px-4">...</div>
-   */
+  /* Container utility with responsive padding */
   .container {
     width: 100%;
     margin-left: auto;
     margin-right: auto;
-    padding-left: 1rem; /* 16px - mobile padding */
+    padding-left: 1rem;
     padding-right: 1rem;
   }
 
@@ -307,21 +269,57 @@
 
   @media (min-width: 640px) {
     .container {
-      padding-left: 1.5rem; /* 24px - tablet padding */
+      padding-left: 1.5rem;
       padding-right: 1.5rem;
     }
   }
 
   @media (min-width: 1024px) {
     .container {
-      padding-left: 2rem; /* 32px - desktop padding */
+      padding-left: 2rem;
       padding-right: 2rem;
-      max-width: 1280px; /* Standard content width */
+      max-width: 1280px;
     }
+  }
+
+  /* Premium card styles */
+  .card-premium {
+    @apply bg-card border border-border rounded-lg shadow-sm hover:shadow-md transition-shadow;
+  }
+
+  /* Clean button styles */
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 font-medium px-4 py-2 rounded-md transition-colors;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 font-medium px-4 py-2 rounded-md transition-colors;
+  }
+
+  /* Subtle badge */
+  .badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-secondary text-secondary-foreground;
+  }
+
+  .badge-primary {
+    @apply bg-primary/10 text-primary;
+  }
+
+  .badge-success {
+    @apply bg-green-50 text-green-700;
+  }
+
+  .badge-warning {
+    @apply bg-amber-50 text-amber-700;
+  }
+
+  .badge-error {
+    @apply bg-red-50 text-red-700;
   }
 }
 
 @layer utilities {
+  /* Animation utilities */
   .animate-fade-in {
     animation: fadeIn 0.2s ease-out;
   }
@@ -337,26 +335,68 @@
   .hover-lift {
     @apply transition-transform duration-200 hover:-translate-y-0.5;
   }
+
+  /* Text utilities */
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Shadow utilities for premium look */
+  .shadow-subtle {
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04),
+                0 1px 2px -1px rgba(0, 0, 0, 0.04);
+  }
+
+  .shadow-premium {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05),
+                0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  }
+
+  .shadow-premium-lg {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05),
+                0 4px 6px -4px rgba(0, 0, 0, 0.05);
+  }
 }
 
+/* Keyframe animations */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 @keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 .animate-shimmer {
