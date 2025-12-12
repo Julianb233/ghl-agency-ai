@@ -740,6 +740,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
             </p>
           </div>
 
+          {/* What Are AI Team Members? */}
+          <div className="max-w-3xl mx-auto text-center mb-10">
+            <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-2xl p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">What Are AI Team Members?</h3>
+              <p className="text-sm text-gray-700">
+                Think of each AI Team Member as a <span className="font-bold text-emerald-700">virtual employee that works 24/7</span>.
+                Each one can handle tasks like lead follow-up, data entry, appointment setting, and client communication—simultaneously.
+                <span className="font-bold"> 3 AI Team Members = the work output of 2-3 full-time VAs</span>, but at a fraction of the cost.
+              </p>
+            </div>
+          </div>
+
           {/* 4-Tier Pricing Grid */}
           <div className="max-w-7xl mx-auto grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
 
@@ -749,24 +761,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                 <div className="inline-block bg-gray-100 text-gray-700 text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wide mb-4">
                   Starter
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">For Growing Agencies</h3>
-                <p className="text-sm text-gray-600 mb-4">2-3 concurrent browsers</p>
+                <h3 className="text-lg font-bold text-gray-900 mb-1">For Growing Agencies</h3>
+                <div className="bg-emerald-100 text-emerald-800 text-sm font-bold px-3 py-1.5 rounded-lg mb-4">
+                  3 AI Team Members
+                </div>
+                <p className="text-xs text-gray-500 mb-3">Replaces 1-2 full-time VAs</p>
                 <div className="mb-2">
                   <span className="text-3xl sm:text-4xl font-black text-gray-900">$997</span>
                   <span className="text-lg text-gray-600">/mo</span>
                 </div>
-                <p className="text-xs text-gray-500">$997 one-time setup fee</p>
+                <p className="text-sm text-gray-600 font-medium">$1,497 one-time setup</p>
                 <p className="text-xs text-emerald-600 font-medium mt-2">or $274/week (+10%)</p>
               </div>
 
               <div className="space-y-3 mb-6">
                 {[
                   "AI Email & Voice Agents",
-                  "2-3 Concurrent Browsers",
-                  "500 Monthly Credits",
                   "Operations Dashboard",
-                  "Email Support (< 24hr)",
                   "GHL Integration",
+                  "Email Support",
                   "Basic Reporting"
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-2 text-sm text-gray-700">
@@ -797,25 +810,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                 <div className="inline-block bg-emerald-100 text-emerald-700 text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wide mb-4">
                   Growth
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">For Scaling Agencies</h3>
-                <p className="text-sm text-gray-600 mb-4">5 concurrent browsers</p>
+                <h3 className="text-lg font-bold text-gray-900 mb-1">For Scaling Agencies</h3>
+                <div className="bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-800 text-sm font-bold px-3 py-1.5 rounded-lg mb-4">
+                  5 AI Team Members
+                </div>
+                <p className="text-xs text-gray-500 mb-3">Replaces 2-3 full-time VAs</p>
                 <div className="mb-2">
                   <span className="text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500">$1,697</span>
                   <span className="text-lg text-gray-600">/mo</span>
                 </div>
-                <p className="text-xs text-gray-500">$697 one-time setup fee</p>
+                <p className="text-sm text-gray-600 font-medium">$1,297 one-time setup</p>
                 <p className="text-xs text-emerald-600 font-medium mt-2">or $467/week (+10%)</p>
               </div>
 
               <div className="space-y-3 mb-6">
                 {[
                   "Everything in Starter, plus:",
-                  "5 Concurrent Browsers",
-                  "1,500 Monthly Credits",
                   "AI Ad Manager & Optimizer",
                   "Multi-Tab Workflow Builder",
                   "Priority Support (< 2hr)",
-                  "Session Replay & Debugging",
                   "Zapier & Make Integration"
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-2 text-sm text-gray-700">
@@ -840,24 +853,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                 <div className="inline-block bg-blue-100 text-blue-700 text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wide mb-4">
                   Professional
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">For Established Agencies</h3>
-                <p className="text-sm text-gray-600 mb-4">7-8 concurrent browsers</p>
+                <h3 className="text-lg font-bold text-gray-900 mb-1">For Established Agencies</h3>
+                <div className="bg-blue-100 text-blue-800 text-sm font-bold px-3 py-1.5 rounded-lg mb-4">
+                  8 AI Team Members
+                </div>
+                <p className="text-xs text-gray-500 mb-3">Replaces 4-5 full-time VAs</p>
                 <div className="mb-2">
                   <span className="text-3xl sm:text-4xl font-black text-gray-900">$3,197</span>
                   <span className="text-lg text-gray-600">/mo</span>
                 </div>
-                <p className="text-xs text-gray-500">$497 one-time setup fee</p>
+                <p className="text-sm text-gray-600 font-medium">$1,097 one-time setup</p>
                 <p className="text-xs text-emerald-600 font-medium mt-2">or $879/week (+10%)</p>
               </div>
 
               <div className="space-y-3 mb-6">
                 {[
                   "Everything in Growth, plus:",
-                  "7-8 Concurrent Browsers",
-                  "3,000 Monthly Credits",
                   "White-Label Option",
                   "Dedicated Account Manager",
-                  "Priority Support (< 1hr)",
                   "Weekly Strategy Calls",
                   "Custom Integrations"
                 ].map((item, i) => (
@@ -883,25 +896,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                 <div className="inline-block bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-700 text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-wide mb-4">
                   Enterprise
                 </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">For Industry Leaders</h3>
-                <p className="text-sm text-gray-600 mb-4">15+ concurrent browsers</p>
+                <h3 className="text-lg font-bold text-gray-900 mb-1">For Industry Leaders</h3>
+                <div className="bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-800 text-sm font-bold px-3 py-1.5 rounded-lg mb-4">
+                  15+ AI Team Members
+                </div>
+                <p className="text-xs text-gray-500 mb-3">Replaces 8-10+ full-time VAs</p>
                 <div className="mb-2">
                   <span className="text-3xl sm:text-4xl font-black text-gray-900">$4,997</span>
                   <span className="text-lg text-gray-600">/mo</span>
                 </div>
-                <p className="text-xs text-gray-500">$297 one-time setup fee</p>
+                <p className="text-sm text-gray-600 font-medium">$997 one-time setup</p>
                 <p className="text-xs text-emerald-600 font-medium mt-2">or $1,374/week (+10%)</p>
               </div>
 
               <div className="space-y-3 mb-6">
                 {[
                   "Everything in Professional, plus:",
-                  "15+ Concurrent Browsers",
-                  "5,000+ Monthly Credits",
                   "Full White-Label Branding",
                   "VIP Support (< 30min)",
                   "SLA & Uptime Guarantee",
-                  "Enterprise Security",
                   "Custom Development"
                 ].map((item, i) => (
                   <div key={i} className="flex items-center gap-2 text-sm text-gray-700">
@@ -929,29 +942,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
             </p>
           </div>
 
-          {/* Credit Packages Section */}
-          <div className="max-w-4xl mx-auto bg-white rounded-2xl p-6 sm:p-8 border border-gray-200 shadow-md mb-8">
-            <h3 className="text-xl sm:text-2xl font-bold text-center text-gray-900 mb-2">Need More Credits?</h3>
-            <p className="text-center text-sm text-gray-600 mb-6">Top up anytime. Unused credits roll over.</p>
-            <div className="grid sm:grid-cols-3 gap-4">
-              <div className="text-center p-4 bg-gray-50 rounded-xl border border-gray-200">
-                <div className="text-2xl font-black text-gray-900">500</div>
-                <div className="text-sm text-gray-600 mb-2">Credits</div>
-                <div className="text-lg font-bold text-emerald-600">$50</div>
-              </div>
-              <div className="text-center p-4 bg-emerald-50 rounded-xl border border-emerald-200">
-                <div className="text-2xl font-black text-emerald-700">2,000</div>
-                <div className="text-sm text-gray-600 mb-2">Credits</div>
-                <div className="text-lg font-bold text-emerald-600">$150 <span className="text-xs text-gray-500 line-through">$200</span></div>
-              </div>
-              <div className="text-center p-4 bg-gray-50 rounded-xl border border-gray-200">
-                <div className="text-2xl font-black text-gray-900">5,000</div>
-                <div className="text-sm text-gray-600 mb-2">Credits</div>
-                <div className="text-lg font-bold text-emerald-600">$300 <span className="text-xs text-gray-500 line-through">$500</span></div>
-              </div>
-            </div>
-          </div>
-
           {/* Guarantees & CTA */}
           <div className="max-w-3xl mx-auto text-center">
             <div className="flex flex-wrap justify-center gap-4 sm:gap-8 mb-8">
@@ -973,22 +963,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
 
           {/* ROI Calculator */}
           <div className="mt-12 max-w-4xl mx-auto bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl sm:rounded-2xl p-6 sm:p-8 border border-emerald-200 shadow-md">
-            <h3 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-center text-gray-900">Your ROI in 12 Months</h3>
+            <h3 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-center text-gray-900">The Math on 5 AI Team Members (Growth Plan)</h3>
             <div className="grid sm:grid-cols-3 gap-4 sm:gap-6 text-center mb-6">
               <div className="bg-white/80 p-4 rounded-xl">
-                <div className="text-red-600 font-bold text-xs sm:text-sm mb-2">Current VA Costs</div>
+                <div className="text-red-600 font-bold text-xs sm:text-sm mb-2">Hiring 3 VAs Instead</div>
                 <div className="text-2xl sm:text-3xl font-black text-gray-900">$144,000</div>
                 <div className="text-xs text-gray-500">3 VAs × $4K/mo × 12</div>
               </div>
               <div className="bg-white/80 p-4 rounded-xl">
-                <div className="text-emerald-700 font-bold text-xs sm:text-sm mb-2">With GHL Agency AI</div>
-                <div className="text-2xl sm:text-3xl font-black text-emerald-600">$20,364</div>
-                <div className="text-xs text-gray-500">Growth tier × 12 months</div>
+                <div className="text-emerald-700 font-bold text-xs sm:text-sm mb-2">5 AI Team Members</div>
+                <div className="text-2xl sm:text-3xl font-black text-emerald-600">$21,661</div>
+                <div className="text-xs text-gray-500">$1,697/mo × 12 + setup</div>
               </div>
               <div className="bg-white/80 p-4 rounded-xl">
-                <div className="text-amber-700 font-bold text-xs sm:text-sm mb-2">Your Annual Savings</div>
-                <div className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-600 to-green-600">$123,636</div>
-                <div className="text-xs text-gray-500">+ your time back</div>
+                <div className="text-amber-700 font-bold text-xs sm:text-sm mb-2">You Keep</div>
+                <div className="text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-600 to-green-600">$122,339</div>
+                <div className="text-xs text-gray-500">+ they work 24/7</div>
               </div>
             </div>
             <p className="text-center text-xs sm:text-sm text-gray-600">
