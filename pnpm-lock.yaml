@@ -230,9 +230,6 @@ importers:
       pino-pretty:
         specifier: file:stubs/pino-pretty
         version: file:stubs/pino-pretty
-      playwright:
-        specifier: ^1.56.1
-        version: 1.56.1
       puppeteer-core:
         specifier: ^24.33.0
         version: 24.33.0(bufferutil@4.0.9)
@@ -339,6 +336,9 @@ importers:
       esbuild:
         specifier: ^0.25.0
         version: 0.25.10
+      playwright:
+        specifier: ^1.56.1
+        version: 1.56.1
       pnpm:
         specifier: ^10.15.1
         version: 10.18.0
