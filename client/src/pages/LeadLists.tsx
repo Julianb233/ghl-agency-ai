@@ -26,6 +26,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { TourPrompt } from '@/components/tour';
 
 interface LeadList {
   id: string;
@@ -107,7 +108,7 @@ export default function LeadLists() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between" data-tour="leads-header">
         <div>
           <h1 className="text-3xl font-bold">Lead Lists</h1>
           <p className="text-muted-foreground mt-1">
@@ -116,12 +117,14 @@ export default function LeadLists() {
         </div>
         <div className="flex items-center gap-3">
           <CreditBalance creditType="enrichment" onBuyCredits={() => setLocation('/credits')} />
-          <Button onClick={() => setLocation('/lead-lists/upload')}>
+          <Button onClick={() => setLocation('/lead-lists/upload')} data-tour="leads-create-button">
             <Plus className="h-4 w-4 mr-2" />
             Upload New List
           </Button>
         </div>
       </div>
+
+      <TourPrompt tourId="leads" featureName="Lead Management" />
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
@@ -238,7 +241,7 @@ export default function LeadLists() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-tour="leads-list">
           {filteredLists.map((list: LeadList) => (
             <LeadListCard
               key={list.id}

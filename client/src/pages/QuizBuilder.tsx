@@ -268,9 +268,11 @@ export default function QuizBuilder() {
 
       {!isPreviewMode && (
         <>
-          <QuizForm quiz={quizData} onChange={setQuizData} />
+          <div data-tour="quiz-form">
+            <QuizForm quiz={quizData} onChange={setQuizData} />
+          </div>
 
-          <div className="space-y-4">
+          <div className="space-y-4" data-tour="quiz-questions">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold">Questions</h2>
               <Button onClick={handleAddQuestion} variant="outline">
@@ -303,7 +305,7 @@ export default function QuizBuilder() {
             ))}
           </div>
 
-          <div className="sticky bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t -mx-4 px-4 py-4 mt-auto">
+          <div className="sticky bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t -mx-4 px-4 py-4 mt-auto" data-tour="quiz-publish-actions">
             <div className="flex items-center justify-between">
               <Button variant="outline" onClick={handleCancel}>
                 Cancel

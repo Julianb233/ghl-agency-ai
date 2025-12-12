@@ -9,7 +9,7 @@ export default function DashboardHome() {
 
   return (
     <div className="space-y-6">
-      <div>
+      <div data-tour="dashboard-header">
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground mt-2">
           Welcome to your GHL Agency AI Dashboard
@@ -62,7 +62,7 @@ export default function DashboardHome() {
         </Card>
       </div>
 
-      <Card>
+      <Card data-tour="quick-actions">
         <CardHeader>
           <CardTitle>Quick Actions</CardTitle>
           <CardDescription>Get started with your AI-powered agency automation</CardDescription>
@@ -114,7 +114,7 @@ export default function DashboardHome() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card data-tour="quick-start-guide">
         <CardHeader>
           <CardTitle>Quick Start Guide</CardTitle>
           <CardDescription>Get started with your AI-powered agency automation</CardDescription>

@@ -224,10 +224,18 @@ function DashboardLayoutContent({
             </div>
           </SidebarHeader>
 
-          <SidebarContent className="gap-0">
+          <SidebarContent className="gap-0" data-tour="sidebar-nav">
             <SidebarMenu className="px-2 py-1">
               {menuItems.map(item => {
                 const isActive = location === item.path;
+                const tourId =
+                  item.path === "/" ? "nav-dashboard" :
+                  item.path === "/lead-lists" ? "nav-leads" :
+                  item.path === "/ai-campaigns" ? "nav-campaigns" :
+                  item.path === "/settings" ? "nav-settings" :
+                  item.path === "/browser-sessions" ? "nav-browser" :
+                  undefined;
+
                 return (
                   <SidebarMenuItem key={item.path}>
                     <SidebarMenuButton
@@ -235,6 +243,7 @@ function DashboardLayoutContent({
                       onClick={() => setLocation(item.path)}
                       tooltip={item.label}
                       className={`h-10 transition-all font-normal`}
+                      data-tour={tourId}
                     >
                       <item.icon
                         className={`h-4 w-4 ${isActive ? "text-primary" : ""}`}

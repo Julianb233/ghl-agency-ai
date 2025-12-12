@@ -578,12 +578,12 @@ export default function ScheduledTasksPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between" data-tour="tasks-header">
           <div>
             <h1 className="text-3xl font-bold text-slate-900">Scheduled Tasks</h1>
             <p className="text-slate-600 mt-1">Automate browser tasks on a schedule</p>
           </div>
-          <Button onClick={() => setIsCreateDialogOpen(true)} className="gap-2">
+          <Button onClick={() => setIsCreateDialogOpen(true)} className="gap-2" data-tour="tasks-create-button">
             <Plus className="h-4 w-4" />
             Create New Task
           </Button>
@@ -780,7 +780,7 @@ export default function ScheduledTasksPage() {
 
         {/* Tasks Table */}
         <Card>
-          <CardContent className="p-0">
+          <CardContent className="p-0" data-tour="tasks-list">
             {isLoading ? (
               <div className="p-8 space-y-4">
                 {[1, 2, 3].map(i => (
@@ -1127,7 +1127,7 @@ export default function ScheduledTasksPage() {
             </div>
 
             {/* Schedule Config */}
-            <div className="space-y-4">
+            <div className="space-y-4" data-tour="tasks-schedule-config">
               <h3 className="font-semibold text-sm">Schedule</h3>
 
               <div className="grid grid-cols-2 gap-4">
@@ -1350,7 +1350,7 @@ export default function ScheduledTasksPage() {
                 )}
               </TabsContent>
 
-              <TabsContent value="history" className="space-y-4">
+              <TabsContent value="history" className="space-y-4" data-tour="tasks-history">
                 <Table>
                   <TableHeader>
                     <TableRow>

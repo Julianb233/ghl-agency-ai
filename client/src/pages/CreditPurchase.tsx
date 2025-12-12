@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
+import { FeatureTip } from '@/components/tour/FeatureTip';
 
 export default function CreditPurchase() {
   const [, setLocation] = useLocation();
@@ -58,14 +59,22 @@ export default function CreditPurchase() {
         </Button>
       </div>
 
-      <div>
-        <h1 className="text-3xl font-bold">Credits</h1>
+      <div data-tour="credits-header">
+        <div className="flex items-center gap-2">
+          <h1 className="text-3xl font-bold">Credits</h1>
+          <FeatureTip
+            tipId="credits-consumption"
+            title="How Credits Work"
+            content="Credits are consumed per action: 1 credit per lead enrichment, and calling credits are based on call duration. Credits never expire and can be used anytime."
+            dismissible={true}
+          />
+        </div>
         <p className="text-muted-foreground mt-1">
           Purchase credits for lead enrichment and AI calling
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4" data-tour="credits-balance">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -111,7 +120,15 @@ export default function CreditPurchase() {
 
         <TabsContent value="packages" className="space-y-6">
           <div>
-            <h2 className="text-2xl font-bold mb-2">Choose Your Package</h2>
+            <div className="flex items-center gap-2 mb-2">
+              <h2 className="text-2xl font-bold">Choose Your Package</h2>
+              <FeatureTip
+                tipId="credits-tier-differences"
+                title="Package Tiers"
+                content="Larger packages offer better value per credit. Choose based on your monthly usage: Starter for occasional use, Professional for regular campaigns, Enterprise for high-volume needs."
+                dismissible={true}
+              />
+            </div>
             <p className="text-muted-foreground">
               Select a credit package that fits your needs
             </p>
@@ -128,7 +145,7 @@ export default function CreditPurchase() {
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6" data-tour="credits-purchase">
               {packages.map((pkg: any, index: number) => (
                 <CreditPackageCard
                   key={pkg.id}
@@ -141,7 +158,7 @@ export default function CreditPurchase() {
             </div>
           )}
 
-          <Card className="bg-accent/50">
+          <Card className="bg-accent/50" data-tour="credits-benefits">
             <CardContent className="pt-6">
               <div className="flex items-start gap-4">
                 <div className="rounded-full bg-primary/10 p-3 shrink-0">
@@ -177,7 +194,7 @@ export default function CreditPurchase() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="history" className="space-y-6">
+        <TabsContent value="history" className="space-y-6" data-tour="credits-history">
           <div>
             <h2 className="text-2xl font-bold mb-2">Purchase History</h2>
             <p className="text-muted-foreground">

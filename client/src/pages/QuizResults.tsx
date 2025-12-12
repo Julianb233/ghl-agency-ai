@@ -67,14 +67,16 @@ export default function QuizResults() {
         )}
       </div>
 
-      <ResultsCard
-        score={attempt.score || 0}
-        totalPoints={questions.reduce((sum, q) => sum + (q.points || 1), 0)}
-        percentage={attempt.percentage || 0}
-        passed={attempt.passed || false}
-        passingScore={quiz.passingScore || 70}
-        timeSpent={attempt.timeSpent}
-      />
+      <div data-tour="quiz-results">
+        <ResultsCard
+          score={attempt.score || 0}
+          totalPoints={questions.reduce((sum, q) => sum + (q.points || 1), 0)}
+          percentage={attempt.percentage || 0}
+          passed={attempt.passed || false}
+          passingScore={quiz.passingScore || 70}
+          timeSpent={attempt.timeSpent}
+        />
+      </div>
 
       {attempt.feedback && (
         <Card>

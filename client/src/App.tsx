@@ -3,6 +3,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import ErrorBoundary from "./components/ErrorBoundary";
+import { TourProvider } from "./components/tour/TourProvider";
 import { Dashboard } from './components/Dashboard';
 import { AlexRamozyPage } from './components/AlexRamozyPage';
 import { LandingPage } from './components/LandingPage';
@@ -63,32 +64,34 @@ function App() {
     <ErrorBoundary>
       <ThemeProvider defaultTheme="dark">
         <TooltipProvider>
-          <Toaster />
-          {currentView === 'ALEX_RAMOZY' && (
-            <AlexRamozyPage onDemoClick={() => setCurrentView('LOGIN')} />
-          )}
-          {currentView === 'LANDING' && (
-            <LandingPage onLogin={() => setCurrentView('LOGIN')} />
-          )}
+          <TourProvider>
+            <Toaster />
+            {currentView === 'ALEX_RAMOZY' && (
+              <AlexRamozyPage onDemoClick={() => setCurrentView('LOGIN')} />
+            )}
+            {currentView === 'LANDING' && (
+              <LandingPage onLogin={() => setCurrentView('LOGIN')} />
+            )}
 
-          {currentView === 'LOGIN' && (
-            <LoginScreen
-              onAuthenticated={handleLogin}
-              onBack={() => setCurrentView('LANDING')}
-            />
-          )}
+            {currentView === 'LOGIN' && (
+              <LoginScreen
+                onAuthenticated={handleLogin}
+                onBack={() => setCurrentView('LANDING')}
+              />
+            )}
 
-          {currentView === 'ONBOARDING' && (
-            <OnboardingFlow onComplete={async () => {
-              // Refetch user data to get updated onboardingCompleted status
-              await refetchUser();
-              setCurrentView('DASHBOARD');
-            }} />
-          )}
+            {currentView === 'ONBOARDING' && (
+              <OnboardingFlow onComplete={async () => {
+                // Refetch user data to get updated onboardingCompleted status
+                await refetchUser();
+                setCurrentView('DASHBOARD');
+              }} />
+            )}
 
-          {currentView === 'DASHBOARD' && (
-            <Dashboard userTier={userTier} credits={credits} />
-          )}
+            {currentView === 'DASHBOARD' && (
+              <Dashboard userTier={userTier} credits={credits} />
+            )}
+          </TourProvider>
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

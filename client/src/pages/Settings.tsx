@@ -68,6 +68,8 @@ import {
   Bell,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { FeatureTip } from '@/components/tour/FeatureTip';
+import { TourPrompt } from '@/components/tour';
 
 // Types
 type ApiKeyService = 'OpenAI' | 'Browserbase' | 'GoHighLevel' | 'Custom';
@@ -473,7 +475,7 @@ export const Settings: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-6">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <header className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b -mx-6 px-6 py-4 mb-4">
+        <header className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b -mx-6 px-6 py-4 mb-4" data-tour="settings-header">
           <Breadcrumb
             items={[
               { label: 'Settings' },
@@ -490,9 +492,11 @@ export const Settings: React.FC = () => {
           </div>
         </header>
 
+        <TourPrompt tourId="settings" featureName="Settings" />
+
         {/* Main Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="bg-slate-900/50 border border-slate-800">
+          <TabsList className="bg-slate-900/50 border border-slate-800" data-tour="settings-tabs">
             <TabsTrigger value="api-keys" className="gap-2">
               <Key className="w-4 h-4" />
               API Keys
@@ -513,11 +517,19 @@ export const Settings: React.FC = () => {
 
           {/* API Keys Tab */}
           <TabsContent value="api-keys">
-            <Card className="bg-slate-900/50 border-slate-800">
+            <Card className="bg-slate-900/50 border-slate-800" data-tour="settings-api-keys">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle className="text-white">API Keys</CardTitle>
+                    <div className="flex items-center gap-2">
+                      <CardTitle className="text-white">API Keys</CardTitle>
+                      <FeatureTip
+                        tipId="settings-api-keys"
+                        title="API Keys"
+                        content="API keys are required to connect third-party services like OpenAI for AI features, Browserbase for automation, and GoHighLevel for CRM integration."
+                        dismissible={true}
+                      />
+                    </div>
                     <CardDescription>Manage your service API keys for OpenAI, Browserbase, and more</CardDescription>
                   </div>
                   <Button onClick={handleAddApiKey} className="bg-blue-600 hover:bg-blue-700">
@@ -586,7 +598,15 @@ export const Settings: React.FC = () => {
           <TabsContent value="oauth">
             <Card className="bg-slate-900/50 border-slate-800">
               <CardHeader>
-                <CardTitle className="text-white">OAuth Integrations</CardTitle>
+                <div className="flex items-center gap-2">
+                  <CardTitle className="text-white">OAuth Integrations</CardTitle>
+                  <FeatureTip
+                    tipId="settings-oauth-integrations"
+                    title="OAuth Connections"
+                    content="Connecting integrations enables seamless data sync, automated workflows, and enhanced features across platforms like Google, Gmail, and social media."
+                    dismissible={true}
+                  />
+                </div>
                 <CardDescription>Connect your accounts to enable automation and data sync</CardDescription>
               </CardHeader>
               <CardContent>

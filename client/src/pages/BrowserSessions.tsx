@@ -37,6 +37,7 @@ import {
   Calendar,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { TourPrompt } from '@/components/tour';
 
 type SessionStatus = 'all' | 'running' | 'completed' | 'failed' | 'expired';
 type DateRange = 'all' | 'today' | 'week' | 'month' | 'custom';
@@ -210,7 +211,7 @@ export default function BrowserSessions() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between" data-tour="browser-header">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
             <Globe className="h-8 w-8" />
@@ -228,15 +229,17 @@ export default function BrowserSessions() {
             <span className={`h-2 w-2 rounded-full ${connectionState === 'connected' ? 'bg-green-500' : 'bg-slate-400'}`} />
             {connectionState}
           </Badge>
-          <Button onClick={handleNewSession} className="gap-2">
+          <Button onClick={handleNewSession} className="gap-2" data-tour="browser-create-session">
             <Plus className="h-4 w-4" />
             New Session
           </Button>
         </div>
       </div>
 
+      <TourPrompt tourId="browser-sessions" featureName="Browser Automation" />
+
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4" data-tour="browser-stats">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-slate-600">Total Sessions</CardTitle>
@@ -278,7 +281,7 @@ export default function BrowserSessions() {
       </div>
 
       {/* Filters and Search */}
-      <Card>
+      <Card data-tour="browser-filters">
         <CardContent className="p-4">
           <div className="flex flex-col md:flex-row gap-4">
             {/* Search */}
@@ -361,7 +364,7 @@ export default function BrowserSessions() {
       )}
 
       {/* Sessions List */}
-      <div className="space-y-3">
+      <div className="space-y-3" data-tour="browser-sessions-list">
         {isLoading ? (
           <Card>
             <CardContent className="p-12 text-center">

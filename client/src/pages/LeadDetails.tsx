@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
+import { FeatureTip } from '@/components/tour/FeatureTip';
 
 export default function LeadDetails() {
   const { id } = useParams();
@@ -360,7 +361,15 @@ export default function LeadDetails() {
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="font-semibold text-lg">Enriched Data</h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-semibold text-lg">Enriched Data</h3>
+                    <FeatureTip
+                      tipId="lead-data-sources"
+                      title="Data Sources"
+                      content="Enriched data comes from multiple public sources including LinkedIn, company databases, and professional networks to provide the most accurate information."
+                      dismissible={true}
+                    />
+                  </div>
                   {selectedLead.status === 'enriched' && selectedLead.enrichedData ? (
                     <div className="space-y-2 text-sm">
                       <div>
@@ -397,7 +406,15 @@ export default function LeadDetails() {
                         </p>
                       </div>
                       <div>
-                        <p className="text-muted-foreground">Confidence Score</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-muted-foreground">Confidence Score</p>
+                          <FeatureTip
+                            tipId="lead-enrichment-score"
+                            title="Enrichment Score"
+                            content="Shows how complete and accurate the lead's data is. Higher scores mean more data points were found and verified from reliable sources."
+                            dismissible={true}
+                          />
+                        </div>
                         <div className="flex items-center gap-2">
                           <div className="flex-1 bg-accent rounded-full h-2">
                             <div

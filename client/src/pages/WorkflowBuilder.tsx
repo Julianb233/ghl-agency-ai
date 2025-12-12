@@ -40,6 +40,7 @@ import { NodePalette } from '@/components/workflow/NodePalette';
 import { NodeConfigPanel } from '@/components/workflow/NodeConfigPanel';
 import { TemplateDialog } from '@/components/workflow/TemplateDialog';
 import type { NodeTemplate } from '@/types/workflow';
+import { TourPrompt } from '@/components/tour';
 
 const nodeTypes = {
   default: CustomNode,
@@ -212,7 +213,7 @@ const WorkflowCanvas: React.FC = () => {
   return (
     <div className="h-screen flex flex-col">
       {/* Top Toolbar */}
-      <div className="h-14 border-b bg-background flex items-center justify-between px-4 gap-4">
+      <div className="h-14 border-b bg-background flex items-center justify-between px-4 gap-4" data-tour="workflow-header">
         <div className="flex items-center gap-2">
           <Zap className="h-5 w-5 text-primary" />
           <h1 className="text-lg font-semibold">
@@ -319,13 +320,13 @@ const WorkflowCanvas: React.FC = () => {
           <Separator orientation="vertical" className="h-6" />
 
           {/* Test Run */}
-          <Button size="sm" variant="outline" onClick={handleTestRun}>
+          <Button size="sm" variant="outline" onClick={handleTestRun} data-tour="workflow-test">
             <Play className="h-4 w-4 mr-2" />
             Test Run
           </Button>
 
           {/* Save */}
-          <Button size="sm" onClick={handleSave} disabled={!isDirty || isSaving}>
+          <Button size="sm" onClick={handleSave} disabled={!isDirty || isSaving} data-tour="workflow-save">
             <Save className="h-4 w-4 mr-2" />
             {isSaving ? 'Saving...' : 'Save'}
           </Button>
@@ -335,12 +336,17 @@ const WorkflowCanvas: React.FC = () => {
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Panel - Node Palette */}
-        <div className="w-64 border-r">
-          <NodePalette onNodeSelect={handleNodeSelect} />
+        <div className="w-64 border-r flex flex-col" data-tour="workflow-node-palette">
+          <div className="p-3 border-b">
+            <TourPrompt tourId="workflows" featureName="Workflow Builder" />
+          </div>
+          <div className="flex-1 overflow-y-auto">
+            <NodePalette onNodeSelect={handleNodeSelect} />
+          </div>
         </div>
 
         {/* Center - Canvas */}
-        <div className="flex-1 relative" ref={reactFlowWrapper}>
+        <div className="flex-1 relative" ref={reactFlowWrapper} data-tour="workflow-canvas">
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -388,7 +394,7 @@ const WorkflowCanvas: React.FC = () => {
         </div>
 
         {/* Right Panel - Node Configuration */}
-        <div className="w-80 border-l">
+        <div className="w-80 border-l" data-tour="workflow-config-panel">
           <NodeConfigPanel />
         </div>
       </div>

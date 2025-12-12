@@ -28,6 +28,7 @@ import {
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Line, Pie } from 'react-chartjs-2';
+import { FeatureTip } from '@/components/tour/FeatureTip';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -284,7 +285,15 @@ export default function CampaignDetails() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Successful</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-muted-foreground">Successful</p>
+                  <FeatureTip
+                    tipId="campaign-call-status"
+                    title="Call Status"
+                    content="Successful calls are those where contact was made and the conversation completed. Failed calls include disconnects or errors, while others may be no answer or voicemail."
+                    dismissible={true}
+                  />
+                </div>
                 <p className="text-2xl font-bold">{campaign.successful}</p>
                 <p className="text-xs text-muted-foreground">
                   {campaign.callsMade > 0
@@ -374,7 +383,15 @@ export default function CampaignDetails() {
         <TabsContent value="script" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Call Script</CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle>Call Script</CardTitle>
+                <FeatureTip
+                  tipId="campaign-ai-script"
+                  title="AI Script"
+                  content="The AI uses this script as a guide for conversations. It adapts dynamically based on responses while maintaining your brand voice and objectives."
+                  dismissible={true}
+                />
+              </div>
             </CardHeader>
             <CardContent>
               <div className="p-4 bg-accent rounded-lg font-mono text-sm whitespace-pre-wrap">

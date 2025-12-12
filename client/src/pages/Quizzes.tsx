@@ -50,20 +50,20 @@ export default function Quizzes() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between" data-tour="quiz-header">
         <div>
           <h1 className="text-3xl font-bold">Quizzes</h1>
           <p className="text-muted-foreground mt-1">
             Create and manage knowledge assessments
           </p>
         </div>
-        <Button onClick={handleCreateQuiz}>
+        <Button onClick={handleCreateQuiz} data-tour="quiz-create-button">
           <Plus className="w-4 h-4 mr-1.5" />
           Create Quiz
         </Button>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="flex flex-col sm:flex-row gap-3" data-tour="quiz-filters">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
@@ -144,7 +144,7 @@ export default function Quizzes() {
       )}
 
       {!isLoading && !error && filteredQuizzes.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" data-tour="quiz-list">
           {filteredQuizzes.map((quiz) => (
             <QuizCard
               key={quiz.id}

@@ -46,6 +46,7 @@ import {
 import { toast } from 'sonner';
 import { formatDistanceToNow, isThisMonth } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
+import { TourPrompt } from '@/components/tour';
 
 export default function AICampaigns() {
   const [, setLocation] = useLocation();
@@ -141,20 +142,22 @@ export default function AICampaigns() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between" data-tour="campaigns-header">
         <div>
           <h1 className="text-3xl font-bold">AI Campaigns</h1>
           <p className="text-muted-foreground mt-1">
             Create and manage AI calling campaigns
           </p>
         </div>
-        <Button onClick={() => setCreateDialogOpen(true)}>
+        <Button onClick={() => setCreateDialogOpen(true)} data-tour="campaigns-create-button">
           <Plus className="h-4 w-4 mr-2" />
           Create Campaign
         </Button>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <TourPrompt tourId="campaigns" featureName="AI Campaigns" />
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4" data-tour="campaigns-stats">
         <Card className="p-4">
           <p className="text-sm text-muted-foreground">Active Campaigns</p>
           <p className="text-2xl font-bold">{campaigns?.filter(c => c.status === 'running').length || 0}</p>
@@ -200,7 +203,7 @@ export default function AICampaigns() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-4" data-tour="campaigns-list">
           {campaigns.map((campaign: any) => {
             const progress =
               campaign.totalLeads > 0
