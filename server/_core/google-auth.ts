@@ -10,12 +10,21 @@ const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const GOOGLE_USER_INFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo";
 
+// Helper to get the correct redirect URI based on the request
+// Auto-detects from request host to ensure consistency between auth request and token exchange
+function getRedirectUri(req: Request): string {
+    const protocol = req.headers["x-forwarded-proto"] || req.protocol || "https";
+    const host = req.headers.host || "www.ghlagencyai.com";
+    return `${protocol}://${host}/api/oauth/google/callback`;
+}
+
 export function registerGoogleAuthRoutes(app: Express) {
     // Debug endpoint to check configuration
     app.get("/api/oauth/google/config", (req: Request, res: Response) => {
+        const redirectUri = getRedirectUri(req);
         res.json({
             clientId: process.env.GOOGLE_CLIENT_ID || 'NOT_SET',
-            redirectUri: process.env.GOOGLE_REDIRECT_URI || 'NOT_SET',
+            redirectUri: redirectUri,
             clientSecretSet: !!process.env.GOOGLE_CLIENT_SECRET,
             databaseUrlSet: !!process.env.DATABASE_URL,
             databaseUrlLength: process.env.DATABASE_URL?.length || 0,
@@ -24,7 +33,7 @@ export function registerGoogleAuthRoutes(app: Express) {
 
     app.get("/api/oauth/google", (req: Request, res: Response) => {
         const clientId = process.env.GOOGLE_CLIENT_ID;
-        const redirectUri = process.env.GOOGLE_REDIRECT_URI || "http://localhost:3006/api/oauth/google/callback";
+        const redirectUri = getRedirectUri(req);
 
         console.log('[Google Auth] Initiating OAuth flow');
         console.log('[Google Auth] Client ID:', clientId ? 'Present' : 'Missing');
@@ -71,7 +80,7 @@ export function registerGoogleAuthRoutes(app: Express) {
         try {
             const clientId = process.env.GOOGLE_CLIENT_ID;
             const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-            const redirectUri = process.env.GOOGLE_REDIRECT_URI || "http://localhost:3006/api/oauth/google/callback";
+            const redirectUri = getRedirectUri(req);
 
             console.log('[Google Auth] Exchanging code for token');
             console.log('[Google Auth] Client ID:', clientId ? 'Present' : 'Missing');
