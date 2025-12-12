@@ -56,6 +56,7 @@ export const serviceLoggers = {
   websocket: logger.child({ service: 'websocket' }),
   worker: logger.child({ service: 'worker' }),
   apify: logger.child({ service: 'apify' }),
+  deployment: logger.child({ service: 'deployment' }),
 };
 
 /**

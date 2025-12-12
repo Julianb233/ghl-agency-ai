@@ -565,9 +565,27 @@ export {
   type InsertSecurityEvent,
 } from "./schema-admin";
 
-// Webhooks
+// Webhooks & Communication Channels
 export {
+  userWebhooks,
+  inboundMessages,
+  botConversations,
+  agencyTasks,
+  taskExecutions,
+  outboundMessages,
   webhookLogs,
+  type UserWebhook,
+  type InsertUserWebhook,
+  type InboundMessage,
+  type InsertInboundMessage,
+  type BotConversation,
+  type InsertBotConversation,
+  type AgencyTask,
+  type InsertAgencyTask,
+  type TaskExecution,
+  type InsertTaskExecution,
+  type OutboundMessage,
+  type InsertOutboundMessage,
   type WebhookLog,
   type InsertWebhookLog,
 } from "./schema-webhooks";

@@ -6,6 +6,7 @@
 
 import { getDb } from "../db";
 import { eq, and, desc } from "drizzle-orm";
+import crypto from "crypto";
 import {
   userWebhooks,
   inboundMessages,
@@ -157,8 +158,37 @@ export class WebhookReceiverService {
         return apiKeyHeader === config.authToken;
 
       case "hmac":
-        // TODO: Implement HMAC validation
-        return true;
+        // Validate HMAC signature
+        const signature = headers["x-webhook-signature"] || headers["X-Webhook-Signature"];
+        if (!signature) {
+          console.warn("HMAC auth configured but no signature provided");
+          return false;
+        }
+
+        // Use the webhook's secretKey or config hmacSecret
+        const secret = webhook.secretKey || config.hmacSecret;
+        if (!secret) {
+          console.warn("HMAC auth configured but no secret key available");
+          return false;
+        }
+
+        // Calculate expected signature
+        const payloadString = typeof payload === "string" ? payload : JSON.stringify(payload);
+        const expectedSignature = crypto
+          .createHmac("sha256", secret)
+          .update(payloadString)
+          .digest("hex");
+
+        // Timing-safe comparison to prevent timing attacks
+        try {
+          return crypto.timingSafeEqual(
+            Buffer.from(signature, "hex"),
+            Buffer.from(expectedSignature, "hex")
+          );
+        } catch {
+          // If signatures have different lengths, timingSafeEqual throws
+          return false;
+        }
 
       default:
         return true;

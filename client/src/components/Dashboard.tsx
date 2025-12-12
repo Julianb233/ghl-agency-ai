@@ -26,7 +26,8 @@ import { MarketplacePanel } from './MarketplacePanel';
 import { AIBrowserPanel } from './AIBrowserPanel';
 import { SkipLink } from './SkipLink';
 import { ClientProfileModal } from './ClientProfileModal';
-import { Home, Terminal, Mail, Globe, Settings } from 'lucide-react';
+import { AgentDashboard } from './agent/AgentDashboard';
+import { Home, Terminal, Mail, Globe, Settings, Bot } from 'lucide-react';
 
 // Demo data only loaded when VITE_DEMO_MODE=1 (disabled by default in production)
 
@@ -39,12 +40,12 @@ const DEFAULT_USER: User = {
 };
 
 // ViewMode type definition
-type ViewMode = 'GLOBAL' | 'TERMINAL' | 'EMAIL_AGENT' | 'VOICE_AGENT' | 'SETTINGS' | 'SEO' | 'ADS' | 'MARKETPLACE' | 'AI_BROWSER';
+type ViewMode = 'GLOBAL' | 'TERMINAL' | 'EMAIL_AGENT' | 'VOICE_AGENT' | 'SETTINGS' | 'SEO' | 'ADS' | 'MARKETPLACE' | 'AI_BROWSER' | 'AGENT';
 
 // Helper function to parse view from URL hash
 const getViewFromHash = (): ViewMode => {
   const hash = window.location.hash.slice(1); // remove #
-  const validViews: ViewMode[] = ['GLOBAL', 'TERMINAL', 'EMAIL_AGENT', 'VOICE_AGENT', 'SETTINGS', 'SEO', 'ADS', 'MARKETPLACE', 'AI_BROWSER'];
+  const validViews: ViewMode[] = ['GLOBAL', 'TERMINAL', 'EMAIL_AGENT', 'VOICE_AGENT', 'SETTINGS', 'SEO', 'ADS', 'MARKETPLACE', 'AI_BROWSER', 'AGENT'];
   return validViews.includes(hash.toUpperCase() as ViewMode) ? hash.toUpperCase() as ViewMode : 'GLOBAL';
 };
 
@@ -725,6 +726,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>
           </button>
 
+          <button
+            onClick={() => setViewMode('AGENT')}
+            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${viewMode === 'AGENT' ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/30' : 'text-slate-400 hover:bg-gray-100 hover:text-purple-500'}`}
+            aria-label="AI Agent (Manus)"
+            aria-current={viewMode === 'AGENT' ? 'page' : undefined}
+            title="AI Agent - Autonomous Task Execution"
+          >
+            <Bot className="w-6 h-6" aria-hidden="true" />
+          </button>
+
           <div className="flex-1"></div>
 
           <button
@@ -778,6 +789,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
 
           {viewMode === 'AI_BROWSER' && (
             <AIBrowserPanel onLog={(msg) => addLog('info', 'AI Browser', msg)} />
+          )}
+
+          {viewMode === 'AGENT' && (
+            <AgentDashboard />
           )}
 
           {viewMode === 'TERMINAL' && (

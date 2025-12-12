@@ -82,6 +82,9 @@ export const userWebhooks = pgTable("user_webhooks", {
   tokenExpiresAt: timestamp("tokenExpiresAt"), // Optional token expiration
   tokenRotationRequired: boolean("tokenRotationRequired").default(false), // Force rotation flag
 
+  // HMAC signing for secure webhooks
+  secretKey: varchar("secretKey", { length: 64 }), // HMAC signing key for validating inbound webhooks
+
   // Rate limiting
   rateLimitPerMinute: integer("rateLimitPerMinute").default(30).notNull(),
   rateLimitPerHour: integer("rateLimitPerHour").default(200).notNull(),

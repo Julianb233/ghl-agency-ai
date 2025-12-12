@@ -4,6 +4,12 @@ import { TRPCError } from "@trpc/server";
 import { getDb } from "../../db";
 import { eq, and, desc, count } from "drizzle-orm";
 import { nanoid } from "nanoid";
+import crypto from "crypto";
+
+// Generate a secure HMAC secret key
+function generateSecretKey(): string {
+  return crypto.randomBytes(32).toString("hex");
+}
 
 import {
   userWebhooks,
@@ -121,7 +127,8 @@ export const webhooksRouter = router({
             .where(eq(userWebhooks.userId, userId));
         }
 
-        // Create the webhook
+        // Create the webhook with HMAC secret key
+        const secretKey = generateSecretKey();
         const [webhook] = await db
           .insert(userWebhooks)
           .values({
@@ -140,6 +147,7 @@ export const webhooksRouter = router({
             isActive: true,
             isVerified: false,
             verificationCode: nanoid(6).toUpperCase(),
+            secretKey, // HMAC signing key for webhook validation
           })
           .returning();
 
@@ -714,6 +722,222 @@ export const webhooksRouter = router({
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: `Failed to get conversations: ${error instanceof Error ? error.message : "Unknown error"}`,
+        });
+      }
+    }),
+
+  /**
+   * Regenerate HMAC secret key for a webhook
+   */
+  regenerateSecretKey: protectedProcedure
+    .input(z.object({ id: z.number().int().positive() }))
+    .mutation(async ({ input, ctx }) => {
+      const userId = ctx.user.id;
+
+      const db = await getDb();
+      if (!db) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Database not initialized",
+        });
+      }
+
+      try {
+        const [webhook] = await db
+          .select()
+          .from(userWebhooks)
+          .where(and(
+            eq(userWebhooks.id, input.id),
+            eq(userWebhooks.userId, userId)
+          ))
+          .limit(1);
+
+        if (!webhook) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Webhook not found",
+          });
+        }
+
+        // Generate new secret key
+        const newSecretKey = generateSecretKey();
+
+        await db
+          .update(userWebhooks)
+          .set({
+            secretKey: newSecretKey,
+            updatedAt: new Date(),
+          })
+          .where(eq(userWebhooks.id, input.id));
+
+        return {
+          success: true,
+          secretKey: newSecretKey,
+          message: "Secret key regenerated. Update your webhook integration with the new key.",
+        };
+      } catch (error) {
+        console.error("Failed to regenerate secret key:", error);
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to regenerate secret key: ${error instanceof Error ? error.message : "Unknown error"}`,
+        });
+      }
+    }),
+
+  /**
+   * Get the secret key for a webhook (for display to user)
+   */
+  getSecretKey: protectedProcedure
+    .input(z.object({ id: z.number().int().positive() }))
+    .query(async ({ input, ctx }) => {
+      const userId = ctx.user.id;
+
+      const db = await getDb();
+      if (!db) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Database not initialized",
+        });
+      }
+
+      try {
+        const [webhook] = await db
+          .select({ secretKey: userWebhooks.secretKey })
+          .from(userWebhooks)
+          .where(and(
+            eq(userWebhooks.id, input.id),
+            eq(userWebhooks.userId, userId)
+          ))
+          .limit(1);
+
+        if (!webhook) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Webhook not found",
+          });
+        }
+
+        return {
+          secretKey: webhook.secretKey,
+          usage: "Use this key to sign outbound requests with HMAC-SHA256. Include signature in X-Webhook-Signature header.",
+        };
+      } catch (error) {
+        console.error("Failed to get secret key:", error);
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to get secret key: ${error instanceof Error ? error.message : "Unknown error"}`,
+        });
+      }
+    }),
+
+  /**
+   * Test webhook connectivity by sending a test payload
+   */
+  test: protectedProcedure
+    .input(z.object({ id: z.number().int().positive() }))
+    .mutation(async ({ input, ctx }) => {
+      const userId = ctx.user.id;
+
+      const db = await getDb();
+      if (!db) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Database not initialized",
+        });
+      }
+
+      try {
+        const [webhook] = await db
+          .select()
+          .from(userWebhooks)
+          .where(and(
+            eq(userWebhooks.id, input.id),
+            eq(userWebhooks.userId, userId)
+          ))
+          .limit(1);
+
+        if (!webhook) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Webhook not found",
+          });
+        }
+
+        // For custom webhooks with outbound config, test the outbound URL
+        const outboundConfig = webhook.outboundConfig as Record<string, any> | null;
+        if (webhook.channelType === "custom_webhook" && outboundConfig?.outboundWebhookUrl) {
+          const testPayload = {
+            type: "test",
+            timestamp: new Date().toISOString(),
+            webhookId: webhook.id,
+            message: "This is a test message from GHL Agency AI",
+          };
+
+          // Sign the payload with HMAC
+          const payloadString = JSON.stringify(testPayload);
+          const signature = webhook.secretKey
+            ? crypto.createHmac("sha256", webhook.secretKey).update(payloadString).digest("hex")
+            : null;
+
+          try {
+            const headers: Record<string, string> = {
+              "Content-Type": "application/json",
+              ...(outboundConfig.outboundHeaders || {}),
+            };
+
+            if (signature) {
+              headers["X-Webhook-Signature"] = signature;
+            }
+
+            // Add auth headers if configured
+            if (outboundConfig.authType === "bearer" && outboundConfig.authToken) {
+              headers["Authorization"] = `Bearer ${outboundConfig.authToken}`;
+            } else if (outboundConfig.authType === "api_key" && outboundConfig.authToken) {
+              headers[outboundConfig.authHeader || "X-API-Key"] = outboundConfig.authToken;
+            }
+
+            const response = await fetch(outboundConfig.outboundWebhookUrl, {
+              method: outboundConfig.outboundMethod || "POST",
+              headers,
+              body: payloadString,
+            });
+
+            return {
+              success: response.ok,
+              statusCode: response.status,
+              statusText: response.statusText,
+              message: response.ok
+                ? "Webhook test successful! Your endpoint received the test payload."
+                : `Webhook returned status ${response.status}: ${response.statusText}`,
+            };
+          } catch (fetchError) {
+            return {
+              success: false,
+              statusCode: null,
+              statusText: null,
+              message: `Failed to reach webhook endpoint: ${fetchError instanceof Error ? fetchError.message : "Unknown error"}`,
+            };
+          }
+        }
+
+        // For SMS/email channels, just return the webhook info
+        return {
+          success: true,
+          statusCode: null,
+          statusText: null,
+          message: `Webhook is configured. Inbound URL: ${webhook.webhookUrl}`,
+          webhookUrl: webhook.webhookUrl,
+          channelType: webhook.channelType,
+          isVerified: webhook.isVerified,
+        };
+      } catch (error) {
+        console.error("Failed to test webhook:", error);
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to test webhook: ${error instanceof Error ? error.message : "Unknown error"}`,
         });
       }
     }),

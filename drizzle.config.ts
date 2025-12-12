@@ -12,6 +12,7 @@ export default defineConfig({
     "./drizzle/schema-scheduled-tasks.ts",
     "./drizzle/schema-rag.ts",
     "./drizzle/schema-webhooks.ts",
+    "./drizzle/schema-agent.ts",
     "./drizzle/relations.ts",
     "./server/rag/schema.ts",
   ],

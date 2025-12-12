@@ -28,6 +28,12 @@ import { agencyTasksRouter } from "./api/routers/agencyTasks";
 import { clientProfilesRouter } from "./api/routers/clientProfiles";
 import { adminRouter } from "./api/routers/admin";
 import { healthRouter } from "./api/routers/health";
+import { agentRouter } from "./api/routers/agent";
+import { webdevRouter } from "./api/routers/webdev";
+import { deploymentRouter } from "./api/routers/deployment";
+import { mcpRouter } from "./api/routers/mcp";
+import { swarmRouter } from "./api/routers/swarm";
+import { knowledgeRouter } from "./api/routers/knowledge";
 import { publicProcedure, router } from "./_core/trpc";
 
 export const appRouter = router({
@@ -88,6 +94,22 @@ export const appRouter = router({
 
   // Admin Dashboard
   admin: adminRouter,
+
+  // Autonomous Agent
+  agent: agentRouter,
+
+  // Webdev Projects
+  webdev: webdevRouter,
+  deployment: deploymentRouter,
+
+  // MCP (Model Context Protocol)
+  mcp: mcpRouter,
+
+  // Swarm Coordination (Multi-Agent System)
+  swarm: swarmRouter,
+
+  // Knowledge & Training System
+  knowledge: knowledgeRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -301,4 +301,12 @@ export async function markOnboardingComplete(userId: number): Promise<void> {
   }
 }
 
+// Export pool for raw SQL queries (used by MCP database tools)
+export async function getPool(): Promise<pg.Pool | null> {
+  if (!_pool) {
+    await getDb(); // Initialize pool via getDb
+  }
+  return _pool;
+}
+
 // TODO: add feature queries here as your schema grows.

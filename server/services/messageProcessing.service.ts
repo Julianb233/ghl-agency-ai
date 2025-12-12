@@ -2,16 +2,20 @@
  * Message Processing Service
  * Parses incoming messages, extracts intent, and creates tasks
  * Uses AI to understand natural language instructions
+ * Supports both Claude (Anthropic) and OpenAI for intent extraction
  */
 
 import { getDb } from "../db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, desc } from "drizzle-orm";
 import {
   inboundMessages,
   agencyTasks,
   botConversations,
 } from "../../drizzle/schema-webhooks";
+import { automationWorkflows } from "../../drizzle/schema";
 import OpenAI from "openai";
+import Anthropic from "@anthropic-ai/sdk";
+import { addWorkflowExecutionJob } from "../workers/workflowWorker";
 
 // ========================================
 // TYPES
@@ -21,6 +25,7 @@ export interface ParsedMessage {
   intent: MessageIntent;
   entities: ExtractedEntity[];
   urgency: "low" | "medium" | "high" | "critical";
+  confidence: number;
   taskTitle?: string;
   taskDescription?: string;
   taskType?: string;
@@ -28,15 +33,22 @@ export interface ParsedMessage {
   scheduledFor?: Date;
   deadline?: Date;
   requiresConfirmation: boolean;
+  // Workflow-specific fields
+  workflowId?: number;
+  workflowName?: string;
+  workflowParameters?: Record<string, any>;
 }
 
 export type MessageIntent =
+  | "trigger_workflow"   // Trigger a browser automation workflow
   | "create_task"
   | "status_update"
   | "question"
   | "reminder"
   | "cancellation"
   | "follow_up"
+  | "list_workflows"     // List available workflows
+  | "help"               // Ask for help
   | "greeting"
   | "unknown";
 
@@ -49,6 +61,7 @@ export interface ExtractedEntity {
 export interface ProcessingResult {
   success: boolean;
   taskId?: number;
+  executionId?: number;  // Workflow execution ID
   reply?: string;
   error?: string;
 }
@@ -59,8 +72,18 @@ export interface ProcessingResult {
 
 export class MessageProcessingService {
   private openai: OpenAI | null = null;
+  private anthropic: Anthropic | null = null;
+  private preferClaude: boolean = true; // Prefer Claude when available
 
   constructor() {
+    // Initialize Anthropic (preferred)
+    if (process.env.ANTHROPIC_API_KEY) {
+      this.anthropic = new Anthropic({
+        apiKey: process.env.ANTHROPIC_API_KEY,
+      });
+    }
+
+    // Initialize OpenAI (fallback)
     if (process.env.OPENAI_API_KEY) {
       this.openai = new OpenAI({
         apiKey: process.env.OPENAI_API_KEY,
@@ -115,6 +138,46 @@ export class MessageProcessingService {
 
       // Handle based on intent
       switch (parsed.intent) {
+        case "trigger_workflow":
+          // Trigger a workflow execution
+          if (parsed.workflowId && !parsed.requiresConfirmation) {
+            const result = await this.triggerWorkflow(
+              userId,
+              parsed.workflowId,
+              parsed.workflowParameters || {},
+              message.id
+            );
+            if (result.success) {
+              reply = `Starting workflow "${parsed.workflowName || parsed.workflowId}"...\n\nExecution ID: ${result.executionId}\nI'll notify you when it's complete.`;
+              await db
+                .update(inboundMessages)
+                .set({ processingStatus: "workflow_triggered" })
+                .where(eq(inboundMessages.id, messageId));
+            } else {
+              reply = `Failed to start workflow: ${result.error}`;
+            }
+          } else if (parsed.requiresConfirmation) {
+            // Need to clarify which workflow
+            const workflows = await this.getUserWorkflows(userId);
+            if (workflows.length > 0) {
+              const workflowList = workflows.slice(0, 5).map(w => `- "${w.name}"`).join("\n");
+              reply = `Which workflow would you like to run? Here are your available workflows:\n\n${workflowList}\n\nPlease specify the workflow name.`;
+            } else {
+              reply = "You don't have any workflows configured yet. Would you like me to help you create one?";
+            }
+          } else {
+            reply = "I couldn't identify a workflow to run. Please specify the workflow name.";
+          }
+          break;
+
+        case "list_workflows":
+          reply = await this.handleListWorkflows(userId);
+          break;
+
+        case "help":
+          reply = this.handleHelp();
+          break;
+
         case "create_task":
           // Check if confirmation is needed
           if (parsed.requiresConfirmation) {
@@ -215,22 +278,134 @@ export class MessageProcessingService {
    * Parse message content to extract intent and entities
    */
   private async parseMessage(content: string, userId: number): Promise<ParsedMessage> {
+    // Get user's available workflows for context
+    const workflows = await this.getUserWorkflows(userId);
+
+    // If Claude is available (preferred), use it
+    if (this.anthropic && this.preferClaude) {
+      return this.parseWithClaude(content, workflows);
+    }
+
     // If OpenAI is available, use AI parsing
     if (this.openai) {
-      return this.parseWithAI(content);
+      return this.parseWithAI(content, workflows);
     }
 
     // Fallback to rule-based parsing
-    return this.parseWithRules(content);
+    return this.parseWithRules(content, workflows);
+  }
+
+  /**
+   * Get user's available workflows
+   */
+  private async getUserWorkflows(userId: number): Promise<Array<{ id: number; name: string; description: string | null }>> {
+    const db = await getDb();
+    if (!db) return [];
+
+    const workflows = await db
+      .select({
+        id: automationWorkflows.id,
+        name: automationWorkflows.name,
+        description: automationWorkflows.description,
+      })
+      .from(automationWorkflows)
+      .where(and(
+        eq(automationWorkflows.userId, userId),
+        eq(automationWorkflows.isActive, true)
+      ))
+      .orderBy(desc(automationWorkflows.executionCount))
+      .limit(20);
+
+    return workflows;
+  }
+
+  /**
+   * Parse message using Claude (Anthropic) - preferred
+   */
+  private async parseWithClaude(
+    content: string,
+    workflows: Array<{ id: number; name: string; description: string | null }>
+  ): Promise<ParsedMessage> {
+    if (!this.anthropic) {
+      return this.parseWithRules(content, workflows);
+    }
+
+    const workflowList = workflows.length > 0
+      ? workflows.map(w => `- ID ${w.id}: "${w.name}" - ${w.description || "No description"}`).join("\n")
+      : "No workflows available";
+
+    try {
+      const response = await this.anthropic.messages.create({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 500,
+        messages: [
+          {
+            role: "user",
+            content: `You are an AI assistant that parses messages from agency owners to understand their intent and determine what action to take.
+
+Available automation workflows for this user:
+${workflowList}
+
+Analyze the following message and return a JSON object with:
+- intent: one of "trigger_workflow", "create_task", "status_update", "question", "reminder", "cancellation", "follow_up", "list_workflows", "help", "greeting", "unknown"
+- confidence: number between 0 and 1 indicating how confident you are
+- urgency: "low", "medium", "high", or "critical" based on language cues
+- workflowId: (if intent is "trigger_workflow") the workflow ID to trigger from the list above
+- workflowName: (if intent is "trigger_workflow") the workflow name
+- workflowParameters: (if intent is "trigger_workflow") any parameters extracted from the message
+- taskTitle: a concise title for the task (if applicable)
+- taskDescription: detailed description of what needs to be done
+- taskType: one of "browser_automation", "api_call", "notification", "reminder", "ghl_action", "data_extraction", "report_generation", "custom"
+- category: task category like "client_work", "admin", "follow_up", "marketing", "general"
+- entities: array of extracted entities like dates, names, amounts
+- requiresConfirmation: true if the request is ambiguous and needs clarification
+
+User message: "${content}"
+
+Return only valid JSON, no markdown code blocks.`,
+          },
+        ],
+      });
+
+      const responseText = response.content[0].type === "text" ? response.content[0].text : "{}";
+      const parsed = JSON.parse(responseText);
+
+      return {
+        intent: parsed.intent || "unknown",
+        confidence: parsed.confidence || 0.5,
+        entities: parsed.entities || [],
+        urgency: parsed.urgency || "medium",
+        workflowId: parsed.workflowId,
+        workflowName: parsed.workflowName,
+        workflowParameters: parsed.workflowParameters,
+        taskTitle: parsed.taskTitle,
+        taskDescription: parsed.taskDescription,
+        taskType: parsed.taskType || "custom",
+        category: parsed.category || "general",
+        scheduledFor: parsed.scheduledFor ? new Date(parsed.scheduledFor) : undefined,
+        deadline: parsed.deadline ? new Date(parsed.deadline) : undefined,
+        requiresConfirmation: parsed.requiresConfirmation || false,
+      };
+    } catch (error) {
+      console.error("Claude parsing failed, falling back to rules:", error);
+      return this.parseWithRules(content, workflows);
+    }
   }
 
   /**
    * Parse message using AI (OpenAI)
    */
-  private async parseWithAI(content: string): Promise<ParsedMessage> {
+  private async parseWithAI(
+    content: string,
+    workflows: Array<{ id: number; name: string; description: string | null }>
+  ): Promise<ParsedMessage> {
     if (!this.openai) {
-      return this.parseWithRules(content);
+      return this.parseWithRules(content, workflows);
     }
+
+    const workflowList = workflows.length > 0
+      ? workflows.map(w => `- ID ${w.id}: "${w.name}" - ${w.description || "No description"}`).join("\n")
+      : "No workflows available";
 
     try {
       const response = await this.openai.chat.completions.create({
@@ -240,9 +415,16 @@ export class MessageProcessingService {
             role: "system",
             content: `You are an AI assistant that parses messages from agency owners to understand their intent and extract task information.
 
+Available automation workflows:
+${workflowList}
+
 Analyze the message and return a JSON object with:
-- intent: one of "create_task", "status_update", "question", "reminder", "cancellation", "follow_up", "greeting", "unknown"
+- intent: one of "trigger_workflow", "create_task", "status_update", "question", "reminder", "cancellation", "follow_up", "list_workflows", "help", "greeting", "unknown"
+- confidence: number between 0 and 1 indicating confidence
 - urgency: "low", "medium", "high", or "critical" based on language cues
+- workflowId: (if intent is "trigger_workflow") the workflow ID to trigger
+- workflowName: (if intent is "trigger_workflow") the workflow name
+- workflowParameters: (if intent is "trigger_workflow") any parameters extracted
 - taskTitle: a concise title for the task (if applicable)
 - taskDescription: detailed description of what needs to be done
 - taskType: one of "browser_automation", "api_call", "notification", "reminder", "ghl_action", "data_extraction", "report_generation", "custom"
@@ -266,8 +448,12 @@ Return only valid JSON, no markdown.`,
 
       return {
         intent: parsed.intent || "unknown",
+        confidence: parsed.confidence || 0.5,
         entities: parsed.entities || [],
         urgency: parsed.urgency || "medium",
+        workflowId: parsed.workflowId,
+        workflowName: parsed.workflowName,
+        workflowParameters: parsed.workflowParameters,
         taskTitle: parsed.taskTitle,
         taskDescription: parsed.taskDescription,
         taskType: parsed.taskType || "custom",
@@ -278,60 +464,104 @@ Return only valid JSON, no markdown.`,
       };
     } catch (error) {
       console.error("AI parsing failed, falling back to rules:", error);
-      return this.parseWithRules(content);
+      return this.parseWithRules(content, workflows);
     }
   }
 
   /**
    * Parse message using rule-based approach (fallback)
    */
-  private parseWithRules(content: string): ParsedMessage {
+  private parseWithRules(
+    content: string,
+    workflows: Array<{ id: number; name: string; description: string | null }>
+  ): ParsedMessage {
     const lowerContent = content.toLowerCase();
 
     // Detect intent
     let intent: MessageIntent = "unknown";
+    let matchedWorkflow: { id: number; name: string } | undefined;
 
-    if (
-      lowerContent.includes("create") ||
-      lowerContent.includes("add") ||
-      lowerContent.includes("schedule") ||
-      lowerContent.includes("set up") ||
-      lowerContent.includes("need to") ||
-      lowerContent.includes("please") ||
-      lowerContent.includes("can you")
-    ) {
-      intent = "create_task";
-    } else if (
-      lowerContent.includes("status") ||
-      lowerContent.includes("update") ||
-      lowerContent.includes("progress")
-    ) {
-      intent = "status_update";
-    } else if (
-      lowerContent.includes("?") ||
-      lowerContent.includes("what") ||
-      lowerContent.includes("how") ||
-      lowerContent.includes("when") ||
-      lowerContent.includes("where")
-    ) {
-      intent = "question";
-    } else if (
-      lowerContent.includes("remind") ||
-      lowerContent.includes("reminder")
-    ) {
-      intent = "reminder";
-    } else if (
-      lowerContent.includes("cancel") ||
-      lowerContent.includes("stop") ||
-      lowerContent.includes("delete")
-    ) {
-      intent = "cancellation";
-    } else if (
-      lowerContent.includes("hi") ||
-      lowerContent.includes("hello") ||
-      lowerContent.includes("hey")
-    ) {
-      intent = "greeting";
+    // First, check if user wants to trigger a specific workflow
+    for (const workflow of workflows) {
+      const workflowNameLower = workflow.name.toLowerCase();
+      if (
+        lowerContent.includes(workflowNameLower) ||
+        lowerContent.includes(`run ${workflowNameLower}`) ||
+        lowerContent.includes(`trigger ${workflowNameLower}`) ||
+        lowerContent.includes(`execute ${workflowNameLower}`) ||
+        lowerContent.includes(`start ${workflowNameLower}`)
+      ) {
+        intent = "trigger_workflow";
+        matchedWorkflow = { id: workflow.id, name: workflow.name };
+        break;
+      }
+    }
+
+    // Check for workflow-related keywords
+    if (intent === "unknown") {
+      if (
+        lowerContent.includes("run workflow") ||
+        lowerContent.includes("trigger workflow") ||
+        lowerContent.includes("execute workflow") ||
+        lowerContent.includes("start workflow") ||
+        lowerContent.includes("run automation") ||
+        lowerContent.includes("start automation")
+      ) {
+        intent = "trigger_workflow";
+      } else if (
+        lowerContent.includes("list workflows") ||
+        lowerContent.includes("show workflows") ||
+        lowerContent.includes("what workflows") ||
+        lowerContent.includes("available workflows")
+      ) {
+        intent = "list_workflows";
+      } else if (
+        lowerContent.includes("help") ||
+        lowerContent.includes("what can you do")
+      ) {
+        intent = "help";
+      } else if (
+        lowerContent.includes("create") ||
+        lowerContent.includes("add") ||
+        lowerContent.includes("schedule") ||
+        lowerContent.includes("set up") ||
+        lowerContent.includes("need to") ||
+        lowerContent.includes("please") ||
+        lowerContent.includes("can you")
+      ) {
+        intent = "create_task";
+      } else if (
+        lowerContent.includes("status") ||
+        lowerContent.includes("update") ||
+        lowerContent.includes("progress")
+      ) {
+        intent = "status_update";
+      } else if (
+        lowerContent.includes("?") ||
+        lowerContent.includes("what") ||
+        lowerContent.includes("how") ||
+        lowerContent.includes("when") ||
+        lowerContent.includes("where")
+      ) {
+        intent = "question";
+      } else if (
+        lowerContent.includes("remind") ||
+        lowerContent.includes("reminder")
+      ) {
+        intent = "reminder";
+      } else if (
+        lowerContent.includes("cancel") ||
+        lowerContent.includes("stop") ||
+        lowerContent.includes("delete")
+      ) {
+        intent = "cancellation";
+      } else if (
+        lowerContent.includes("hi") ||
+        lowerContent.includes("hello") ||
+        lowerContent.includes("hey")
+      ) {
+        intent = "greeting";
+      }
     }
 
     // Detect urgency
@@ -387,13 +617,17 @@ Return only valid JSON, no markdown.`,
 
     return {
       intent,
+      confidence: matchedWorkflow ? 0.8 : 0.5, // Higher confidence if we matched a workflow
       entities: [],
       urgency,
+      workflowId: matchedWorkflow?.id,
+      workflowName: matchedWorkflow?.name,
+      workflowParameters: {},
       taskTitle,
       taskDescription: content,
       taskType,
       category: "general",
-      requiresConfirmation: intent === "unknown",
+      requiresConfirmation: intent === "unknown" || (intent === "trigger_workflow" && !matchedWorkflow),
     };
   }
 
