@@ -21,9 +21,11 @@
     "postinstall": "node scripts/stub-pino-pretty.js"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.71.2",
     "@aws-sdk/client-s3": "^3.693.0",
     "@aws-sdk/s3-request-presigner": "^3.693.0",
     "@browserbasehq/sdk": "^2.6.0",
+    "@sparticuz/chromium": "^143.0.0",
     "@browserbasehq/stagehand": "^3.0.5",
     "@google/genai": "^1.33.0",
     "@microsoft/microsoft-graph-client": "^3.0.7",
@@ -89,6 +91,7 @@
     "papaparse": "^5.5.3",
     "pg": "^8.16.3",
     "pino": "^9.0.0",
+    "puppeteer-core": "^24.33.0",
     "pino-pretty": "^11.0.0",
     "playwright": "^1.56.1",
     "react": "^19.1.1",
