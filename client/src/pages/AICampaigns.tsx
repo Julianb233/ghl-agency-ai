@@ -4,6 +4,15 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Breadcrumb } from '@/components/ui/breadcrumb';
+import {
+  Empty,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+  EmptyDescription,
+  EmptyContent
+} from '@/components/ui/empty';
 import {
   Dialog,
   DialogContent,
@@ -144,7 +153,13 @@ export default function AICampaigns() {
     <div className="space-y-6">
       <div className="flex items-center justify-between" data-tour="campaigns-header">
         <div>
-          <h1 className="text-3xl font-bold">AI Campaigns</h1>
+          <Breadcrumb
+            items={[
+              { label: 'Dashboard', onClick: () => setLocation('/') },
+              { label: 'AI Campaigns' },
+            ]}
+          />
+          <h1 className="text-3xl font-bold mt-4">AI Campaigns</h1>
           <p className="text-muted-foreground mt-1">
             Create and manage AI calling campaigns
           </p>
@@ -187,21 +202,23 @@ export default function AICampaigns() {
           ))}
         </div>
       ) : campaigns.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-16">
-            <div className="rounded-full bg-accent p-6 mb-4">
-              <Phone className="h-12 w-12 text-muted-foreground" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2">No campaigns yet</h3>
-            <p className="text-muted-foreground mb-6 text-center max-w-md">
-              Create your first AI calling campaign to start reaching out to leads
-            </p>
+        <Empty className="border">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <Phone className="h-6 w-6" />
+            </EmptyMedia>
+            <EmptyTitle>No campaigns yet</EmptyTitle>
+            <EmptyDescription>
+              Create your first AI calling campaign to start reaching out to leads automatically with intelligent conversations.
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
             <Button onClick={() => setCreateDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Create Campaign
             </Button>
-          </CardContent>
-        </Card>
+          </EmptyContent>
+        </Empty>
       ) : (
         <div className="space-y-4" data-tour="campaigns-list">
           {campaigns.map((campaign: any) => {
@@ -304,7 +321,7 @@ export default function AICampaigns() {
 
                   <div className="grid grid-cols-5 gap-4 mb-4">
                     <div className="flex items-center gap-2">
-                      <Activity className="h-4 w-4 text-blue-500" />
+                      <Activity className="h-4 w-4 text-teal-500" />
                       <div>
                         <p className="text-2xl font-bold">{campaign.callsMade}</p>
                         <p className="text-xs text-muted-foreground">Calls Made</p>
@@ -328,7 +345,7 @@ export default function AICampaigns() {
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-purple-500" />
+                      <Phone className="h-4 w-4 text-emerald-500" />
                       <div>
                         <p className="text-2xl font-bold">{campaign.answered}</p>
                         <p className="text-xs text-muted-foreground">Answered</p>

@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { TourProvider } from "./components/tour/TourProvider";
+import { SkipNavLink } from "./components/SkipNavLink";
 import { trpc } from "@/lib/trpc";
 
 // Lazy load heavy components for better initial bundle size
@@ -19,7 +20,7 @@ const TermsOfService = lazy(() => import('./pages/TermsOfService').then(m => ({ 
 const LoadingSpinner = () => (
   <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-secondary/20 to-accent/10">
     <div className="flex flex-col items-center gap-4">
-      <div className="w-10 h-10 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+      <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
       <p className="text-sm text-slate-600">Loading...</p>
     </div>
   </div>
@@ -58,7 +59,7 @@ function App() {
     if (tier === 'GROWTH') setCredits(1500);
     if (tier === 'WHITELABEL') setCredits(5000);
 
-// Route to onboarding if needed, otherwise go to dashboard
+    // Route to onboarding if needed, otherwise go to dashboard
     if (needsOnboarding) {
       setCurrentView('ONBOARDING');
     } else {
@@ -69,19 +70,20 @@ function App() {
   if (isAuthLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-950">
-        <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
     <ErrorBoundary>
-      <ThemeProvider defaultTheme="dark">
+      <ThemeProvider defaultTheme="system" switchable={true}>
         <TooltipProvider>
           <TourProvider
             onboardingCompleted={user?.onboardingCompleted === true}
             isDashboardActive={currentView === 'DASHBOARD'}
           >
+            <SkipNavLink />
             <Toaster />
             <Suspense fallback={<LoadingSpinner />}>
               {currentView === 'ALEX_RAMOZY' && (
@@ -107,7 +109,9 @@ function App() {
               )}
 
               {currentView === 'DASHBOARD' && (
-                <Dashboard userTier={userTier} credits={credits} />
+                <main id="main-content">
+                  <Dashboard userTier={userTier} credits={credits} />
+                </main>
               )}
 
               {currentView === 'PRIVACY' && (

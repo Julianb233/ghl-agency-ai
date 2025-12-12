@@ -18,9 +18,9 @@ export function TourProgress({
 
   if (displayVariant === "text") {
     return (
-      <div className="flex items-center justify-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300">
+      <div className="flex items-center justify-center gap-2 text-sm font-medium text-slate-700">
         <span>
-          Step <span className="text-emerald-600 dark:text-emerald-400">{currentIndex + 1}</span> of{" "}
+          Step <span className="text-emerald-600">{currentIndex + 1}</span> of{" "}
           {totalSteps}
         </span>
       </div>
@@ -57,7 +57,7 @@ export function TourProgress({
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ duration: 0.2 }}
-                className="flex size-full items-center justify-center rounded-full bg-emerald-500 dark:bg-emerald-600"
+                className="flex size-full items-center justify-center rounded-full bg-emerald-500"
               >
                 <Check className="size-3.5 text-white" strokeWidth={3} />
               </motion.div>
@@ -66,8 +66,8 @@ export function TourProgress({
                 className={cn(
                   "size-full rounded-full transition-all duration-300",
                   isCurrent
-                    ? "bg-emerald-600 ring-4 ring-emerald-200 dark:bg-emerald-500 dark:ring-emerald-900/50"
-                    : "bg-slate-300 dark:bg-slate-600"
+                    ? "bg-emerald-600 ring-4 ring-emerald-200"
+                    : "bg-slate-300"
                 )}
               />
             )}

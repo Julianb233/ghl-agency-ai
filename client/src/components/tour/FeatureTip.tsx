@@ -42,7 +42,7 @@ export function FeatureTip({
       <Tooltip>
         <TooltipTrigger asChild>
           <button
-            className="inline-flex items-center justify-center w-4 h-4 text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 transition-colors"
+            className="inline-flex items-center justify-center w-4 h-4 text-emerald-600 hover:text-emerald-700 transition-colors"
             aria-label={`Feature tip: ${title}`}
           >
             <Info className="w-4 h-4" />

@@ -100,7 +100,7 @@ export function ColumnMapper({ columns, onMap, previewData = [] }: ColumnMapperP
       )}
 
       {errors.length === 0 && Object.keys(mapping).length > 0 && (
-        <div className="flex items-center gap-2 p-4 bg-green-50 dark:bg-green-950/20 text-green-700 dark:text-green-400 rounded-lg">
+        <div className="flex items-center gap-2 p-4 bg-green-50 text-green-700 rounded-lg">
           <CheckCircle2 className="h-5 w-5" />
           <p className="text-sm font-medium">All required fields are mapped</p>
         </div>

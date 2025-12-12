@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect } from "react";
 
 type Theme = "light" | "dark" | "system";
 
@@ -22,10 +22,12 @@ export function ThemeProvider({
   defaultTheme = "light",
   switchable = false,
 }: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (switchable) {
-      const stored = localStorage.getItem("theme");
-      return (stored as Theme) || defaultTheme;
+  const [theme, setThemeState] = React.useState<Theme>(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("theme") as Theme | null;
+      if (stored && ["light", "dark", "system"].includes(stored)) {
+        return stored;
+      }
     }
     return defaultTheme;
   });
@@ -33,43 +35,25 @@ export function ThemeProvider({
   useEffect(() => {
     const root = document.documentElement;
 
-    // Handle system theme preference
-    const applyTheme = (currentTheme: Theme) => {
-      if (currentTheme === "system") {
-        const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-        if (systemPrefersDark) {
-          root.classList.add("dark");
-        } else {
-          root.classList.remove("dark");
-        }
-      } else if (currentTheme === "dark") {
-        root.classList.add("dark");
-      } else {
-        root.classList.remove("dark");
-      }
-    };
-
-    applyTheme(theme);
-
-    // Listen for system theme changes when theme is set to "system"
     if (theme === "system") {
-      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-      const handleChange = () => applyTheme(theme);
-      mediaQuery.addEventListener("change", handleChange);
-      return () => mediaQuery.removeEventListener("change", handleChange);
+      const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      root.classList.toggle("dark", systemDark);
+    } else {
+      root.classList.toggle("dark", theme === "dark");
     }
 
-    // Store theme preference in localStorage
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
+  const setTheme = (newTheme: Theme) => {
     if (switchable) {
-      localStorage.setItem("theme", theme);
+      setThemeState(newTheme);
     }
-  }, [theme, switchable]);
+  };
 
-  const toggleTheme = switchable
-    ? () => {
-        setTheme(prev => (prev === "light" ? "dark" : "light"));
-      }
-    : undefined;
+  const toggleTheme = switchable ? () => {
+    setThemeState((prev) => (prev === "light" ? "dark" : "light"));
+  } : undefined;
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme, toggleTheme, switchable }}>

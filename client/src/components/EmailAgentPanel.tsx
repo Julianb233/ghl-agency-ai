@@ -106,7 +106,7 @@ export const EmailAgentPanel: React.FC = () => {
                                 <div className="space-y-3">
                                     <div className="flex items-center justify-between text-sm text-slate-700">
                                         <span>Auto-Draft Responses</span>
-                                        <div className="w-8 h-4 bg-indigo-600 rounded-full relative cursor-pointer"><div className="absolute right-1 top-0.5 w-3 h-3 bg-white rounded-full"></div></div>
+                                        <div className="w-8 h-4 bg-emerald-600 rounded-full relative cursor-pointer"><div className="absolute right-1 top-0.5 w-3 h-3 bg-white rounded-full"></div></div>
                                     </div>
                                     <div className="flex items-center justify-between text-sm text-slate-700">
                                         <span>Auto-Send (High Confidence)</span>
@@ -114,7 +114,7 @@ export const EmailAgentPanel: React.FC = () => {
                                     </div>
                                     <div className="flex items-center justify-between text-sm text-slate-700">
                                         <span>Tone Matching</span>
-                                        <div className="w-8 h-4 bg-indigo-600 rounded-full relative cursor-pointer"><div className="absolute right-1 top-0.5 w-3 h-3 bg-white rounded-full"></div></div>
+                                        <div className="w-8 h-4 bg-emerald-600 rounded-full relative cursor-pointer"><div className="absolute right-1 top-0.5 w-3 h-3 bg-white rounded-full"></div></div>
                                     </div>
                                 </div>
                             </div>

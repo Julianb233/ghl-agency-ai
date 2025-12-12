@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Breadcrumb } from '@/components/ui/breadcrumb';
 import {
   Select,
   SelectContent,
@@ -10,6 +11,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
+import {
+  Empty,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+  EmptyDescription,
+  EmptyContent
+} from '@/components/ui/empty';
 import { LeadListCard } from '@/components/leads/LeadListCard';
 import { CreditBalance } from '@/components/leads/CreditBalance';
 import { useLeadEnrichment } from '@/hooks/useLeadEnrichment';
@@ -110,7 +119,13 @@ export default function LeadLists() {
     <div className="space-y-6">
       <div className="flex items-center justify-between" data-tour="leads-header">
         <div>
-          <h1 className="text-3xl font-bold">Lead Lists</h1>
+          <Breadcrumb
+            items={[
+              { label: 'Dashboard', onClick: () => setLocation('/') },
+              { label: 'Lead Lists' },
+            ]}
+          />
+          <h1 className="text-3xl font-bold mt-4">Lead Lists</h1>
           <p className="text-muted-foreground mt-1">
             Upload, enrich, and manage your lead lists
           </p>
@@ -134,8 +149,8 @@ export default function LeadLists() {
                 <p className="text-sm font-medium text-muted-foreground">Total Lists</p>
                 <p className="text-2xl font-bold">{stats.totalLists}</p>
               </div>
-              <div className="rounded-full bg-blue-100 dark:bg-blue-950 p-3">
-                <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              <div className="rounded-full bg-teal-100 p-3">
+                <Users className="h-6 w-6 text-teal-600" />
               </div>
             </div>
           </CardContent>
@@ -148,8 +163,8 @@ export default function LeadLists() {
                 <p className="text-sm font-medium text-muted-foreground">Total Leads</p>
                 <p className="text-2xl font-bold">{stats.totalLeads.toLocaleString()}</p>
               </div>
-              <div className="rounded-full bg-purple-100 dark:bg-purple-950 p-3">
-                <TrendingUp className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+              <div className="rounded-full bg-emerald-100 p-3">
+                <TrendingUp className="h-6 w-6 text-emerald-600" />
               </div>
             </div>
           </CardContent>
@@ -162,8 +177,8 @@ export default function LeadLists() {
                 <p className="text-sm font-medium text-muted-foreground">Enriched Leads</p>
                 <p className="text-2xl font-bold">{stats.enrichedLeads.toLocaleString()}</p>
               </div>
-              <div className="rounded-full bg-green-100 dark:bg-green-950 p-3">
-                <CheckCircle2 className="h-6 w-6 text-green-600 dark:text-green-400" />
+              <div className="rounded-full bg-green-100 p-3">
+                <CheckCircle2 className="h-6 w-6 text-green-600" />
               </div>
             </div>
           </CardContent>
@@ -176,8 +191,8 @@ export default function LeadLists() {
                 <p className="text-sm font-medium text-muted-foreground">Credits Used</p>
                 <p className="text-2xl font-bold">{stats.creditsUsed.toLocaleString()}</p>
               </div>
-              <div className="rounded-full bg-yellow-100 dark:bg-yellow-950 p-3">
-                <Coins className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
+              <div className="rounded-full bg-yellow-100 p-3">
+                <Coins className="h-6 w-6 text-yellow-600" />
               </div>
             </div>
           </CardContent>
@@ -221,25 +236,27 @@ export default function LeadLists() {
           ))}
         </div>
       ) : filteredLists.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-16">
-            <div className="rounded-full bg-accent p-6 mb-4">
-              <Users className="h-12 w-12 text-muted-foreground" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2">No lead lists yet</h3>
-            <p className="text-muted-foreground mb-6 text-center max-w-md">
+        <Empty className="border">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <Users className="h-6 w-6" />
+            </EmptyMedia>
+            <EmptyTitle>No lead lists yet</EmptyTitle>
+            <EmptyDescription>
               {searchQuery || statusFilter !== 'all'
-                ? 'No lists match your search criteria'
-                : 'Upload your first lead list to get started with enrichment'}
-            </p>
-            {!searchQuery && statusFilter === 'all' && (
+                ? 'No lists match your search criteria. Try adjusting your filters.'
+                : 'Upload your first lead list to get started with enrichment and unlock powerful lead management features.'}
+            </EmptyDescription>
+          </EmptyHeader>
+          {!searchQuery && statusFilter === 'all' && (
+            <EmptyContent>
               <Button onClick={() => setLocation('/lead-lists/upload')}>
                 <Plus className="h-4 w-4 mr-2" />
                 Upload Lead List
               </Button>
-            )}
-          </CardContent>
-        </Card>
+            </EmptyContent>
+          )}
+        </Empty>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-tour="leads-list">
           {filteredLists.map((list: LeadList) => (

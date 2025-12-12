@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { trpc } from '../lib/trpc';
+import { useTourStore } from '@/stores/tourStore';
 // Gemini service removed - will be implemented server-side via tRPC
 import { MissionStatus } from './MissionStatus';
 import { executeStep } from '../services/mockAutomation';
@@ -74,6 +75,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
+
+  // Welcome tour - only show once after user reaches dashboard (post-onboarding)
+  const { hasSeenWelcome, autoStartTours, startTour, setHasSeenWelcome } = useTourStore();
+
+  useEffect(() => {
+    if (autoStartTours && !hasSeenWelcome) {
+      // Delay slightly to let dashboard render first
+      const timer = setTimeout(() => {
+        startTour('welcome');
+        setHasSeenWelcome(true);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [autoStartTours, hasSeenWelcome, startTour, setHasSeenWelcome]);
 
   const [status, setStatus] = useState<AgentStatus>(AgentStatus.IDLE);
   const [task, setTask] = useState<AgentTask | null>(null);
@@ -574,12 +589,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-emerald-100 via-slate-50 to-white text-slate-800 font-sans selection:bg-emerald-100 selection:text-emerald-900">
+    <div className="min-h-screen bg-gray-50 text-slate-800 font-sans selection:bg-emerald-100 selection:text-emerald-900">
       {/* Skip Navigation Link for Accessibility */}
       <SkipLink href="#dashboard-main" />
 
       {/* Header */}
-      <header className="border-b border-white/60 bg-white/40 backdrop-blur-xl sticky top-0 z-40" role="banner">
+      <header className="border-b border-gray-200 bg-white shadow-sm sticky top-0 z-40" role="banner">
         <div className="max-w-[2000px] mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20 text-white font-bold font-mono text-lg">
@@ -637,10 +652,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
       <div className="flex max-w-[2000px] mx-auto h-[calc(100vh-64px)]">
 
         {/* Navigation Rail - Hidden on mobile */}
-        <nav className="hidden md:flex w-16 flex-col items-center py-4 gap-4 border-r border-white/50 bg-white/30" role="navigation" aria-label="Main navigation">
+        <nav className="hidden md:flex w-16 flex-col items-center py-4 gap-4 border-r border-gray-200 bg-white" role="navigation" aria-label="Main navigation">
           <button
             onClick={() => setViewMode('GLOBAL')}
-            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${viewMode === 'GLOBAL' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30' : 'text-slate-400 hover:bg-white/60 hover:text-emerald-500'}`}
+            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${viewMode === 'GLOBAL' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30' : 'text-slate-400 hover:bg-gray-100 hover:text-emerald-500'}`}
             aria-label="Global Operations"
             aria-current={viewMode === 'GLOBAL' ? 'page' : undefined}
           >
@@ -649,7 +664,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
 
           <button
             onClick={() => setViewMode('TERMINAL')}
-            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${viewMode === 'TERMINAL' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30' : 'text-slate-400 hover:bg-white/60 hover:text-emerald-500'}`}
+            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${viewMode === 'TERMINAL' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30' : 'text-slate-400 hover:bg-gray-100 hover:text-emerald-500'}`}
             aria-label="Live Terminal"
             aria-current={viewMode === 'TERMINAL' ? 'page' : undefined}
           >
@@ -658,7 +673,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
 
           <button
             onClick={() => setViewMode('EMAIL_AGENT')}
-            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${viewMode === 'EMAIL_AGENT' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30' : 'text-slate-400 hover:bg-white/60 hover:text-emerald-500'}`}
+            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${viewMode === 'EMAIL_AGENT' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30' : 'text-slate-400 hover:bg-gray-100 hover:text-emerald-500'}`}
             aria-label="AI Email Agent"
             aria-current={viewMode === 'EMAIL_AGENT' ? 'page' : undefined}
           >
@@ -667,7 +682,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
 
           <button
             onClick={() => setViewMode('VOICE_AGENT')}
-            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${viewMode === 'VOICE_AGENT' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30' : 'text-slate-400 hover:bg-white/60 hover:text-emerald-500'}`}
+            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${viewMode === 'VOICE_AGENT' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30' : 'text-slate-400 hover:bg-gray-100 hover:text-emerald-500'}`}
             aria-label="AI Voice Agent"
             aria-current={viewMode === 'VOICE_AGENT' ? 'page' : undefined}
           >
@@ -676,7 +691,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
 
           <button
             onClick={() => setViewMode('SEO')}
-            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${viewMode === 'SEO' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30' : 'text-slate-400 hover:bg-white/60 hover:text-slate-600'}`}
+            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${viewMode === 'SEO' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30' : 'text-slate-400 hover:bg-gray-100 hover:text-slate-600'}`}
             aria-label="SEO and Reports"
             aria-current={viewMode === 'SEO' ? 'page' : undefined}
           >
@@ -685,7 +700,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
 
           <button
             onClick={() => setViewMode('ADS')}
-            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${viewMode === 'ADS' ? 'bg-pink-600 text-white shadow-lg shadow-pink-500/30' : 'text-slate-400 hover:bg-white/60 hover:text-slate-600'}`}
+            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${viewMode === 'ADS' ? 'bg-pink-600 text-white shadow-lg shadow-pink-500/30' : 'text-slate-400 hover:bg-gray-100 hover:text-slate-600'}`}
             aria-label="AI Ad Manager"
             aria-current={viewMode === 'ADS' ? 'page' : undefined}
           >
@@ -694,7 +709,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
 
           <button
             onClick={() => setViewMode('MARKETPLACE')}
-            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${viewMode === 'MARKETPLACE' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30' : 'text-slate-400 hover:bg-white/60 hover:text-slate-600'}`}
+            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${viewMode === 'MARKETPLACE' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30' : 'text-slate-400 hover:bg-gray-100 hover:text-slate-600'}`}
             aria-label="Marketplace"
             aria-current={viewMode === 'MARKETPLACE' ? 'page' : undefined}
           >
@@ -703,7 +718,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
 
           <button
             onClick={() => setViewMode('AI_BROWSER')}
-            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${viewMode === 'AI_BROWSER' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30' : 'text-slate-400 hover:bg-white/60 hover:text-emerald-500'}`}
+            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${viewMode === 'AI_BROWSER' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30' : 'text-slate-400 hover:bg-gray-100 hover:text-emerald-500'}`}
             aria-label="AI Browser"
             aria-current={viewMode === 'AI_BROWSER' ? 'page' : undefined}
           >
@@ -714,7 +729,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
 
           <button
             onClick={() => setViewMode('SETTINGS')}
-            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${viewMode === 'SETTINGS' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30' : 'text-slate-400 hover:bg-white/60 hover:text-slate-600'}`}
+            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${viewMode === 'SETTINGS' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30' : 'text-slate-400 hover:bg-gray-100 hover:text-slate-600'}`}
             aria-label="Settings"
             aria-current={viewMode === 'SETTINGS' ? 'page' : undefined}
           >
@@ -769,7 +784,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
             <div className="h-full flex flex-col md:grid md:grid-cols-12 gap-4 overflow-hidden">
 
               {/* Mobile Terminal Tabs */}
-              <div className="md:hidden flex bg-white/50 p-1 rounded-lg mb-2 shrink-0">
+              <div className="md:hidden flex bg-gray-100 p-1 rounded-lg mb-2 shrink-0">
                 <button
                   onClick={() => setMobileTerminalTab('CONTEXT')}
                   className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${mobileTerminalTab === 'CONTEXT' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-500'}`}
@@ -913,37 +928,37 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
               </div>
 
               {/* Right Sidebar: Logs, Resources & Team */}
-              <div className={`${mobileTerminalTab === 'LOGS' ? 'flex' : 'hidden'} md:flex col-span-1 md:col-span-3 flex-col gap-0 h-full min-h-0 glass-panel rounded-2xl overflow-hidden order-3`}>
+              <div className={`${mobileTerminalTab === 'LOGS' ? 'flex' : 'hidden'} md:flex col-span-1 md:col-span-3 flex-col gap-0 h-full min-h-0 bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden order-3`}>
                 {/* Tabs */}
-                <div className="flex border-b border-white/50 bg-white/30">
+                <div className="flex border-b border-gray-200 bg-gray-50">
                   <button
                     onClick={() => setRightPanelTab('tickets')}
-                    className={`flex-1 py-3 text-xs font-bold transition-colors ${rightPanelTab === 'tickets' ? 'text-emerald-600 border-b-2 border-emerald-600 bg-white/40' : 'text-slate-500 hover:text-slate-700'}`}
+                    className={`flex-1 py-3 text-xs font-bold transition-colors ${rightPanelTab === 'tickets' ? 'text-emerald-600 border-b-2 border-emerald-600 bg-white' : 'text-slate-500 hover:text-slate-700'}`}
                   >
                     Tickets
                   </button>
                   <button
                     onClick={() => setRightPanelTab('logs')}
-                    className={`flex-1 py-3 text-xs font-bold transition-colors ${rightPanelTab === 'logs' ? 'text-emerald-600 border-b-2 border-emerald-600 bg-white/40' : 'text-slate-500 hover:text-slate-700'}`}
+                    className={`flex-1 py-3 text-xs font-bold transition-colors ${rightPanelTab === 'logs' ? 'text-emerald-600 border-b-2 border-emerald-600 bg-white' : 'text-slate-500 hover:text-slate-700'}`}
                   >
                     Logs
                   </button>
                   <button
                     onClick={() => setRightPanelTab('team')}
-                    className={`flex-1 py-3 text-xs font-bold transition-colors ${rightPanelTab === 'team' ? 'text-emerald-600 border-b-2 border-emerald-600 bg-white/40' : 'text-slate-500 hover:text-slate-700'}`}
+                    className={`flex-1 py-3 text-xs font-bold transition-colors ${rightPanelTab === 'team' ? 'text-emerald-600 border-b-2 border-emerald-600 bg-white' : 'text-slate-500 hover:text-slate-700'}`}
                   >
                     Team
                   </button>
                   <button
                     onClick={() => setRightPanelTab('resources')}
-                    className={`flex-1 py-3 text-xs font-bold transition-colors ${rightPanelTab === 'resources' ? 'text-emerald-600 border-b-2 border-emerald-600 bg-white/40' : 'text-slate-500 hover:text-slate-700'}`}
+                    className={`flex-1 py-3 text-xs font-bold transition-colors ${rightPanelTab === 'resources' ? 'text-emerald-600 border-b-2 border-emerald-600 bg-white' : 'text-slate-500 hover:text-slate-700'}`}
                   >
                     Resources
                   </button>
                 </div>
 
                 {/* Tab Content */}
-                <div className="flex-1 overflow-y-auto bg-white/40 p-0">
+                <div className="flex-1 overflow-y-auto bg-white p-0">
                   {rightPanelTab === 'logs' && (
                     <TerminalLog logs={logs} />
                   )}

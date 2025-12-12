@@ -20,7 +20,7 @@ export const GlobalOps: React.FC<GlobalOpsProps> = ({ clients, agents, activitie
       case AgentStatus.EXECUTING: return 'text-emerald-600 bg-emerald-50 border-emerald-200';
       case AgentStatus.PLANNING: return 'text-amber-600 bg-amber-50 border-amber-200';
       case AgentStatus.ERROR: return 'text-red-600 bg-red-50 border-red-200';
-      case AgentStatus.COMPLETED: return 'text-indigo-600 bg-indigo-50 border-indigo-200';
+      case AgentStatus.COMPLETED: return 'text-emerald-600 bg-emerald-50 border-emerald-200';
       default: return 'text-slate-500 bg-slate-50 border-slate-200';
     }
   };
@@ -31,13 +31,13 @@ export const GlobalOps: React.FC<GlobalOpsProps> = ({ clients, agents, activitie
       {/* Fast Start Guide Panel */}
       {showGuide && (
         <div className="shrink-0 relative group animate-slide-in-top duration-700">
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl opacity-20 blur group-hover:opacity-30 transition duration-1000"></div>
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl opacity-20 blur group-hover:opacity-30 transition duration-1000"></div>
           <GlassPane className="relative p-6">
             <button onClick={() => setShowGuide(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors" title="Dismiss Guide">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
             <div className="flex flex-col md:flex-row items-start gap-6">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center shadow-lg text-white shrink-0">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-600 flex items-center justify-center shadow-lg text-white shrink-0">
                 <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
               </div>
               <div className="flex-1">
@@ -49,7 +49,7 @@ export const GlobalOps: React.FC<GlobalOpsProps> = ({ clients, agents, activitie
                 <div className="grid md:grid-cols-3 gap-4">
                   {/* Step 1 */}
                   <div className="flex items-center gap-3 p-4 rounded-xl bg-white/60 border border-white/60 shadow-sm">
-                    <div className="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-lg shadow-inner">1</div>
+                    <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-lg shadow-inner">1</div>
                     <div>
                       <p className="font-bold text-slate-800">Select Client</p>
                       <p className="text-xs text-slate-500">Choose a sub-account below</p>
@@ -57,7 +57,7 @@ export const GlobalOps: React.FC<GlobalOpsProps> = ({ clients, agents, activitie
                   </div>
                   {/* Step 2 */}
                   <div className="flex items-center gap-3 p-4 rounded-xl bg-white/60 border border-white/60 shadow-sm">
-                    <div className="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center font-bold text-lg shadow-inner">2</div>
+                    <div className="w-10 h-10 rounded-full bg-teal-100 text-teal-600 flex items-center justify-center font-bold text-lg shadow-inner">2</div>
                     <div>
                       <p className="font-bold text-slate-800">Enter Terminal</p>
                       <p className="text-xs text-slate-500">Access the live agent console</p>

@@ -37,7 +37,6 @@ import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
-import { ThemeToggle } from "./ThemeToggle";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/" },
@@ -197,7 +196,8 @@ function DashboardLayoutContent({
                   />
                   <button
                     onClick={toggleSidebar}
-                    className="absolute inset-0 flex items-center justify-center bg-accent rounded-md ring-1 ring-border opacity-0 group-hover:opacity-100 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="absolute inset-0 min-h-[44px] min-w-[44px] flex items-center justify-center bg-accent rounded-md ring-1 ring-border opacity-0 group-hover:opacity-100 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    aria-label="Expand sidebar"
                   >
                     <PanelLeft className="h-4 w-4 text-foreground" />
                   </button>
@@ -216,7 +216,8 @@ function DashboardLayoutContent({
                   </div>
                   <button
                     onClick={toggleSidebar}
-                    className="ml-auto h-8 w-8 flex items-center justify-center hover:bg-accent rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring shrink-0"
+                    className="ml-auto min-h-[44px] min-w-[44px] flex items-center justify-center hover:bg-accent rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring shrink-0"
+                    aria-label="Collapse sidebar"
                   >
                     <PanelLeft className="h-4 w-4 text-muted-foreground" />
                   </button>
@@ -243,7 +244,11 @@ function DashboardLayoutContent({
                       isActive={isActive}
                       onClick={() => setLocation(item.path)}
                       tooltip={item.label}
-                      className={`h-10 transition-all font-normal`}
+                      className={`min-h-[44px] transition-all font-normal ${
+                        isActive
+                          ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-50 hover:text-emerald-700"
+                          : "hover:bg-gray-100"
+                      }`}
                       data-tour={tourId}
                     >
                       <item.icon
@@ -258,15 +263,9 @@ function DashboardLayoutContent({
           </SidebarContent>
 
           <SidebarFooter className="p-3">
-            <div className="flex items-center justify-between gap-2 mb-2 px-1">
-              <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
-                <span className="text-xs text-muted-foreground">Theme</span>
-              </div>
-              <ThemeToggle />
-            </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-3 rounded-lg px-1 py-1 hover:bg-accent/50 transition-colors w-full text-left group-data-[collapsible=icon]:justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                <button className="flex items-center gap-3 rounded-lg px-1 py-1 min-h-[44px] hover:bg-accent/50 transition-colors w-full text-left group-data-[collapsible=icon]:justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="User menu">
                   <Avatar className="h-9 w-9 border shrink-0">
                     <AvatarFallback className="text-xs font-medium">
                       {user?.name?.charAt(0).toUpperCase()}
@@ -306,12 +305,12 @@ function DashboardLayoutContent({
 
       <SidebarInset>
         {isMobile && (
-          <div className="flex border-b h-14 items-center justify-between bg-background/95 px-2 backdrop-blur supports-[backdrop-filter]:backdrop-blur sticky top-0 z-40">
+          <div className="flex border-b h-14 items-center justify-between bg-white px-2 sticky top-0 z-40">
             <div className="flex items-center gap-2">
-              <SidebarTrigger className="h-9 w-9 rounded-lg bg-background" />
+              <SidebarTrigger className="h-9 w-9 rounded-lg" />
               <div className="flex items-center gap-3">
                 <div className="flex flex-col gap-1">
-                  <span className="tracking-tight text-foreground">
+                  <span className="tracking-tight text-gray-900">
                     {activeMenuItem?.label ?? APP_TITLE}
                   </span>
                 </div>
@@ -319,7 +318,7 @@ function DashboardLayoutContent({
             </div>
           </div>
         )}
-        <main className="flex-1 p-4">{children}</main>
+        <main className="flex-1 p-4 bg-gray-50">{children}</main>
       </SidebarInset>
     </>
   );

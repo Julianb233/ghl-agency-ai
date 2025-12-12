@@ -42,13 +42,13 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
       <div className="bg-slate-800 text-white font-mono font-bold text-lg sm:text-2xl px-2 sm:px-3 py-1 sm:py-2 rounded-lg min-w-[40px] sm:min-w-[56px] text-center">
         {value.toString().padStart(2, '0')}
       </div>
-      <span className="text-[10px] sm:text-xs text-purple-300 mt-1 uppercase tracking-wide">{label}</span>
+      <span className="text-xs text-slate-600 mt-1 uppercase tracking-wide">{label}</span>
     </div>
   );
 
   return (
     <div className="inline-flex flex-col items-center">
-      <div className="flex items-center gap-1.5 text-yellow-400 mb-2 sm:mb-3">
+      <div className="flex items-center gap-1.5 text-amber-800 mb-2 sm:mb-3">
         <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-pulse" />
         <span className="text-xs sm:text-sm font-bold uppercase tracking-wide">{label}</span>
       </div>
