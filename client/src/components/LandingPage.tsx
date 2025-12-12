@@ -2,6 +2,23 @@ import React, { useState } from 'react';
 import { Button } from './ui/button';
 import { ArrowRight, CheckCircle2, Zap, Globe, Mail, Phone, BarChart3, Shield, Users, Clock, DollarSign, TrendingUp, Target, Sparkles, Crown, Rocket, Brain, Play, Menu, X } from 'lucide-react';
 import { SkipLink } from './SkipLink';
+import { ExitIntentPopup } from './ExitIntentPopup';
+
+// Optimized image component with lazy loading
+const OptimizedImage: React.FC<{
+  src: string;
+  alt: string;
+  className?: string;
+  priority?: boolean;
+}> = ({ src, alt, className = '', priority = false }) => (
+  <img
+    src={src}
+    alt={alt}
+    className={className}
+    loading={priority ? 'eager' : 'lazy'}
+    decoding="async"
+  />
+);
 
 interface LandingPageProps {
   onLogin: () => void;
@@ -18,6 +35,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary/20 to-accent/10 flex flex-col font-sans text-foreground">
+      {/* Exit Intent Popup */}
+      <ExitIntentPopup onSignUp={onLogin} />
+
       {/* Skip Navigation Link for Accessibility */}
       <SkipLink />
 
@@ -171,10 +191,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
           <div className="mt-12 sm:mt-20 relative max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-600 px-4">
             <div className="absolute -inset-4 sm:-inset-6 bg-gradient-to-r from-purple-500 via-blue-500 to-cyan-500 rounded-2xl sm:rounded-3xl opacity-30 blur-3xl animate-pulse-slow"></div>
             <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border-2 border-white/50 bg-white/80 backdrop-blur-sm">
-              <img
+              <OptimizedImage
                 src="/assets/demo/global_ops_view_1763563925931.png"
                 alt="Live AI Agent Dashboard - Real-time operations view"
                 className="w-full"
+                priority
               />
             </div>
           </div>
@@ -337,7 +358,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                 {/* Social Proof Snippet */}
                 <div className="bg-white/80 backdrop-blur-sm p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-purple-200/50 shadow-lg">
                   <div className="flex items-start gap-3">
-                    <img
+                    <OptimizedImage
                       src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=96&h=96&fit=crop&crop=face"
                       alt="Marcus T."
                       className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-purple-200 flex-shrink-0"
@@ -361,7 +382,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                 <div className="relative group">
                   <div className="absolute -inset-2 sm:-inset-4 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl sm:rounded-2xl opacity-20 group-hover:opacity-30 blur-2xl transition-opacity"></div>
                   <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border-2 border-white/50 bg-white/80 backdrop-blur-sm transform group-hover:scale-[1.02] transition-transform duration-300">
-                    <img
+                    <OptimizedImage
                       src="/assets/demo/global_ops_view_1763563925931.png"
                       alt="Global Operations Command Center - Real-time agent monitoring"
                       className="w-full"
@@ -406,7 +427,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
 
                 <div className="bg-white/80 backdrop-blur-sm p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-pink-200/50 shadow-lg">
                   <div className="flex items-start gap-3">
-                    <img
+                    <OptimizedImage
                       src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=96&h=96&fit=crop&crop=face"
                       alt="Sarah K."
                       className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-pink-200 flex-shrink-0"
@@ -477,7 +498,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
 
                 <div className="bg-white/80 backdrop-blur-sm p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-cyan-200/50 shadow-lg">
                   <div className="flex items-start gap-3">
-                    <img
+                    <OptimizedImage
                       src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=96&h=96&fit=crop&crop=face"
                       alt="David R."
                       className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-cyan-200 flex-shrink-0"
@@ -652,7 +673,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin }) => {
                 </div>
                 <p className="text-sm sm:text-base text-slate-700 mb-4 leading-relaxed italic">"{testimonial.quote}"</p>
                 <div className="flex items-center gap-3">
-                  <img
+                  <OptimizedImage
                     src={testimonial.image}
                     alt={testimonial.name}
                     className="w-12 h-12 rounded-full object-cover border-2 border-purple-200 group-hover:border-purple-400 transition-colors"
