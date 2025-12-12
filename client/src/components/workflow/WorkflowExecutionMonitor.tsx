@@ -440,11 +440,11 @@ export const WorkflowExecutionMonitor: React.FC<WorkflowExecutionMonitorProps> =
                   </div>
                 </div>
 
-                <ScrollArea
-                  ref={scrollAreaRef}
-                  className="h-64 rounded-lg border bg-muted/30"
-                  aria-label="Execution logs"
-                >
+                <div role="region" aria-label="Execution logs">
+                  <ScrollArea
+                    ref={scrollAreaRef}
+                    className="h-64 rounded-lg border bg-muted/30"
+                  >
                   <div className="p-4 space-y-2 font-mono text-xs">
                     {filteredLogs.length === 0 ? (
                       <p className="text-center text-muted-foreground py-4">
@@ -467,7 +467,8 @@ export const WorkflowExecutionMonitor: React.FC<WorkflowExecutionMonitorProps> =
                       ))
                     )}
                   </div>
-                </ScrollArea>
+                  </ScrollArea>
+                </div>
               </div>
 
               {/* Live status region for screen readers */}

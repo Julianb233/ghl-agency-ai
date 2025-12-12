@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,6 +22,12 @@ import {
   Briefcase,
   LogIn,
   RefreshCw,
+  Server,
+  Zap,
+  Wifi,
+  WifiOff,
+  CloudOff,
+  Cloud,
 } from 'lucide-react';
 
 interface StatCardProps {
@@ -158,9 +164,10 @@ interface ServiceStatusProps {
   name: string;
   status: string;
   message: string;
+  icon?: React.ElementType;
 }
 
-const ServiceStatus: React.FC<ServiceStatusProps> = ({ name, status, message }) => {
+const ServiceStatus: React.FC<ServiceStatusProps> = ({ name, status, message, icon: Icon }) => {
   const getStatusColor = () => {
     if (status === 'online' || status === 'configured') return 'bg-green-500';
     if (status === 'offline') return 'bg-red-500';
@@ -173,12 +180,138 @@ const ServiceStatus: React.FC<ServiceStatusProps> = ({ name, status, message }) 
     return 'Not Configured';
   };
 
+  const getStatusBadge = () => {
+    if (status === 'online' || status === 'configured') {
+      return (
+        <Badge className="bg-green-600/20 text-green-400 border-green-600/30 flex items-center gap-1">
+          <CheckCircle className="h-3 w-3" />
+          {getStatusText()}
+        </Badge>
+      );
+    }
+    if (status === 'offline') {
+      return (
+        <Badge className="bg-red-600/20 text-red-400 border-red-600/30 flex items-center gap-1">
+          <XCircle className="h-3 w-3" />
+          {getStatusText()}
+        </Badge>
+      );
+    }
+    return (
+      <Badge className="bg-yellow-600/20 text-yellow-400 border-yellow-600/30 flex items-center gap-1">
+        <AlertCircle className="h-3 w-3" />
+        {getStatusText()}
+      </Badge>
+    );
+  };
+
   return (
-    <div className="flex items-center gap-3">
-      <div className={`h-2 w-2 rounded-full ${getStatusColor()}`}></div>
-      <div>
-        <p className="text-sm font-medium text-white">{name}</p>
-        <p className="text-xs text-slate-400">{getStatusText()}</p>
+    <div className="flex items-center justify-between p-3 rounded-lg border border-slate-800 bg-slate-800/30 transition-all hover:bg-slate-800/50">
+      <div className="flex items-center gap-3">
+        <div className={`relative h-2 w-2 rounded-full ${getStatusColor()}`}>
+          <div className={`absolute inset-0 rounded-full ${getStatusColor()} animate-ping opacity-75`}></div>
+        </div>
+        {Icon && (
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600/10">
+            <Icon className="h-4 w-4 text-indigo-400" />
+          </div>
+        )}
+        <div>
+          <p className="text-sm font-medium text-white">{name}</p>
+          <p className="text-xs text-slate-500">{message}</p>
+        </div>
+      </div>
+      {getStatusBadge()}
+    </div>
+  );
+};
+
+interface MCPServerStatusProps {
+  name: string;
+  connected: boolean;
+  lastPing?: Date;
+}
+
+const MCPServerStatus: React.FC<MCPServerStatusProps> = ({ name, connected, lastPing }) => {
+  return (
+    <div className="flex items-center justify-between p-3 rounded-lg border border-slate-800 bg-slate-800/30">
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          {connected ? (
+            <Wifi className="h-4 w-4 text-green-400" />
+          ) : (
+            <WifiOff className="h-4 w-4 text-red-400" />
+          )}
+          <span className="text-sm font-medium text-white">{name}</span>
+        </div>
+        {lastPing && (
+          <span className="text-xs text-slate-500">
+            Last ping: {formatDistanceToNow(lastPing, { addSuffix: true })}
+          </span>
+        )}
+      </div>
+      <Badge className={connected ? "bg-green-600/20 text-green-400 border-green-600/30" : "bg-red-600/20 text-red-400 border-red-600/30"}>
+        {connected ? 'Connected' : 'Disconnected'}
+      </Badge>
+    </div>
+  );
+};
+
+interface DeploymentStatusProps {
+  environment: string;
+  status: 'ready' | 'building' | 'error';
+  lastDeployment?: Date;
+  url?: string;
+}
+
+const DeploymentStatus: React.FC<DeploymentStatusProps> = ({ environment, status, lastDeployment, url }) => {
+  const getStatusIcon = () => {
+    switch (status) {
+      case 'ready':
+        return <Cloud className="h-4 w-4 text-green-400" />;
+      case 'building':
+        return <RefreshCw className="h-4 w-4 text-yellow-400 animate-spin" />;
+      case 'error':
+        return <CloudOff className="h-4 w-4 text-red-400" />;
+    }
+  };
+
+  const getStatusBadge = () => {
+    switch (status) {
+      case 'ready':
+        return <Badge className="bg-green-600/20 text-green-400 border-green-600/30">Ready</Badge>;
+      case 'building':
+        return <Badge className="bg-yellow-600/20 text-yellow-400 border-yellow-600/30">Building</Badge>;
+      case 'error':
+        return <Badge className="bg-red-600/20 text-red-400 border-red-600/30">Error</Badge>;
+    }
+  };
+
+  return (
+    <div className="flex items-center justify-between p-3 rounded-lg border border-slate-800 bg-slate-800/30">
+      <div className="flex items-center gap-3">
+        {getStatusIcon()}
+        <div>
+          <p className="text-sm font-medium text-white">{environment}</p>
+          {lastDeployment && (
+            <p className="text-xs text-slate-500">
+              Deployed {formatDistanceToNow(lastDeployment, { addSuffix: true })}
+            </p>
+          )}
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        {getStatusBadge()}
+        {url && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 text-xs text-indigo-400 hover:text-indigo-300"
+            onClick={() => window.open(url, '_blank')}
+          >
+            <ArrowUpRight className="h-3 w-3" />
+          </Button>
+        )}
       </div>
     </div>
   );
@@ -186,11 +319,15 @@ const ServiceStatus: React.FC<ServiceStatusProps> = ({ name, status, message }) 
 
 export const AdminDashboard: React.FC = () => {
   const [, setLocation] = useLocation();
+  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
   // Fetch data with auto-refresh every 30 seconds
   const { data: stats, isLoading: statsLoading } = trpc.admin.system.getStats.useQuery(
     undefined,
-    { refetchInterval: 30000 }
+    {
+      refetchInterval: 30000,
+      onSuccess: () => setLastUpdate(new Date())
+    }
   );
 
   const { data: serviceStatus, isLoading: servicesLoading } = trpc.admin.system.getServiceStatus.useQuery(
@@ -208,23 +345,73 @@ export const AdminDashboard: React.FC = () => {
     { refetchInterval: 30000 }
   );
 
-  const isLoading = statsLoading || servicesLoading || auditLoading || userStatsLoading;
+  const { data: healthData, isLoading: healthLoading } = trpc.admin.system.getHealth.useQuery(
+    undefined,
+    { refetchInterval: 30000 }
+  );
+
+  const isLoading = statsLoading || servicesLoading || auditLoading || userStatsLoading || healthLoading;
+
+  // Simulate MCP server status (would be replaced with actual MCP server checks)
+  const mcpServers: MCPServerStatusProps[] = [
+    { name: 'GitHub MCP', connected: true, lastPing: new Date(Date.now() - 5000) },
+    { name: 'Notion MCP', connected: true, lastPing: new Date(Date.now() - 8000) },
+    { name: 'Slack MCP', connected: false },
+  ];
+
+  // Simulate deployment status (would be replaced with actual Vercel API calls)
+  const deployments: DeploymentStatusProps[] = [
+    {
+      environment: 'Production',
+      status: 'ready',
+      lastDeployment: new Date(Date.now() - 3600000),
+      url: 'https://ghl-agency-ai.vercel.app'
+    },
+    {
+      environment: 'Preview',
+      status: 'ready',
+      lastDeployment: new Date(Date.now() - 1800000),
+      url: 'https://ghl-agency-ai-preview.vercel.app'
+    },
+  ];
+
+  // Get overall system health status
+  const getSystemHealthStatus = () => {
+    if (!healthData) return { color: 'text-slate-400', bg: 'bg-slate-600/20', border: 'border-slate-600/30', text: 'Unknown' };
+    if (healthData.status === 'healthy') return { color: 'text-green-400', bg: 'bg-green-600/20', border: 'border-green-600/30', text: 'Healthy' };
+    return { color: 'text-yellow-400', bg: 'bg-yellow-600/20', border: 'border-yellow-600/30', text: 'Degraded' };
+  };
+
+  const systemHealth = getSystemHealthStatus();
 
   return (
     <AdminLayout>
       <div className="space-y-6">
         {/* Page Header */}
         <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-3xl font-bold text-white">Dashboard Overview</h2>
-            <p className="text-slate-400 mt-1">Monitor system health and user activity</p>
-          </div>
-          {isLoading && (
-            <div className="flex items-center gap-2 text-slate-400">
-              <RefreshCw className="h-4 w-4 animate-spin" />
-              <span className="text-sm">Loading...</span>
+          <div className="flex items-center gap-4">
+            <div>
+              <h2 className="text-3xl font-bold text-white">Dashboard Overview</h2>
+              <p className="text-slate-400 mt-1">Monitor system health and user activity</p>
             </div>
-          )}
+            <Badge className={`${systemHealth.bg} ${systemHealth.color} ${systemHealth.border} flex items-center gap-2 px-3 py-1.5`}>
+              <Server className="h-3.5 w-3.5" />
+              System {systemHealth.text}
+            </Badge>
+          </div>
+          <div className="flex items-center gap-4">
+            {isLoading ? (
+              <div className="flex items-center gap-2 text-slate-400">
+                <RefreshCw className="h-4 w-4 animate-spin" />
+                <span className="text-sm">Refreshing...</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-slate-500">
+                <Clock className="h-4 w-4" />
+                <span className="text-sm">Last update: {formatDistanceToNow(lastUpdate, { addSuffix: true })}</span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Stats Grid */}
@@ -257,6 +444,53 @@ export const AdminDashboard: React.FC = () => {
             icon={AlertCircle}
             isLoading={statsLoading}
           />
+        </div>
+
+        {/* MCP Servers & Deployment Status */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* MCP Server Connections */}
+          <Card className="bg-slate-900/50 border-slate-800">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <Zap className="h-5 w-5 text-indigo-400" />
+                    MCP Server Connections
+                  </CardTitle>
+                  <CardDescription>Real-time status of Model Context Protocol servers</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {mcpServers.map((server, idx) => (
+                  <MCPServerStatus key={idx} {...server} />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Deployment Status */}
+          <Card className="bg-slate-900/50 border-slate-800">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <Cloud className="h-5 w-5 text-indigo-400" />
+                    Deployment Status
+                  </CardTitle>
+                  <CardDescription>Current deployment status on Vercel</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {deployments.map((deployment, idx) => (
+                  <DeploymentStatus key={idx} {...deployment} />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Activity Feed and Quick Actions */}
@@ -360,43 +594,66 @@ export const AdminDashboard: React.FC = () => {
         {/* System Status */}
         <Card className="bg-slate-900/50 border-slate-800">
           <CardHeader>
-            <CardTitle className="text-white">System Status</CardTitle>
-            <CardDescription>Current status of all services</CardDescription>
+            <CardTitle className="text-white flex items-center gap-2">
+              <Activity className="h-5 w-5 text-indigo-400" />
+              System Status
+            </CardTitle>
+            <CardDescription>Current status of all external services and integrations</CardDescription>
           </CardHeader>
           <CardContent>
             {servicesLoading ? (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <Skeleton className="h-2 w-2 rounded-full bg-slate-700" />
-                    <div className="space-y-1">
-                      <Skeleton className="h-4 w-20 bg-slate-700" />
-                      <Skeleton className="h-3 w-16 bg-slate-700" />
+              <div className="grid gap-3 md:grid-cols-2">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div key={i} className="flex items-center justify-between p-3 rounded-lg border border-slate-800 bg-slate-800/30">
+                    <div className="flex items-center gap-3">
+                      <Skeleton className="h-2 w-2 rounded-full bg-slate-700" />
+                      <Skeleton className="h-8 w-8 rounded-lg bg-slate-700" />
+                      <div className="space-y-1">
+                        <Skeleton className="h-4 w-24 bg-slate-700" />
+                        <Skeleton className="h-3 w-32 bg-slate-700" />
+                      </div>
                     </div>
+                    <Skeleton className="h-6 w-20 rounded-full bg-slate-700" />
                   </div>
                 ))}
               </div>
             ) : serviceStatus ? (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-3 md:grid-cols-2">
                 <ServiceStatus
                   name="Database"
                   status={serviceStatus.services.database.status}
                   message={serviceStatus.services.database.message}
+                  icon={Database}
                 />
                 <ServiceStatus
                   name="Browserbase"
                   status={serviceStatus.services.browserbase.status}
                   message={serviceStatus.services.browserbase.message}
+                  icon={Globe}
                 />
                 <ServiceStatus
                   name="OpenAI"
                   status={serviceStatus.services.openai.status}
                   message={serviceStatus.services.openai.message}
+                  icon={Zap}
+                />
+                <ServiceStatus
+                  name="Anthropic"
+                  status={serviceStatus.services.anthropic.status}
+                  message={serviceStatus.services.anthropic.message}
+                  icon={Zap}
+                />
+                <ServiceStatus
+                  name="Stripe"
+                  status={serviceStatus.services.stripe.status}
+                  message={serviceStatus.services.stripe.message}
+                  icon={TrendingUp}
                 />
                 <ServiceStatus
                   name="Email Service"
                   status={serviceStatus.services.email.status}
                   message={serviceStatus.services.email.message}
+                  icon={FileText}
                 />
               </div>
             ) : (

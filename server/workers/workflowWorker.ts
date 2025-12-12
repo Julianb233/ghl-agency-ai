@@ -1,112 +1,75 @@
 /**
  * Workflow Worker
- * Processes workflow execution background jobs
+ * Processes workflow execution background jobs using BullMQ
  */
 
 import { Worker, Job } from "bullmq";
 import { JobType, WorkflowExecutionJobData } from "../_core/queue";
 import { getRedisConnection } from "./utils";
+import { executeWorkflow } from "../services/workflowExecution.service";
+import type { ExecuteWorkflowOptions } from "../services/workflowExecution.service";
 
 /**
  * Process WORKFLOW_EXECUTION jobs
- * Executes automated workflows with multiple steps
+ * Executes automated workflows with browser automation steps
  */
 async function processWorkflowExecution(job: Job<WorkflowExecutionJobData>) {
     const { userId, workflowId, triggerId, context = {} } = job.data;
+    const startTime = Date.now();
 
-    console.log(`Processing workflow execution for user ${userId}`);
-    console.log(`Workflow ID: ${workflowId}`);
-    console.log(`Trigger ID: ${triggerId || "manual"}`);
+    console.log(`[Workflow Worker] Processing workflow execution`);
+    console.log(`[Workflow Worker] User ID: ${userId}`);
+    console.log(`[Workflow Worker] Workflow ID: ${workflowId}`);
+    console.log(`[Workflow Worker] Trigger: ${triggerId || "manual"}`);
 
+    // Initial progress - job received
     await job.updateProgress(5);
 
-    // TODO: Implement actual workflow execution logic:
-    // 1. Fetch workflow definition from database
-    // 2. Validate workflow is active and user has access
-    // 3. Build execution context with trigger data
-    // 4. Execute workflow steps in order:
-    //    - Conditional branches
-    //    - Actions (email, API calls, data transformations)
-    //    - Integrations (GHL, email, voice, etc.)
-    // 5. Handle errors and retries per step
-    // 6. Store execution logs
-    // 7. Update workflow run status
+    // Parse string IDs to numbers (job data uses strings, service uses numbers)
+    const userIdNum = parseInt(userId, 10);
+    const workflowIdNum = parseInt(workflowId, 10);
 
-    // Example workflow execution structure:
-    // const workflow = await db.workflows.findUnique({
-    //   where: { id: workflowId },
-    //   include: { steps: true },
-    // });
-    //
-    // if (!workflow || !workflow.isActive) {
-    //   throw new Error('Workflow not found or inactive');
-    // }
-    //
-    // const executionContext = {
-    //   userId,
-    //   workflowId,
-    //   triggerId,
-    //   data: context,
-    //   variables: {},
-    // };
-    //
-    // const executionLog = await db.workflowExecutions.create({
-    //   data: {
-    //     workflowId,
-    //     userId,
-    //     triggerId,
-    //     status: 'running',
-    //     startedAt: new Date(),
-    //   },
-    // });
-
-    await job.updateProgress(10);
-
-    // Simulate workflow step execution
-    const totalSteps = 5; // TODO: Get actual step count from workflow
-    for (let step = 1; step <= totalSteps; step++) {
-        console.log(`Executing workflow step ${step}/${totalSteps}`);
-
-        // TODO: Execute actual workflow step
-        // const stepResult = await executeWorkflowStep(workflow.steps[step - 1], executionContext);
-        //
-        // if (!stepResult.success) {
-        //   if (stepResult.shouldRetry) {
-        //     throw new Error(`Step ${step} failed: ${stepResult.error}`);
-        //   } else {
-        //     // Log error and continue
-        //     console.error(`Step ${step} failed (non-blocking):`, stepResult.error);
-        //   }
-        // }
-
-        // Simulate step execution time
-        await new Promise((resolve) => setTimeout(resolve, 500));
-
-        // Update progress
-        const progress = 10 + (step / totalSteps) * 85;
-        await job.updateProgress(progress);
+    if (isNaN(userIdNum)) {
+        throw new Error(`Invalid userId: "${userId}" is not a valid number`);
+    }
+    if (isNaN(workflowIdNum)) {
+        throw new Error(`Invalid workflowId: "${workflowId}" is not a valid number`);
     }
 
-    // TODO: Mark execution as completed
-    // await db.workflowExecutions.update({
-    //   where: { id: executionLog.id },
-    //   data: {
-    //     status: 'completed',
-    //     completedAt: new Date(),
-    //     result: executionContext,
-    //   },
-    // });
+    // Map job data to service options
+    const options: ExecuteWorkflowOptions = {
+        workflowId: workflowIdNum,
+        userId: userIdNum,
+        variables: context,
+        // Extract geolocation from context if provided
+        geolocation: context.geolocation as ExecuteWorkflowOptions["geolocation"],
+    };
 
+    // Progress - starting execution
+    await job.updateProgress(10);
+
+    // Execute the workflow using the service
+    const result = await executeWorkflow(options);
+
+    // Progress - execution complete
     await job.updateProgress(100);
 
-    console.log(`Workflow execution completed: ${workflowId}`);
+    const duration = Date.now() - startTime;
+    const stepsCompleted = result.stepResults?.length || 0;
+
+    console.log(`[Workflow Worker] Workflow execution completed`);
+    console.log(`[Workflow Worker] Execution ID: ${result.executionId}`);
+    console.log(`[Workflow Worker] Status: ${result.status}`);
+    console.log(`[Workflow Worker] Steps completed: ${stepsCompleted}`);
+    console.log(`[Workflow Worker] Duration: ${duration}ms`);
 
     return {
-        success: true,
-        workflowId,
-        executionId: "exec_placeholder", // TODO: Return actual execution ID
-        stepsCompleted: totalSteps,
-        duration: 0, // TODO: Return actual duration
+        success: result.status === "completed",
+        workflowId: workflowIdNum,
+        executionId: result.executionId,
+        status: result.status,
+        stepsCompleted,
+        duration,
     };
 }
 
@@ -129,19 +92,19 @@ export function createWorkflowWorker() {
                 }
             } catch (error: any) {
                 console.error(`[Workflow Worker] Job ${job.id} failed:`, error.message);
-                throw error;
+                throw error; // Re-throw to trigger BullMQ retry mechanism
             }
         },
         {
             connection: getRedisConnection(),
-            concurrency: 5, // Process up to 5 workflows concurrently
+            concurrency: 3, // Reduced from 5 - browser sessions are resource-intensive
             limiter: {
-                max: 20, // Max 20 jobs
+                max: 10, // Max 10 jobs per duration
                 duration: 1000, // Per second
             },
         }
     );
 
-    console.log("Workflow worker initialized");
+    console.log("[Workflow Worker] Worker initialized");
     return worker;
 }

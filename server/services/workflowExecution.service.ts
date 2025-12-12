@@ -659,7 +659,7 @@ export async function executeWorkflow(
     console.log(`Workflow execution session created: ${session.id}`);
 
     // Store browser session in database
-    await db.insert(browserSessions).values({
+    const [browserSession] = await db.insert(browserSessions).values({
       userId,
       sessionId: session.id,
       status: "active",
@@ -669,12 +669,12 @@ export async function executeWorkflow(
         workflowId,
         executionId,
       },
-    });
+    }).returning();
 
-    // Update execution with session ID
+    // Update execution with browser session ID (for cancellation lookup)
     await db
       .update(workflowExecutions)
-      .set({ sessionId: execution.id })
+      .set({ sessionId: browserSession.id })
       .where(eq(workflowExecutions.id, executionId));
 
     // 4. Initialize Stagehand
