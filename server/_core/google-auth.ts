@@ -10,60 +10,21 @@ const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const GOOGLE_USER_INFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo";
 
-// Helper to get the correct redirect URI based on the request
-function getRedirectUri(req: Request): string {
-    // Auto-detect from request - always use the actual host to avoid redirect_uri_mismatch
-    const protocol = req.headers["x-forwarded-proto"] || req.protocol || "https";
-    const host = req.headers.host || "ghl-agency-ai.vercel.app";
-    return `${protocol}://${host}/api/oauth/google/callback`;
-}
-
 export function registerGoogleAuthRoutes(app: Express) {
     // Debug endpoint to check configuration
     app.get("/api/oauth/google/config", (req: Request, res: Response) => {
-        const redirectUri = getRedirectUri(req);
         res.json({
             clientId: process.env.GOOGLE_CLIENT_ID || 'NOT_SET',
-            redirectUri: redirectUri,
+            redirectUri: process.env.GOOGLE_REDIRECT_URI || 'NOT_SET',
             clientSecretSet: !!process.env.GOOGLE_CLIENT_SECRET,
             databaseUrlSet: !!process.env.DATABASE_URL,
             databaseUrlLength: process.env.DATABASE_URL?.length || 0,
         });
     });
 
-    // Debug endpoint for cookie/auth troubleshooting
-    app.get("/api/auth/debug", (req: Request, res: Response) => {
-        const cookieHeader = req.headers.cookie;
-        const hasSessionCookie = cookieHeader?.includes(COOKIE_NAME);
-        const cookieOptions = getSessionCookieOptions(req);
-
-        res.json({
-            timestamp: new Date().toISOString(),
-            environment: {
-                isVercel: process.env.VERCEL === "1",
-                nodeEnv: process.env.NODE_ENV,
-            },
-            request: {
-                hostname: req.hostname,
-                protocol: req.protocol,
-                secure: req.secure,
-                forwardedProto: req.headers["x-forwarded-proto"],
-                host: req.headers.host,
-            },
-            cookies: {
-                hasCookieHeader: !!cookieHeader,
-                hasSessionCookie,
-                cookieHeaderLength: cookieHeader?.length || 0,
-                // Don't expose actual cookie value for security
-            },
-            cookieConfig: cookieOptions,
-            expectedCookieName: COOKIE_NAME,
-        });
-    });
-
     app.get("/api/oauth/google", (req: Request, res: Response) => {
         const clientId = process.env.GOOGLE_CLIENT_ID;
-        const redirectUri = getRedirectUri(req);
+        const redirectUri = process.env.GOOGLE_REDIRECT_URI || "http://localhost:3006/api/oauth/google/callback";
 
         console.log('[Google Auth] Initiating OAuth flow');
         console.log('[Google Auth] Client ID:', clientId ? 'Present' : 'Missing');
@@ -110,7 +71,7 @@ export function registerGoogleAuthRoutes(app: Express) {
         try {
             const clientId = process.env.GOOGLE_CLIENT_ID;
             const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-            const redirectUri = getRedirectUri(req);
+            const redirectUri = process.env.GOOGLE_REDIRECT_URI || "http://localhost:3006/api/oauth/google/callback";
 
             console.log('[Google Auth] Exchanging code for token');
             console.log('[Google Auth] Client ID:', clientId ? 'Present' : 'Missing');
@@ -184,13 +145,6 @@ export function registerGoogleAuthRoutes(app: Express) {
             console.log('[Google Auth] Session token created');
 
             const cookieOptions = getSessionCookieOptions(req);
-
-            console.log('[Google Auth] Setting session cookie with options:', {
-              cookieName: COOKIE_NAME,
-              tokenLength: sessionToken.length,
-              options: { ...cookieOptions, maxAge: ONE_YEAR_MS },
-            });
-
             res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
 
             console.log('[Google Auth] Authentication successful, redirecting to /');

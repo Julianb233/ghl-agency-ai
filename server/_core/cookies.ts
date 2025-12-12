@@ -9,9 +9,6 @@ function isIpAddress(host: string) {
 }
 
 function isSecureRequest(req: Request) {
-  // On Vercel, always treat as secure
-  if (process.env.VERCEL === "1") return true;
-
   if (req.protocol === "https") return true;
 
   const forwardedProto = req.headers["x-forwarded-proto"];
@@ -26,32 +23,30 @@ function isSecureRequest(req: Request) {
 
 export function getSessionCookieOptions(
   req: Request
-): Pick<CookieOptions, "httpOnly" | "path" | "sameSite" | "secure" | "domain"> {
-  const hostname = req.hostname || req.headers.host?.split(":")[0] || "";
+): Pick<CookieOptions, "httpOnly" | "path" | "sameSite" | "secure"> {
+  // const hostname = req.hostname;
+  // const shouldSetDomain =
+  //   hostname &&
+  //   !LOCAL_HOSTS.has(hostname) &&
+  //   !isIpAddress(hostname) &&
+  //   hostname !== "127.0.0.1" &&
+  //   hostname !== "::1";
 
-  // Remove 'www.' prefix to get the base domain
-  const baseDomain = hostname.startsWith('www.') ? hostname.substring(4) : hostname;
+  // const domain =
+  //   shouldSetDomain && !hostname.startsWith(".")
+  //     ? `.${hostname}`
+  //     : shouldSetDomain
+  //       ? hostname
+  //       : undefined;
 
-  const shouldSetDomain =
-    baseDomain &&
-    !LOCAL_HOSTS.has(baseDomain) &&
-    !isIpAddress(baseDomain) &&
-    baseDomain !== "127.0.0.1" &&
-    baseDomain !== "::1" &&
-    !baseDomain.endsWith(".localhost");
-
-  // Set domain with leading dot to work across subdomains (e.g., .ghlagencyai.com)
-  const domain = shouldSetDomain ? `.${baseDomain}` : undefined;
-
-  const isLocal = LOCAL_HOSTS.has(hostname) || hostname.endsWith(".localhost");
+  const isLocal = LOCAL_HOSTS.has(req.hostname) || req.hostname.endsWith(".localhost");
   const secure = isSecureRequest(req);
 
   return {
     httpOnly: true,
     path: "/",
-    // Use 'lax' for better compatibility - OAuth redirect is same-site
-    sameSite: "lax",
+    // On localhost/http, we must use 'lax' because 'none' requires secure: true
+    sameSite: secure ? "none" : "lax",
     secure: secure,
-    ...(domain && { domain }),
   };
 }
