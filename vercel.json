@@ -1,14 +1,21 @@
 {
   "version": 2,
+  "framework": null,
+  "installCommand": "pnpm install",
   "buildCommand": "pnpm build",
+  "outputDirectory": "dist/public",
   "functions": {
-    "api/index.ts": {
+    "api/**/*.ts": {
       "maxDuration": 60
     }
   },
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/api/(.*)",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/((?!assets/).*)",
       "destination": "/api/index"
     }
   ]
