@@ -55,153 +55,142 @@ import {
   X,
   Copy,
   Percent,
+  Loader2,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { trpc } from '@/lib/trpc';
 
-// Types
+// Types based on database schema
 interface FeatureFlag {
-  id: string;
+  id: number;
   name: string;
-  key: string;
-  description: string;
+  description: string | null;
   enabled: boolean;
   rolloutPercentage: number;
-  environment: 'development' | 'staging' | 'production' | 'all';
+  userWhitelist: number[] | null;
+  metadata: Record<string, any> | null;
   createdAt: Date;
   updatedAt: Date;
 }
 
 interface SystemConfig {
-  id: string;
+  id: number;
   key: string;
-  value: string;
-  description: string;
-  type: 'string' | 'number' | 'boolean' | 'json';
-  isEditable: boolean;
+  value: any;
+  description: string | null;
+  updatedBy: number | null;
   updatedAt: Date;
 }
 
-// Mock Data
-const mockFeatureFlags: FeatureFlag[] = [
-  {
-    id: '1',
-    name: 'AI Assistant',
-    key: 'ai_assistant_enabled',
-    description: 'Enable AI-powered assistant for client interactions',
-    enabled: true,
-    rolloutPercentage: 100,
-    environment: 'production',
-    createdAt: new Date('2024-01-15'),
-    updatedAt: new Date('2024-01-20'),
-  },
-  {
-    id: '2',
-    name: 'Advanced Analytics',
-    key: 'advanced_analytics',
-    description: 'Enable advanced analytics dashboard and reporting features',
-    enabled: true,
-    rolloutPercentage: 75,
-    environment: 'production',
-    createdAt: new Date('2024-02-01'),
-    updatedAt: new Date('2024-02-10'),
-  },
-  {
-    id: '3',
-    name: 'Webhook Integration',
-    key: 'webhook_integration',
-    description: 'Allow users to configure custom webhooks for events',
-    enabled: false,
-    rolloutPercentage: 0,
-    environment: 'staging',
-    createdAt: new Date('2024-02-15'),
-    updatedAt: new Date('2024-02-15'),
-  },
-  {
-    id: '4',
-    name: 'Multi-language Support',
-    key: 'multi_language',
-    description: 'Enable multi-language support for the application',
-    enabled: false,
-    rolloutPercentage: 10,
-    environment: 'development',
-    createdAt: new Date('2024-03-01'),
-    updatedAt: new Date('2024-03-05'),
-  },
-];
-
-const mockSystemConfigs: SystemConfig[] = [
-  {
-    id: '1',
-    key: 'max_upload_size',
-    value: '10485760',
-    description: 'Maximum file upload size in bytes (10MB)',
-    type: 'number',
-    isEditable: true,
-    updatedAt: new Date('2024-01-15'),
-  },
-  {
-    id: '2',
-    key: 'session_timeout',
-    value: '3600',
-    description: 'Session timeout in seconds (1 hour)',
-    type: 'number',
-    isEditable: true,
-    updatedAt: new Date('2024-01-20'),
-  },
-  {
-    id: '3',
-    key: 'api_rate_limit',
-    value: '{"requests": 100, "window": "1m"}',
-    description: 'API rate limiting configuration',
-    type: 'json',
-    isEditable: true,
-    updatedAt: new Date('2024-02-01'),
-  },
-  {
-    id: '4',
-    key: 'smtp_settings',
-    value: '{"host": "smtp.example.com", "port": 587, "secure": true}',
-    description: 'SMTP server configuration for email',
-    type: 'json',
-    isEditable: true,
-    updatedAt: new Date('2024-02-10'),
-  },
-  {
-    id: '5',
-    key: 'enable_debug_mode',
-    value: 'false',
-    description: 'Enable debug logging and error details',
-    type: 'boolean',
-    isEditable: true,
-    updatedAt: new Date('2024-02-15'),
-  },
-  {
-    id: '6',
-    key: 'application_version',
-    value: '1.2.3',
-    description: 'Current application version',
-    type: 'string',
-    isEditable: false,
-    updatedAt: new Date('2024-03-01'),
-  },
-];
-
 export const ConfigCenter: React.FC = () => {
-  // State
-  const [maintenanceMode, setMaintenanceMode] = useState(false);
-  const [featureFlags, setFeatureFlags] = useState<FeatureFlag[]>(mockFeatureFlags);
-  const [systemConfigs, setSystemConfigs] = useState<SystemConfig[]>(mockSystemConfigs);
+  const utils = trpc.useUtils();
+
+  // Feature Flags Query
+  const { data: flagsData, isLoading: flagsLoading } = trpc.admin.config.flags.list.useQuery();
+  const featureFlags = flagsData?.flags || [];
+
+  // System Configs Query
+  const { data: configsData, isLoading: configsLoading } = trpc.admin.config.config.list.useQuery();
+  const systemConfigs = configsData?.configs || [];
+
+  // Maintenance Mode Query
+  const { data: maintenanceData, isLoading: maintenanceLoading } = trpc.admin.config.maintenance.get.useQuery();
+  const maintenanceMode = maintenanceData?.enabled || false;
+
+  // Feature Flag Mutations
+  const createFlagMutation = trpc.admin.config.flags.create.useMutation({
+    onSuccess: () => {
+      utils.admin.config.flags.list.invalidate();
+      toast.success('Feature flag created successfully');
+      setIsFlagDialogOpen(false);
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to create feature flag');
+    },
+  });
+
+  const updateFlagMutation = trpc.admin.config.flags.update.useMutation({
+    onSuccess: () => {
+      utils.admin.config.flags.list.invalidate();
+      toast.success('Feature flag updated successfully');
+      setIsFlagDialogOpen(false);
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to update feature flag');
+    },
+  });
+
+  const deleteFlagMutation = trpc.admin.config.flags.delete.useMutation({
+    onSuccess: () => {
+      utils.admin.config.flags.list.invalidate();
+      toast.success('Feature flag deleted');
+      setDeleteFlagId(null);
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to delete feature flag');
+    },
+  });
+
+  const toggleFlagMutation = trpc.admin.config.flags.toggle.useMutation({
+    onSuccess: (data) => {
+      utils.admin.config.flags.list.invalidate();
+      toast.success(data.message);
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to toggle feature flag');
+      // Revert optimistic update on error
+      utils.admin.config.flags.list.invalidate();
+    },
+  });
+
+  // System Config Mutations
+  const upsertConfigMutation = trpc.admin.config.config.upsert.useMutation({
+    onSuccess: () => {
+      utils.admin.config.config.list.invalidate();
+      toast.success('Configuration saved successfully');
+      setIsConfigDialogOpen(false);
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to save configuration');
+    },
+  });
+
+  const deleteConfigMutation = trpc.admin.config.config.delete.useMutation({
+    onSuccess: () => {
+      utils.admin.config.config.list.invalidate();
+      toast.success('Configuration deleted');
+      setDeleteConfigKey(null);
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to delete configuration');
+    },
+  });
+
+  // Maintenance Mode Mutation
+  const setMaintenanceMutation = trpc.admin.config.maintenance.set.useMutation({
+    onSuccess: (data) => {
+      utils.admin.config.maintenance.get.invalidate();
+      if (data.enabled) {
+        toast.warning('Maintenance mode enabled. Users will see a maintenance page.');
+      } else {
+        toast.success('Maintenance mode disabled. System is back online.');
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to update maintenance mode');
+      // Revert optimistic update on error
+      utils.admin.config.maintenance.get.invalidate();
+    },
+  });
 
   // Feature Flag Dialog State
   const [isFlagDialogOpen, setIsFlagDialogOpen] = useState(false);
   const [editingFlag, setEditingFlag] = useState<FeatureFlag | null>(null);
   const [newFlag, setNewFlag] = useState({
     name: '',
-    key: '',
     description: '',
     enabled: true,
     rolloutPercentage: 100,
-    environment: 'production' as const,
   });
 
   // System Config Dialog State
@@ -211,21 +200,22 @@ export const ConfigCenter: React.FC = () => {
     key: '',
     value: '',
     description: '',
-    type: 'string' as const,
+    type: 'string' as 'string' | 'number' | 'boolean' | 'json',
   });
 
   // Delete Confirmation State
-  const [deleteFlagId, setDeleteFlagId] = useState<string | null>(null);
-  const [deleteConfigId, setDeleteConfigId] = useState<string | null>(null);
+  const [deleteFlagId, setDeleteFlagId] = useState<number | null>(null);
+  const [deleteConfigKey, setDeleteConfigKey] = useState<string | null>(null);
 
   // Handlers - Maintenance Mode
   const handleMaintenanceModeToggle = (checked: boolean) => {
-    setMaintenanceMode(checked);
-    if (checked) {
-      toast.warning('Maintenance mode enabled. Users will see a maintenance page.');
-    } else {
-      toast.success('Maintenance mode disabled. System is back online.');
-    }
+    // Optimistic update
+    utils.admin.config.maintenance.get.setData(undefined, (old) => ({
+      enabled: checked,
+      message: old?.message || null,
+    }));
+
+    setMaintenanceMutation.mutate({ enabled: checked });
   };
 
   // Handlers - Feature Flags
@@ -233,11 +223,9 @@ export const ConfigCenter: React.FC = () => {
     setEditingFlag(null);
     setNewFlag({
       name: '',
-      key: '',
       description: '',
       enabled: true,
       rolloutPercentage: 100,
-      environment: 'production',
     });
     setIsFlagDialogOpen(true);
   };
@@ -246,51 +234,49 @@ export const ConfigCenter: React.FC = () => {
     setEditingFlag(flag);
     setNewFlag({
       name: flag.name,
-      key: flag.key,
-      description: flag.description,
+      description: flag.description || '',
       enabled: flag.enabled,
       rolloutPercentage: flag.rolloutPercentage,
-      environment: flag.environment,
     });
     setIsFlagDialogOpen(true);
   };
 
   const handleSaveFlag = () => {
     if (editingFlag) {
-      setFeatureFlags(
-        featureFlags.map((flag) =>
-          flag.id === editingFlag.id
-            ? { ...flag, ...newFlag, updatedAt: new Date() }
-            : flag
-        )
-      );
-      toast.success('Feature flag updated successfully');
+      updateFlagMutation.mutate({
+        id: editingFlag.id,
+        name: newFlag.name,
+        description: newFlag.description || undefined,
+        enabled: newFlag.enabled,
+        rolloutPercentage: newFlag.rolloutPercentage,
+      });
     } else {
-      const newFlagObj: FeatureFlag = {
-        id: String(featureFlags.length + 1),
-        ...newFlag,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      setFeatureFlags([...featureFlags, newFlagObj]);
-      toast.success('Feature flag created successfully');
+      createFlagMutation.mutate({
+        name: newFlag.name,
+        description: newFlag.description || undefined,
+        enabled: newFlag.enabled,
+        rolloutPercentage: newFlag.rolloutPercentage,
+      });
     }
-    setIsFlagDialogOpen(false);
   };
 
-  const handleToggleFlag = (id: string, enabled: boolean) => {
-    setFeatureFlags(
-      featureFlags.map((flag) =>
-        flag.id === id ? { ...flag, enabled, updatedAt: new Date() } : flag
-      )
-    );
-    toast.success(`Feature flag ${enabled ? 'enabled' : 'disabled'}`);
+  const handleToggleFlag = (id: number, enabled: boolean) => {
+    // Optimistic update
+    utils.admin.config.flags.list.setData(undefined, (old) => {
+      if (!old) return old;
+      return {
+        ...old,
+        flags: old.flags.map((flag) =>
+          flag.id === id ? { ...flag, enabled, updatedAt: new Date() } : flag
+        ),
+      };
+    });
+
+    toggleFlagMutation.mutate({ id, enabled });
   };
 
-  const handleDeleteFlag = (id: string) => {
-    setFeatureFlags(featureFlags.filter((flag) => flag.id !== id));
-    setDeleteFlagId(null);
-    toast.success('Feature flag deleted');
+  const handleDeleteFlag = (id: number) => {
+    deleteFlagMutation.mutate({ id });
   };
 
   const handleCopyFlagKey = (key: string) => {
@@ -311,71 +297,73 @@ export const ConfigCenter: React.FC = () => {
   };
 
   const handleEditConfig = (config: SystemConfig) => {
-    if (!config.isEditable) {
-      toast.error('This configuration is read-only');
-      return;
-    }
     setEditingConfig(config);
+
+    // Determine type from value
+    let type: 'string' | 'number' | 'boolean' | 'json' = 'string';
+    let displayValue = '';
+
+    if (typeof config.value === 'object' && config.value !== null) {
+      type = 'json';
+      displayValue = JSON.stringify(config.value, null, 2);
+    } else if (typeof config.value === 'boolean') {
+      type = 'boolean';
+      displayValue = String(config.value);
+    } else if (typeof config.value === 'number') {
+      type = 'number';
+      displayValue = String(config.value);
+    } else {
+      displayValue = String(config.value);
+    }
+
     setNewConfig({
       key: config.key,
-      value: config.value,
-      description: config.description,
-      type: config.type,
+      value: displayValue,
+      description: config.description || '',
+      type,
     });
     setIsConfigDialogOpen(true);
   };
 
   const handleSaveConfig = () => {
-    // Validate JSON if type is json
-    if (newConfig.type === 'json') {
-      try {
-        JSON.parse(newConfig.value);
-      } catch (e) {
-        toast.error('Invalid JSON format');
-        return;
+    // Parse value based on type
+    let parsedValue: any = newConfig.value;
+
+    try {
+      if (newConfig.type === 'json') {
+        parsedValue = JSON.parse(newConfig.value);
+      } else if (newConfig.type === 'number') {
+        parsedValue = Number(newConfig.value);
+        if (isNaN(parsedValue)) {
+          toast.error('Invalid number format');
+          return;
+        }
+      } else if (newConfig.type === 'boolean') {
+        parsedValue = newConfig.value === 'true';
       }
+    } catch (e) {
+      toast.error('Invalid value format');
+      return;
     }
 
-    if (editingConfig) {
-      setSystemConfigs(
-        systemConfigs.map((config) =>
-          config.id === editingConfig.id
-            ? { ...config, ...newConfig, updatedAt: new Date() }
-            : config
-        )
-      );
-      toast.success('Configuration updated successfully');
-    } else {
-      const newConfigObj: SystemConfig = {
-        id: String(systemConfigs.length + 1),
-        ...newConfig,
-        isEditable: true,
-        updatedAt: new Date(),
-      };
-      setSystemConfigs([...systemConfigs, newConfigObj]);
-      toast.success('Configuration created successfully');
-    }
-    setIsConfigDialogOpen(false);
+    upsertConfigMutation.mutate({
+      key: newConfig.key,
+      value: parsedValue,
+      description: newConfig.description || undefined,
+    });
   };
 
-  const handleDeleteConfig = (id: string) => {
-    setSystemConfigs(systemConfigs.filter((config) => config.id !== id));
-    setDeleteConfigId(null);
-    toast.success('Configuration deleted');
+  const handleDeleteConfig = (key: string) => {
+    deleteConfigMutation.mutate({ key });
   };
 
-  const getEnvironmentBadge = (environment: FeatureFlag['environment']) => {
-    const colors = {
-      development: 'bg-yellow-500/20 text-yellow-500 border-yellow-500/30',
-      staging: 'bg-blue-500/20 text-blue-500 border-blue-500/30',
-      production: 'bg-green-500/20 text-green-500 border-green-500/30',
-      all: 'bg-purple-500/20 text-purple-500 border-purple-500/30',
-    };
-    return <Badge className={colors[environment]}>{environment}</Badge>;
-  };
+  const getTypeBadge = (value: any) => {
+    let type = 'string';
+    if (typeof value === 'object' && value !== null) type = 'json';
+    else if (typeof value === 'boolean') type = 'boolean';
+    else if (typeof value === 'number') type = 'number';
 
-  const getTypeBadge = (type: SystemConfig['type']) => {
-    const colors = {
+    const colors: Record<string, string> = {
       string: 'bg-blue-500/20 text-blue-500 border-blue-500/30',
       number: 'bg-green-500/20 text-green-500 border-green-500/30',
       boolean: 'bg-purple-500/20 text-purple-500 border-purple-500/30',
@@ -384,16 +372,18 @@ export const ConfigCenter: React.FC = () => {
     return <Badge className={colors[type]}>{type}</Badge>;
   };
 
-  const formatValue = (value: string, type: SystemConfig['type']) => {
-    if (type === 'json') {
+  const formatValue = (value: any) => {
+    if (typeof value === 'object' && value !== null) {
       try {
-        return JSON.stringify(JSON.parse(value), null, 2);
+        return JSON.stringify(value, null, 2);
       } catch {
-        return value;
+        return String(value);
       }
     }
-    return value;
+    return String(value);
   };
+
+  const isLoading = flagsLoading || configsLoading || maintenanceLoading;
 
   return (
     <AdminLayout>
@@ -436,6 +426,7 @@ export const ConfigCenter: React.FC = () => {
                 <Switch
                   checked={maintenanceMode}
                   onCheckedChange={handleMaintenanceModeToggle}
+                  disabled={setMaintenanceMutation.isPending}
                   className="data-[state=checked]:bg-orange-600"
                 />
               </div>
@@ -463,93 +454,98 @@ export const ConfigCenter: React.FC = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow className="border-slate-800 hover:bg-transparent">
-                  <TableHead className="text-slate-400">Name</TableHead>
-                  <TableHead className="text-slate-400">Key</TableHead>
-                  <TableHead className="text-slate-400">Description</TableHead>
-                  <TableHead className="text-slate-400">Environment</TableHead>
-                  <TableHead className="text-slate-400">Rollout</TableHead>
-                  <TableHead className="text-slate-400">Status</TableHead>
-                  <TableHead className="text-slate-400">Updated</TableHead>
-                  <TableHead className="text-slate-400 text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {featureFlags.map((flag) => (
-                  <TableRow key={flag.id} className="border-slate-800">
-                    <TableCell className="font-medium text-white">{flag.name}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <code className="px-2 py-1 rounded bg-slate-800 text-xs text-slate-300 font-mono">
-                          {flag.key}
-                        </code>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleCopyFlagKey(flag.key)}
-                          className="h-6 w-6 p-0 text-slate-400 hover:text-white"
-                        >
-                          <Copy className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-slate-300 max-w-xs truncate">
-                      {flag.description}
-                    </TableCell>
-                    <TableCell>{getEnvironmentBadge(flag.environment)}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Percent className="h-3 w-3 text-slate-400" />
-                        <span className="text-slate-300">{flag.rolloutPercentage}%</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Switch
-                          checked={flag.enabled}
-                          onCheckedChange={(checked) => handleToggleFlag(flag.id, checked)}
-                        />
-                        {flag.enabled ? (
-                          <Badge className="bg-green-500/20 text-green-500 border-green-500/30">
-                            <CheckCircle className="w-3 h-3 mr-1" />
-                            Enabled
-                          </Badge>
-                        ) : (
-                          <Badge className="bg-slate-500/20 text-slate-400 border-slate-500/30">
-                            Disabled
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-slate-400 text-sm">
-                      {flag.updatedAt.toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditFlag(flag)}
-                          className="text-slate-400 hover:text-white"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setDeleteFlagId(flag.id)}
-                          className="text-red-400 hover:text-red-300"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
+            {flagsLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-indigo-400" />
+              </div>
+            ) : featureFlags.length === 0 ? (
+              <div className="text-center py-8 text-slate-400">
+                No feature flags yet. Create your first one!
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-slate-800 hover:bg-transparent">
+                    <TableHead className="text-slate-400">Name</TableHead>
+                    <TableHead className="text-slate-400">Description</TableHead>
+                    <TableHead className="text-slate-400">Rollout</TableHead>
+                    <TableHead className="text-slate-400">Status</TableHead>
+                    <TableHead className="text-slate-400">Updated</TableHead>
+                    <TableHead className="text-slate-400 text-right">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {featureFlags.map((flag) => (
+                    <TableRow key={flag.id} className="border-slate-800">
+                      <TableCell className="font-medium text-white">
+                        <div className="flex items-center gap-2">
+                          <span>{flag.name}</span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleCopyFlagKey(flag.name)}
+                            className="h-6 w-6 p-0 text-slate-400 hover:text-white"
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-slate-300 max-w-xs truncate">
+                        {flag.description || '-'}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Percent className="h-3 w-3 text-slate-400" />
+                          <span className="text-slate-300">{flag.rolloutPercentage}%</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Switch
+                            checked={flag.enabled}
+                            onCheckedChange={(checked) => handleToggleFlag(flag.id, checked)}
+                            disabled={toggleFlagMutation.isPending}
+                          />
+                          {flag.enabled ? (
+                            <Badge className="bg-green-500/20 text-green-500 border-green-500/30">
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Enabled
+                            </Badge>
+                          ) : (
+                            <Badge className="bg-slate-500/20 text-slate-400 border-slate-500/30">
+                              Disabled
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-slate-400 text-sm">
+                        {new Date(flag.updatedAt).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditFlag(flag)}
+                            className="text-slate-400 hover:text-white"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setDeleteFlagId(flag.id)}
+                            className="text-red-400 hover:text-red-300"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </CardContent>
         </Card>
 
@@ -573,77 +569,79 @@ export const ConfigCenter: React.FC = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow className="border-slate-800 hover:bg-transparent">
-                  <TableHead className="text-slate-400">Key</TableHead>
-                  <TableHead className="text-slate-400">Value</TableHead>
-                  <TableHead className="text-slate-400">Description</TableHead>
-                  <TableHead className="text-slate-400">Type</TableHead>
-                  <TableHead className="text-slate-400">Updated</TableHead>
-                  <TableHead className="text-slate-400 text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {systemConfigs.map((config) => (
-                  <TableRow key={config.id} className="border-slate-800">
-                    <TableCell className="font-medium text-white">
-                      <code className="px-2 py-1 rounded bg-slate-800 text-xs font-mono">
-                        {config.key}
-                      </code>
-                    </TableCell>
-                    <TableCell>
-                      {config.type === 'json' ? (
-                        <div className="max-w-md">
-                          <code className="px-2 py-1 rounded bg-slate-800 text-xs text-slate-300 font-mono block overflow-x-auto whitespace-pre">
-                            {formatValue(config.value, config.type)}
-                          </code>
-                        </div>
-                      ) : (
-                        <code className="px-2 py-1 rounded bg-slate-800 text-xs text-slate-300 font-mono">
-                          {config.value}
-                        </code>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-slate-300 max-w-xs">
-                      {config.description}
-                    </TableCell>
-                    <TableCell>{getTypeBadge(config.type)}</TableCell>
-                    <TableCell className="text-slate-400 text-sm">
-                      {config.updatedAt.toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center justify-end gap-2">
-                        {config.isEditable ? (
-                          <>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEditConfig(config)}
-                              className="text-slate-400 hover:text-white"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setDeleteConfigId(config.id)}
-                              className="text-red-400 hover:text-red-300"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </>
-                        ) : (
-                          <Badge className="bg-slate-700/50 text-slate-400 border-slate-600">
-                            Read-only
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
+            {configsLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-indigo-400" />
+              </div>
+            ) : systemConfigs.length === 0 ? (
+              <div className="text-center py-8 text-slate-400">
+                No system configurations yet. Create your first one!
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-slate-800 hover:bg-transparent">
+                    <TableHead className="text-slate-400">Key</TableHead>
+                    <TableHead className="text-slate-400">Value</TableHead>
+                    <TableHead className="text-slate-400">Description</TableHead>
+                    <TableHead className="text-slate-400">Type</TableHead>
+                    <TableHead className="text-slate-400">Updated</TableHead>
+                    <TableHead className="text-slate-400 text-right">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {systemConfigs.map((config) => (
+                    <TableRow key={config.id} className="border-slate-800">
+                      <TableCell className="font-medium text-white">
+                        <code className="px-2 py-1 rounded bg-slate-800 text-xs font-mono">
+                          {config.key}
+                        </code>
+                      </TableCell>
+                      <TableCell>
+                        {typeof config.value === 'object' && config.value !== null ? (
+                          <div className="max-w-md">
+                            <code className="px-2 py-1 rounded bg-slate-800 text-xs text-slate-300 font-mono block overflow-x-auto whitespace-pre">
+                              {formatValue(config.value)}
+                            </code>
+                          </div>
+                        ) : (
+                          <code className="px-2 py-1 rounded bg-slate-800 text-xs text-slate-300 font-mono">
+                            {String(config.value)}
+                          </code>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-slate-300 max-w-xs">
+                        {config.description || '-'}
+                      </TableCell>
+                      <TableCell>{getTypeBadge(config.value)}</TableCell>
+                      <TableCell className="text-slate-400 text-sm">
+                        {new Date(config.updatedAt).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditConfig(config)}
+                            className="text-slate-400 hover:text-white"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setDeleteConfigKey(config.key)}
+                            className="text-red-400 hover:text-red-300"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -663,25 +661,14 @@ export const ConfigCenter: React.FC = () => {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-white">Name</Label>
-                <Input
-                  placeholder="AI Assistant"
-                  value={newFlag.name}
-                  onChange={(e) => setNewFlag({ ...newFlag, name: e.target.value })}
-                  className="bg-slate-800 border-slate-700 text-white"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-white">Key (slug)</Label>
-                <Input
-                  placeholder="ai_assistant_enabled"
-                  value={newFlag.key}
-                  onChange={(e) => setNewFlag({ ...newFlag, key: e.target.value })}
-                  className="bg-slate-800 border-slate-700 text-white font-mono"
-                />
-              </div>
+            <div className="space-y-2">
+              <Label className="text-white">Name</Label>
+              <Input
+                placeholder="AI Assistant"
+                value={newFlag.name}
+                onChange={(e) => setNewFlag({ ...newFlag, name: e.target.value })}
+                className="bg-slate-800 border-slate-700 text-white"
+              />
             </div>
             <div className="space-y-2">
               <Label className="text-white">Description</Label>
@@ -693,42 +680,23 @@ export const ConfigCenter: React.FC = () => {
                 rows={3}
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-white">Environment</Label>
-                <Select
-                  value={newFlag.environment}
-                  onValueChange={(value: any) => setNewFlag({ ...newFlag, environment: value })}
-                >
-                  <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="development">Development</SelectItem>
-                    <SelectItem value="staging">Staging</SelectItem>
-                    <SelectItem value="production">Production</SelectItem>
-                    <SelectItem value="all">All Environments</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-white">Rollout Percentage</Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={newFlag.rolloutPercentage}
-                    onChange={(e) =>
-                      setNewFlag({
-                        ...newFlag,
-                        rolloutPercentage: Math.min(100, Math.max(0, parseInt(e.target.value) || 0)),
-                      })
-                    }
-                    className="bg-slate-800 border-slate-700 text-white"
-                  />
-                  <Percent className="h-4 w-4 text-slate-400" />
-                </div>
+            <div className="space-y-2">
+              <Label className="text-white">Rollout Percentage</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={newFlag.rolloutPercentage}
+                  onChange={(e) =>
+                    setNewFlag({
+                      ...newFlag,
+                      rolloutPercentage: Math.min(100, Math.max(0, parseInt(e.target.value) || 0)),
+                    })
+                  }
+                  className="bg-slate-800 border-slate-700 text-white"
+                />
+                <Percent className="h-4 w-4 text-slate-400" />
               </div>
             </div>
             <div className="flex items-center justify-between p-4 rounded-lg bg-slate-800/50 border border-slate-700">
@@ -755,10 +723,14 @@ export const ConfigCenter: React.FC = () => {
             </Button>
             <Button
               onClick={handleSaveFlag}
-              disabled={!newFlag.name || !newFlag.key}
+              disabled={!newFlag.name || createFlagMutation.isPending || updateFlagMutation.isPending}
               className="bg-indigo-600 hover:bg-indigo-700"
             >
-              <Save className="w-4 h-4 mr-2" />
+              {(createFlagMutation.isPending || updateFlagMutation.isPending) ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="w-4 h-4 mr-2" />
+              )}
               {editingFlag ? 'Update' : 'Create'}
             </Button>
           </DialogFooter>
@@ -859,10 +831,14 @@ export const ConfigCenter: React.FC = () => {
             </Button>
             <Button
               onClick={handleSaveConfig}
-              disabled={!newConfig.key || !newConfig.value}
+              disabled={!newConfig.key || !newConfig.value || upsertConfigMutation.isPending}
               className="bg-indigo-600 hover:bg-indigo-700"
             >
-              <Save className="w-4 h-4 mr-2" />
+              {upsertConfigMutation.isPending ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="w-4 h-4 mr-2" />
+              )}
               {editingConfig ? 'Update' : 'Create'}
             </Button>
           </DialogFooter>
@@ -885,8 +861,12 @@ export const ConfigCenter: React.FC = () => {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deleteFlagId && handleDeleteFlag(deleteFlagId)}
+              disabled={deleteFlagMutation.isPending}
               className="bg-red-600 hover:bg-red-700"
             >
+              {deleteFlagMutation.isPending ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : null}
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -894,7 +874,7 @@ export const ConfigCenter: React.FC = () => {
       </AlertDialog>
 
       {/* Delete System Config Confirmation */}
-      <AlertDialog open={deleteConfigId !== null} onOpenChange={() => setDeleteConfigId(null)}>
+      <AlertDialog open={deleteConfigKey !== null} onOpenChange={() => setDeleteConfigKey(null)}>
         <AlertDialogContent className="bg-slate-900 border-slate-800 text-white">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Configuration</AlertDialogTitle>
@@ -908,9 +888,13 @@ export const ConfigCenter: React.FC = () => {
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => deleteConfigId && handleDeleteConfig(deleteConfigId)}
+              onClick={() => deleteConfigKey && handleDeleteConfig(deleteConfigKey)}
+              disabled={deleteConfigMutation.isPending}
               className="bg-red-600 hover:bg-red-700"
             >
+              {deleteConfigMutation.isPending ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : null}
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
