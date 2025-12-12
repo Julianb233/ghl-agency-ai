@@ -30,6 +30,8 @@ import type {
   BrowserActionType,
   GhlActionType,
   ReportType,
+} from "../types";
+import {
   isApiCallConfig,
   isBrowserAutomationConfig,
   isNotificationConfig,
