@@ -1,11 +1,15 @@
 import { Router } from "express";
-import { createHash, randomBytes, timingSafeEqual } from "crypto";
+import { createHash, timingSafeEqual } from "crypto";
+import bcrypt from "bcryptjs";
 import * as db from "../db";
 import { sdk } from "./sdk";
 import { getSessionCookieOptions } from "./cookies";
 import { COOKIE_NAME } from "@shared/const";
 
 const router = Router();
+
+// bcrypt configuration - cost factor of 12 is secure and performant
+const BCRYPT_ROUNDS = 12;
 
 // Debug endpoint to test if routes are working
 router.get("/debug", async (_req, res) => {
@@ -17,27 +21,56 @@ router.get("/debug", async (_req, res) => {
   });
 });
 
-// Simple password hashing using PBKDF2-like approach with SHA-256
-function hashPassword(password: string, salt?: string): { hash: string; salt: string } {
-  const useSalt = salt || randomBytes(16).toString('hex');
-  const hash = createHash('sha256')
-    .update(password + useSalt)
-    .digest('hex');
-  return { hash, salt: useSalt };
+/**
+ * Hash password using bcrypt with secure cost factor
+ * Returns a bcrypt hash string (includes salt automatically)
+ */
+async function hashPassword(password: string): Promise<string> {
+  return bcrypt.hash(password, BCRYPT_ROUNDS);
 }
 
-function verifyPassword(password: string, storedHash: string): boolean {
-  // storedHash format: "hash:salt"
+/**
+ * Verify password against stored hash
+ * Supports both new bcrypt format and legacy SHA-256 format for migration
+ */
+async function verifyPassword(password: string, storedHash: string): Promise<boolean> {
+  // Check if this is a bcrypt hash (starts with $2a$, $2b$, or $2y$)
+  if (storedHash.startsWith('$2')) {
+    return bcrypt.compare(password, storedHash);
+  }
+
+  // Legacy SHA-256 format: "hash:salt"
   const [hash, salt] = storedHash.split(':');
   if (!hash || !salt) return false;
 
-  const { hash: computedHash } = hashPassword(password, salt);
+  const computedHash = createHash('sha256')
+    .update(password + salt)
+    .digest('hex');
 
   // Use timing-safe comparison to prevent timing attacks
   try {
     return timingSafeEqual(Buffer.from(hash), Buffer.from(computedHash));
   } catch {
     return false;
+  }
+}
+
+/**
+ * Check if a stored hash is using the legacy format and needs upgrade
+ */
+function isLegacyHash(storedHash: string): boolean {
+  return !storedHash.startsWith('$2');
+}
+
+/**
+ * Upgrade a user's password hash from legacy SHA-256 to bcrypt
+ */
+async function upgradePasswordHash(userId: number, newHash: string): Promise<void> {
+  try {
+    await db.updateUserPassword(userId, newHash);
+    console.log(`[Auth] Upgraded password hash for user ${userId} to bcrypt`);
+  } catch (error) {
+    console.error(`[Auth] Failed to upgrade password hash for user ${userId}:`, error);
   }
 }
 
@@ -64,14 +97,13 @@ router.post("/signup", async (req, res) => {
       return res.status(409).json({ error: "An account with this email already exists" });
     }
 
-    // Hash password
-    const { hash, salt } = hashPassword(password);
-    const storedPassword = `${hash}:${salt}`;
+    // Hash password with bcrypt
+    const hashedPassword = await hashPassword(password);
 
     // Create user
     const user = await db.createUserWithPassword({
       email,
-      password: storedPassword,
+      password: hashedPassword,
       name: name || email.split('@')[0],
     });
 
@@ -132,8 +164,15 @@ router.post("/login", async (req, res) => {
     }
 
     // Verify password
-    if (!verifyPassword(password, user.password)) {
+    const isValid = await verifyPassword(password, user.password);
+    if (!isValid) {
       return res.status(401).json({ error: "Invalid email or password" });
+    }
+
+    // Upgrade legacy SHA-256 hash to bcrypt on successful login
+    if (isLegacyHash(user.password)) {
+      const newHash = await hashPassword(password);
+      await upgradePasswordHash(user.id, newHash);
     }
 
     // Update last signed in

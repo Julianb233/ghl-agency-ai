@@ -301,6 +301,23 @@ export async function markOnboardingComplete(userId: number): Promise<void> {
   }
 }
 
+export async function updateUserPassword(userId: number, hashedPassword: string): Promise<void> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot update user password: database not available");
+    return;
+  }
+
+  try {
+    await db.update(users)
+      .set({ password: hashedPassword, updatedAt: new Date() })
+      .where(eq(users.id, userId));
+  } catch (error) {
+    console.error("[Database] Failed to update user password:", error);
+    throw error;
+  }
+}
+
 // Export pool for raw SQL queries (used by MCP database tools)
 export async function getPool(): Promise<pg.Pool | null> {
   if (!_pool) {
