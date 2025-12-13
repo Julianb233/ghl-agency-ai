@@ -6,10 +6,11 @@ RUN npm install -g pnpm@10
 
 WORKDIR /app
 
-# Copy package files, patches, and stubs (needed for pnpm install)
+# Copy package files, patches, stubs, and scripts (needed for pnpm install)
 COPY package.json pnpm-lock.yaml ./
 COPY patches/ ./patches/
 COPY stubs/ ./stubs/
+COPY scripts/ ./scripts/
 
 # Install dependencies
 RUN pnpm install --frozen-lockfile
@@ -28,10 +29,11 @@ RUN npm install -g pnpm@10
 
 WORKDIR /app
 
-# Copy package files, patches, and stubs
+# Copy package files, patches, stubs, and scripts
 COPY package.json pnpm-lock.yaml ./
 COPY patches/ ./patches/
 COPY stubs/ ./stubs/
+COPY scripts/ ./scripts/
 
 # Install production dependencies only
 RUN pnpm install --frozen-lockfile --prod
