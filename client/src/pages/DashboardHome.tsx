@@ -1,12 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useLocation } from 'wouter';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
-import { Activity, Calendar, Settings, Users, Plus, Zap, FileText } from 'lucide-react';
+import { Activity, Calendar, Settings, Users, Plus, Zap, FileText, ArrowUpRight, TrendingUp } from 'lucide-react';
+import { trpc } from '@/lib/trpc';
+import { SubscriptionUsageCard, UpgradeModal, ExecutionPacksModal } from '@/components/subscription';
 
 export default function DashboardHome() {
   const [, setLocation] = useLocation();
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [showPacksModal, setShowPacksModal] = useState(false);
+
+  // Fetch subscription data
+  const subscriptionQuery = trpc.subscription.getMySubscription.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+  });
 
   return (
     <div className="space-y-6">
@@ -22,15 +31,51 @@ export default function DashboardHome() {
         </p>
       </div>
 
+      {/* Subscription Overview */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <div className="md:col-span-2">
+          <SubscriptionUsageCard
+            onUpgradeClick={() => setShowUpgradeModal(true)}
+            onBuyPackClick={() => setShowPacksModal(true)}
+          />
+        </div>
+        <Card className="bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-200">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-purple-800">AI Agent</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2 mb-2">
+              <Zap className="h-5 w-5 text-purple-600" />
+              <span className="text-2xl font-bold text-purple-900">
+                {subscriptionQuery.data?.limits?.maxAgents ?? 0}
+              </span>
+              <span className="text-sm text-purple-600">agent slots</span>
+            </div>
+            <Button
+              onClick={() => setLocation('/agent')}
+              size="sm"
+              className="w-full bg-purple-600 hover:bg-purple-700"
+            >
+              Launch Agent
+              <ArrowUpRight className="ml-2 h-4 w-4" />
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Tasks</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Executions Used</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
-            <p className="text-xs text-muted-foreground">No scheduled tasks yet</p>
+            <div className="text-2xl font-bold">
+              {subscriptionQuery.data?.usage?.executionsUsed ?? 0}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              of {subscriptionQuery.data?.usage?.executionLimit ?? 0} this month
+            </p>
           </CardContent>
         </Card>
 
@@ -146,6 +191,17 @@ export default function DashboardHome() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Subscription Modals */}
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        currentTierSlug={subscriptionQuery.data?.tier?.slug}
+      />
+      <ExecutionPacksModal
+        isOpen={showPacksModal}
+        onClose={() => setShowPacksModal(false)}
+      />
     </div>
   );
 }

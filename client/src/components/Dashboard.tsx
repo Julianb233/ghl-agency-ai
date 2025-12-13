@@ -27,7 +27,8 @@ import { AIBrowserPanel } from './AIBrowserPanel';
 import { SkipLink } from './SkipLink';
 import { ClientProfileModal } from './ClientProfileModal';
 import { AgentDashboard } from './agent/AgentDashboard';
-import { Home, Terminal, Mail, Globe, Settings, Bot } from 'lucide-react';
+import { SubscriptionUsageCard, UpgradeModal, ExecutionPacksModal } from './subscription';
+import { Home, Terminal, Mail, Globe, Settings, Bot, Zap } from 'lucide-react';
 
 // Demo data only loaded when VITE_DEMO_MODE=1 (disabled by default in production)
 
@@ -97,6 +98,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
   const [screenshot, setScreenshot] = useState<string | undefined>(undefined);
   const [activeStepId, setActiveStepId] = useState<string | null>(null);
   const [availableCredits, setAvailableCredits] = useState(initialCredits);
+
+  // Subscription State
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [showPacksModal, setShowPacksModal] = useState(false);
+
+  // Fetch subscription data
+  const subscriptionQuery = trpc.subscription.getMySubscription.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+  });
 
   // Context & Resources State
   const [contextSource, setContextSource] = useState<'NOTION' | 'PDF' | 'G_DRIVE'>('NOTION');
@@ -615,14 +625,29 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
           </div>
 
           <div className="flex items-center gap-4">
-            {/* Credits Display */}
-            <button
-              onClick={() => handleOpenSettings('BILLING')}
-              className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-white/50 border border-slate-200 rounded-lg hover:bg-white hover:border-emerald-300 transition-all group"
-            >
-              <span className="text-xs font-bold text-slate-500 uppercase group-hover:text-emerald-600">Credits</span>
-              <span className="text-sm font-mono font-bold text-emerald-600">{availableCredits.toFixed(2)}</span>
-            </button>
+            {/* Subscription Usage Display */}
+            {subscriptionQuery.data?.hasSubscription ? (
+              <button
+                onClick={() => setShowUpgradeModal(true)}
+                className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-white/50 border border-slate-200 rounded-lg hover:bg-white hover:border-emerald-300 transition-all group"
+              >
+                <Zap className="w-4 h-4 text-emerald-500" />
+                <span className="text-xs font-bold text-slate-500 uppercase group-hover:text-emerald-600">
+                  {subscriptionQuery.data.tier?.name}
+                </span>
+                <span className="text-sm font-mono font-bold text-emerald-600">
+                  {subscriptionQuery.data.usage?.executionsRemaining ?? 0} left
+                </span>
+              </button>
+            ) : (
+              <button
+                onClick={() => setShowUpgradeModal(true)}
+                className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg hover:from-purple-600 hover:to-indigo-600 transition-all"
+              >
+                <Zap className="w-4 h-4" />
+                <span className="text-xs font-bold uppercase">Subscribe</span>
+              </button>
+            )}
 
             {/* User Profile */}
             <div className="flex items-center gap-3 pl-4 border-l border-slate-200">
@@ -1038,6 +1063,17 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
         }}
         onSave={handleSaveClientProfile}
         existingProfile={editingClient}
+      />
+
+      {/* Subscription Modals */}
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        currentTierSlug={subscriptionQuery.data?.tier?.slug}
+      />
+      <ExecutionPacksModal
+        isOpen={showPacksModal}
+        onClose={() => setShowPacksModal(false)}
       />
 
       {/* Mobile Bottom Navigation */}
