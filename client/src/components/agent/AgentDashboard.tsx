@@ -2,13 +2,19 @@
  * Agent Dashboard Component
  *
  * Comprehensive dashboard for AI agent orchestration.
- * Shows agent status, execution logs, swarm coordination, and task management.
+ * Shows agent status, execution logs, swarm coordination, task management,
+ * and subscription usage/limits.
  */
 
 import React, { useState } from 'react';
 import { trpc } from '@/lib/trpc';
 import { useAgentSSE } from '@/hooks/useAgentSSE';
 import { useAgentStore } from '@/stores/agentStore';
+import {
+  SubscriptionUsageCard,
+  UpgradeModal,
+  ExecutionPacksModal,
+} from '@/components/subscription';
 import {
   Bot,
   Play,
@@ -24,6 +30,7 @@ import {
   Users,
   Zap,
   MessageSquare,
+  AlertTriangle,
 } from 'lucide-react';
 
 // Agent Status Badge Component
@@ -96,9 +103,14 @@ function TaskCard({ task }: { task: { id: string; name: string; status: string; 
 export function AgentDashboard() {
   const [taskInput, setTaskInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [showPacksModal, setShowPacksModal] = useState(false);
+  const [subscriptionError, setSubscriptionError] = useState<string | null>(null);
 
   // Agent store state
-  const { status, currentTask, logs, connectedAgents } = useAgentStore();
+  const { currentExecution, isExecuting, logs, connectedAgents } = useAgentStore();
+  const status = currentExecution?.status || (isExecuting ? 'executing' : 'idle');
+  const currentTask = currentExecution?.taskDescription;
 
   // SSE connection for real-time updates
   const { isConnected } = useAgentSSE();
@@ -106,18 +118,34 @@ export function AgentDashboard() {
   // Track current execution ID for cancellation
   const [currentExecutionId, setCurrentExecutionId] = useState<number | null>(null);
 
+  // Get subscription info for tier slug
+  const { data: subscriptionData } = trpc.subscription.getMySubscription.useQuery();
+  const currentTierSlug = subscriptionData?.tier?.slug;
+
   // tRPC mutations
   const executeTask = trpc.agent.executeTask.useMutation({
     onSuccess: (data) => {
       setTaskInput('');
       setIsSubmitting(false);
+      setSubscriptionError(null);
       if (data.executionId) {
         setCurrentExecutionId(data.executionId);
       }
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Execution failed:', error);
       setIsSubmitting(false);
+
+      // Check if it's a subscription limit error
+      if (error.data?.code === 'FORBIDDEN') {
+        setSubscriptionError(error.message);
+        const cause = error.data?.cause;
+        if (cause?.suggestedAction === 'upgrade') {
+          setShowUpgradeModal(true);
+        } else if (cause?.suggestedAction === 'buy_pack') {
+          setShowPacksModal(true);
+        }
+      }
     },
   });
 
@@ -129,6 +157,7 @@ export function AgentDashboard() {
 
   const handleSubmitTask = async () => {
     if (!taskInput.trim()) return;
+    setSubscriptionError(null);
     setIsSubmitting(true);
     executeTask.mutate({ taskDescription: taskInput });
   };
@@ -261,6 +290,38 @@ export function AgentDashboard() {
                 Execute
               </button>
             </div>
+
+            {/* Subscription Error Alert */}
+            {subscriptionError && (
+              <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-red-700">{subscriptionError}</p>
+                    <div className="flex gap-2 mt-2">
+                      <button
+                        onClick={() => setShowPacksModal(true)}
+                        className="px-3 py-1.5 bg-white hover:bg-red-50 text-red-600 border border-red-200 rounded-lg text-xs font-medium transition-colors"
+                      >
+                        Buy Execution Pack
+                      </button>
+                      <button
+                        onClick={() => setShowUpgradeModal(true)}
+                        className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-medium transition-colors"
+                      >
+                        Upgrade Plan
+                      </button>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setSubscriptionError(null)}
+                    className="p-1 text-red-400 hover:text-red-600 rounded"
+                  >
+                    <XCircle className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Current Execution */}
@@ -322,24 +383,46 @@ export function AgentDashboard() {
         </div>
       </div>
 
-      {/* Agent Controls */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-        <h2 className="font-semibold text-slate-700 mb-3">Quick Actions</h2>
-        <div className="flex flex-wrap gap-2">
-          <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-slate-700 rounded-lg text-sm font-medium transition-colors">
-            View All Executions
-          </button>
-          <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-slate-700 rounded-lg text-sm font-medium transition-colors">
-            Swarm Configuration
-          </button>
-          <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-slate-700 rounded-lg text-sm font-medium transition-colors">
-            Knowledge Base
-          </button>
-          <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-slate-700 rounded-lg text-sm font-medium transition-colors">
-            Tool Library
-          </button>
+      {/* Bottom Row: Agent Controls + Subscription */}
+      <div className="grid md:grid-cols-3 gap-4">
+        {/* Agent Controls */}
+        <div className="md:col-span-2 bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+          <h2 className="font-semibold text-slate-700 mb-3">Quick Actions</h2>
+          <div className="flex flex-wrap gap-2">
+            <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-slate-700 rounded-lg text-sm font-medium transition-colors">
+              View All Executions
+            </button>
+            <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-slate-700 rounded-lg text-sm font-medium transition-colors">
+              Swarm Configuration
+            </button>
+            <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-slate-700 rounded-lg text-sm font-medium transition-colors">
+              Knowledge Base
+            </button>
+            <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-slate-700 rounded-lg text-sm font-medium transition-colors">
+              Tool Library
+            </button>
+          </div>
+        </div>
+
+        {/* Subscription Usage */}
+        <div>
+          <SubscriptionUsageCard
+            onUpgradeClick={() => setShowUpgradeModal(true)}
+            onBuyPackClick={() => setShowPacksModal(true)}
+          />
         </div>
       </div>
+
+      {/* Modals */}
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        currentTierSlug={currentTierSlug}
+      />
+      <ExecutionPacksModal
+        isOpen={showPacksModal}
+        onClose={() => setShowPacksModal(false)}
+      />
     </div>
   );
 }

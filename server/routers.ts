@@ -34,6 +34,7 @@ import { deploymentRouter } from "./api/routers/deployment";
 import { mcpRouter } from "./api/routers/mcp";
 import { swarmRouter } from "./api/routers/swarm";
 import { knowledgeRouter } from "./api/routers/knowledge";
+import { subscriptionRouter } from "./api/routers/subscription";
 import { publicProcedure, router } from "./_core/trpc";
 
 export const appRouter = router({
@@ -110,6 +111,9 @@ export const appRouter = router({
 
   // Knowledge & Training System
   knowledge: knowledgeRouter,
+
+  // Subscription & Billing
+  subscription: subscriptionRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -5,6 +5,7 @@ import { getDb } from "../../db";
 import { eq, and, desc, or } from "drizzle-orm";
 import { taskExecutions, agencyTasks } from "../../../drizzle/schema-webhooks";
 import { getAgentOrchestrator } from "../../services/agentOrchestrator.service";
+import { getSubscriptionService } from "../../services/subscription.service";
 
 /**
  * Agent tRPC Router
@@ -73,6 +74,23 @@ export const agentRouter = router({
       const userId = ctx.user.id;
 
       try {
+        // Check subscription limits before executing
+        const subscriptionService = getSubscriptionService();
+        const limitCheck = await subscriptionService.canExecuteTask(userId);
+
+        if (!limitCheck.allowed) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: limitCheck.reason || "Subscription limit reached",
+            cause: {
+              upgradeRequired: limitCheck.upgradeRequired,
+              suggestedAction: limitCheck.suggestedAction,
+              currentUsage: limitCheck.currentUsage,
+              limit: limitCheck.limit,
+            },
+          });
+        }
+
         // Verify task ownership if taskId is provided
         if (input.taskId) {
           const db = await getDb();
@@ -119,6 +137,14 @@ export const agentRouter = router({
           maxIterations: input.maxIterations,
           taskId: input.taskId,
         });
+
+        // Increment execution usage after successful execution
+        try {
+          await subscriptionService.incrementExecutionUsage(userId);
+        } catch (usageError) {
+          console.error("Failed to increment execution usage:", usageError);
+          // Don't fail the request if usage tracking fails
+        }
 
         return {
           success: true,
