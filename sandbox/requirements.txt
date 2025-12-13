@@ -11,7 +11,7 @@ docker==7.1.0
 playwright==1.48.0
 
 # HTTP & Web Scraping
-requests==2.32.3
+requests==2.32.4
 beautifulsoup4==4.12.3
 
 # Environment Configuration
