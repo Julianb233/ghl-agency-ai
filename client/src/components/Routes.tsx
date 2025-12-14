@@ -22,6 +22,7 @@ import { AuditLog } from '@/pages/admin/AuditLog';
 import { ConfigCenter } from '@/pages/admin/ConfigCenter';
 import DashboardLayout from './DashboardLayout';
 import { Toaster } from '@/components/ui/sonner';
+import { FeaturesPage } from '@/components/FeaturesPage';
 
 export function Routes() {
   return (

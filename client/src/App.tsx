@@ -12,6 +12,7 @@ import { trpc } from "@/lib/trpc";
 const Dashboard = lazy(() => import('./components/Dashboard').then(m => ({ default: m.Dashboard })));
 const AlexRamozyPage = lazy(() => import('./components/AlexRamozyPage').then(m => ({ default: m.AlexRamozyPage })));
 const LandingPage = lazy(() => import('./components/LandingPage').then(m => ({ default: m.LandingPage })));
+const FeaturesPage = lazy(() => import('./components/FeaturesPage').then(m => ({ default: m.FeaturesPage })));
 const LoginScreen = lazy(() => import('./components/LoginScreen').then(m => ({ default: m.LoginScreen })));
 const OnboardingFlow = lazy(() => import('./components/OnboardingFlow').then(m => ({ default: m.OnboardingFlow })));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy').then(m => ({ default: m.PrivacyPolicy })));
@@ -27,7 +28,7 @@ const LoadingSpinner = () => (
   </div>
 );
 
-type ViewState = 'LANDING' | 'LOGIN' | 'ONBOARDING' | 'DASHBOARD' | 'ALEX_RAMOZY' | 'PRIVACY' | 'TERMS';
+type ViewState = 'LANDING' | 'LOGIN' | 'ONBOARDING' | 'DASHBOARD' | 'ALEX_RAMOZY' | 'PRIVACY' | 'TERMS' | 'FEATURES';
 type UserTier = 'STARTER' | 'GROWTH' | 'WHITELABEL';
 
 // Admin email for preview access
@@ -127,15 +128,32 @@ function App() {
                 <AlexRamozyPage onDemoClick={() => setCurrentView('LOGIN')} />
               )}
               {currentView === 'LANDING' && (
-                <LandingPage onLogin={() => {
-                  if (isAdminPreview && isAdmin) {
-                    // Admin in preview mode - go back to dashboard
-                    setIsAdminPreview(false);
-                    setCurrentView('DASHBOARD');
-                  } else {
-                    setCurrentView('LOGIN');
-                  }
-                }} />
+                <LandingPage
+                  onLogin={() => {
+                    if (isAdminPreview && isAdmin) {
+                      // Admin in preview mode - go back to dashboard
+                      setIsAdminPreview(false);
+                      setCurrentView('DASHBOARD');
+                    } else {
+                      setCurrentView('LOGIN');
+                    }
+                  }}
+                  onNavigateToFeatures={() => setCurrentView('FEATURES')}
+                />
+              )}
+
+              {currentView === 'FEATURES' && (
+                <FeaturesPage
+                  onGetStarted={() => {
+                    if (user && !isAdminPreview) {
+                      // User is logged in - go to dashboard
+                      setCurrentView('DASHBOARD');
+                    } else {
+                      setCurrentView('LOGIN');
+                    }
+                  }}
+                  onNavigateHome={() => setCurrentView('LANDING')}
+                />
               )}
 
               {currentView === 'LOGIN' && (
