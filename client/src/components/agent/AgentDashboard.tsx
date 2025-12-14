@@ -11,20 +11,20 @@
  * - Recent agent executions with status indicators
  * - Quick actions: start, pause, resume, terminate agents
  * - Swarm coordination status for multi-agent scenarios
+ * - Subscription usage tracking and upgrade prompts
  * - Production-ready with TypeScript and shadcn/ui components
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAgentSSE } from '@/hooks/useAgentSSE';
 import { useAgentStore, type AgentStatus } from '@/stores/agentStore';
+import { trpc } from '@/lib/trpc';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
-import { Separator } from '@/components/ui/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   SubscriptionUsageCard,
   UpgradeModal,
@@ -268,28 +268,22 @@ function LogEntry({ entry }: { entry: { id: string; timestamp: string; level: st
 export function AgentDashboard() {
   const [taskInput, setTaskInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-<<<<<<< HEAD
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showPacksModal, setShowPacksModal] = useState(false);
   const [subscriptionError, setSubscriptionError] = useState<string | null>(null);
-||||||| parent of 8fc89e5 (feat: Complete Phase 6 integration - Full-stack production ready)
-=======
   const [recentExecutions, setRecentExecutions] = useState<RecentExecution[]>([]);
->>>>>>> 8fc89e5 (feat: Complete Phase 6 integration - Full-stack production ready)
 
   // Agent store state
-<<<<<<< HEAD
-  const { currentExecution, isExecuting, logs, connectedAgents } = useAgentStore();
+  const { currentExecution, isExecuting, logs, connectedAgents, setStatus } = useAgentStore();
   const status = currentExecution?.status || (isExecuting ? 'executing' : 'idle');
   const currentTask = currentExecution?.taskDescription;
-||||||| parent of 8fc89e5 (feat: Complete Phase 6 integration - Full-stack production ready)
-  const { status, currentTask, logs, connectedAgents } = useAgentStore();
-=======
-  const { status, currentTask, logs, connectedAgents, setStatus } = useAgentStore();
->>>>>>> 8fc89e5 (feat: Complete Phase 6 integration - Full-stack production ready)
 
   // SSE connection for real-time updates
   const { isConnected, connect, disconnect } = useAgentSSE({ autoConnect: true });
+
+  // Get subscription info for tier slug
+  const { data: subscriptionData } = trpc.subscription.getMySubscription.useQuery();
+  const currentTierSlug = subscriptionData?.tier?.slug;
 
   // Calculate metrics from logs and executions
   const metrics = useMemo<AgentMetrics>(() => {
@@ -302,10 +296,15 @@ export function AgentDashboard() {
         .reduce((acc, e) => acc + (e.duration || 0), 0) /
       (recentExecutions.filter((e) => e.duration).length || 1);
 
-<<<<<<< HEAD
-  // Get subscription info for tier slug
-  const { data: subscriptionData } = trpc.subscription.getMySubscription.useQuery();
-  const currentTierSlug = subscriptionData?.tier?.slug;
+    return {
+      totalExecutions: total,
+      completedExecutions: completed,
+      failedExecutions: failed,
+      averageExecutionTime: avgTime,
+      completionRate: total > 0 ? (completed / total) * 100 : 0,
+      activeAgents: connectedAgents,
+    };
+  }, [recentExecutions, connectedAgents]);
 
   // tRPC mutations
   const executeTask = trpc.agent.executeTask.useMutation({
@@ -313,9 +312,6 @@ export function AgentDashboard() {
       setTaskInput('');
       setIsSubmitting(false);
       setSubscriptionError(null);
-      if (data.executionId) {
-        setCurrentExecutionId(data.executionId);
-      }
     },
     onError: (error: any) => {
       console.error('Execution failed:', error);
@@ -333,32 +329,6 @@ export function AgentDashboard() {
       }
     },
   });
-||||||| parent of 8fc89e5 (feat: Complete Phase 6 integration - Full-stack production ready)
-  // tRPC mutations
-  const executeTask = trpc.agent.executeTask.useMutation({
-    onSuccess: (data) => {
-      setTaskInput('');
-      setIsSubmitting(false);
-      if (data.executionId) {
-        setCurrentExecutionId(data.executionId);
-      }
-    },
-    onError: (error) => {
-      console.error('Execution failed:', error);
-      setIsSubmitting(false);
-    },
-  });
-=======
-    return {
-      totalExecutions: total,
-      completedExecutions: completed,
-      failedExecutions: failed,
-      averageExecutionTime: avgTime,
-      completionRate: total > 0 ? (completed / total) * 100 : 0,
-      activeAgents: connectedAgents,
-    };
-  }, [recentExecutions, connectedAgents]);
->>>>>>> 8fc89e5 (feat: Complete Phase 6 integration - Full-stack production ready)
 
   // Demo data for recent executions
   useEffect(() => {
@@ -421,37 +391,10 @@ export function AgentDashboard() {
 
   // Handle task submission
   const handleSubmitTask = async () => {
-<<<<<<< HEAD
-    if (!taskInput.trim()) return;
+    if (!taskInput.trim() || isSubmitting) return;
     setSubscriptionError(null);
     setIsSubmitting(true);
     executeTask.mutate({ taskDescription: taskInput });
-  };
-||||||| parent of 8fc89e5 (feat: Complete Phase 6 integration - Full-stack production ready)
-    if (!taskInput.trim()) return;
-    setIsSubmitting(true);
-    executeTask.mutate({ taskDescription: taskInput });
-  };
-=======
-    if (!taskInput.trim() || isSubmitting) return;
->>>>>>> 8fc89e5 (feat: Complete Phase 6 integration - Full-stack production ready)
-
-    setIsSubmitting(true);
-    try {
-      // In production, this would call the API
-      // For demo, simulate execution
-      setStatus('planning');
-
-      setTimeout(() => {
-        setStatus('executing');
-      }, 1000);
-
-      setTaskInput('');
-    } catch (error) {
-      console.error('Failed to start execution:', error);
-    } finally {
-      setIsSubmitting(false);
-    }
   };
 
   // Handle pause/resume
@@ -509,75 +452,50 @@ export function AgentDashboard() {
                   isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'
                 }`}
               />
-<<<<<<< HEAD
-              <button
-                onClick={handleSubmitTask}
-                disabled={isSubmitting || status === 'executing' || !taskInput.trim()}
-                className="px-4 py-2.5 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 text-white rounded-lg font-medium text-sm flex items-center gap-2 transition-colors"
-              >
-                {isSubmitting ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Play className="w-4 h-4" />
-                )}
-                Execute
-              </button>
-            </div>
-
-            {/* Subscription Error Alert */}
-            {subscriptionError && (
-              <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <div className="flex items-start gap-2">
-                  <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5 shrink-0" />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-red-700">{subscriptionError}</p>
-                    <div className="flex gap-2 mt-2">
-                      <button
-                        onClick={() => setShowPacksModal(true)}
-                        className="px-3 py-1.5 bg-white hover:bg-red-50 text-red-600 border border-red-200 rounded-lg text-xs font-medium transition-colors"
-                      >
-                        Buy Execution Pack
-                      </button>
-                      <button
-                        onClick={() => setShowUpgradeModal(true)}
-                        className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-medium transition-colors"
-                      >
-                        Upgrade Plan
-                      </button>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setSubscriptionError(null)}
-                    className="p-1 text-red-400 hover:text-red-600 rounded"
-                  >
-                    <XCircle className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            )}
-||||||| parent of 8fc89e5 (feat: Complete Phase 6 integration - Full-stack production ready)
-              <button
-                onClick={handleSubmitTask}
-                disabled={isSubmitting || status === 'executing' || !taskInput.trim()}
-                className="px-4 py-2.5 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 text-white rounded-lg font-medium text-sm flex items-center gap-2 transition-colors"
-              >
-                {isSubmitting ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Play className="w-4 h-4" />
-                )}
-                Execute
-              </button>
-            </div>
-=======
               {isConnected ? 'Connected' : 'Disconnected'}
             </Badge>
             <Button variant="ghost" size="icon">
               <Settings className="h-5 w-5" />
             </Button>
->>>>>>> 8fc89e5 (feat: Complete Phase 6 integration - Full-stack production ready)
           </div>
         </div>
+
+        {/* Subscription Error Alert */}
+        {subscriptionError && (
+          <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-red-500 mt-0.5 shrink-0" />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-red-700">{subscriptionError}</p>
+                <div className="flex gap-2 mt-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowPacksModal(true)}
+                    className="border-red-200 text-red-600 hover:bg-red-50"
+                  >
+                    Buy Execution Pack
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => setShowUpgradeModal(true)}
+                    className="bg-red-600 hover:bg-red-700 text-white"
+                  >
+                    Upgrade Plan
+                  </Button>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setSubscriptionError(null)}
+                className="text-red-400 hover:text-red-600"
+              >
+                <XCircle className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Metrics Grid */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -748,54 +666,14 @@ export function AgentDashboard() {
             </Card>
           </div>
 
-<<<<<<< HEAD
-      {/* Bottom Row: Agent Controls + Subscription */}
-      <div className="grid md:grid-cols-3 gap-4">
-        {/* Agent Controls */}
-        <div className="md:col-span-2 bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-          <h2 className="font-semibold text-slate-700 mb-3">Quick Actions</h2>
-          <div className="flex flex-wrap gap-2">
-            <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-slate-700 rounded-lg text-sm font-medium transition-colors">
-              View All Executions
-            </button>
-            <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-slate-700 rounded-lg text-sm font-medium transition-colors">
-              Swarm Configuration
-            </button>
-            <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-slate-700 rounded-lg text-sm font-medium transition-colors">
-              Knowledge Base
-            </button>
-            <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-slate-700 rounded-lg text-sm font-medium transition-colors">
-              Tool Library
-            </button>
-          </div>
-        </div>
-
-        {/* Subscription Usage */}
-        <div>
-          <SubscriptionUsageCard
-            onUpgradeClick={() => setShowUpgradeModal(true)}
-            onBuyPackClick={() => setShowPacksModal(true)}
-          />
-||||||| parent of 8fc89e5 (feat: Complete Phase 6 integration - Full-stack production ready)
-      {/* Agent Controls */}
-      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-        <h2 className="font-semibold text-slate-700 mb-3">Quick Actions</h2>
-        <div className="flex flex-wrap gap-2">
-          <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-slate-700 rounded-lg text-sm font-medium transition-colors">
-            View All Executions
-          </button>
-          <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-slate-700 rounded-lg text-sm font-medium transition-colors">
-            Swarm Configuration
-          </button>
-          <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-slate-700 rounded-lg text-sm font-medium transition-colors">
-            Knowledge Base
-          </button>
-          <button className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-slate-700 rounded-lg text-sm font-medium transition-colors">
-            Tool Library
-          </button>
-=======
-          {/* Right Column - Logs & Controls */}
+          {/* Right Column - Logs, Subscription & Controls */}
           <div className="space-y-6">
+            {/* Subscription Usage */}
+            <SubscriptionUsageCard
+              onUpgradeClick={() => setShowUpgradeModal(true)}
+              onBuyPackClick={() => setShowPacksModal(true)}
+            />
+
             {/* Execution Logs */}
             <Card>
               <CardHeader>
@@ -811,7 +689,7 @@ export function AgentDashboard() {
                 <CardDescription>Real-time execution events</CardDescription>
               </CardHeader>
               <CardContent>
-                <ScrollArea className="h-[500px]">
+                <ScrollArea className="h-[300px]">
                   <div className="space-y-1">
                     {logs.length > 0 ? (
                       logs.map((entry) => <LogEntry key={entry.id} entry={entry} />)
@@ -856,7 +734,6 @@ export function AgentDashboard() {
               </CardContent>
             </Card>
           </div>
->>>>>>> 8fc89e5 (feat: Complete Phase 6 integration - Full-stack production ready)
         </div>
       </div>
 
