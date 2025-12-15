@@ -31,34 +31,39 @@ interface PerformanceSummaryProps {
 }
 
 export function PerformanceSummary({ period = '7d' }: PerformanceSummaryProps) {
-  const { data: stats, isLoading } = trpc.analytics.getExecutionStats.useQuery(
-    { period },
+  // Map UI period to API period
+  const apiPeriod = period === '24h' ? 'day' : period === '7d' ? 'week' : 'month';
+
+  const { data, isLoading } = trpc.analytics.getExecutionStats.useQuery(
+    { period: apiPeriod },
     {
       refetchInterval: 30000, // Refresh every 30 seconds
     }
   );
 
+  const stats = data && 'successRate' in data ? data : null;
+
   // Calculate health score based on multiple metrics
   const calculateHealthScore = () => {
     if (!stats) return { score: 0, status: 'unknown' as const };
 
-    const successWeight = 0.4;
-    const uptimeWeight = 0.3;
+    const successWeight = 0.5;
     const responseTimeWeight = 0.3;
+    const executionWeight = 0.2;
 
     // Success rate contribution (0-100)
     const successContrib = (stats.successRate || 0) * successWeight;
 
-    // Uptime contribution (assuming 99%+ is ideal)
-    const uptimeScore = Math.min(100, ((stats.uptime || 99) / 99.9) * 100);
-    const uptimeContrib = uptimeScore * uptimeWeight;
-
     // Response time contribution (assuming <500ms is ideal)
-    const avgDuration = stats.avgDuration || 0;
+    const avgDuration = stats.averageDuration || 0;
     const responseScore = Math.max(0, 100 - (avgDuration / 10)); // Penalty for slow responses
     const responseContrib = responseScore * responseTimeWeight;
 
-    const totalScore = Math.round(successContrib + uptimeContrib + responseContrib);
+    // Execution count contribution (higher is better)
+    const executionScore = Math.min(100, (stats.totalExecutions / 10) * 100);
+    const executionContrib = executionScore * executionWeight;
+
+    const totalScore = Math.round(successContrib + responseContrib + executionContrib);
 
     let status: 'excellent' | 'good' | 'fair' | 'poor' = 'poor';
     if (totalScore >= 90) status = 'excellent';
@@ -111,24 +116,24 @@ export function PerformanceSummary({ period = '7d' }: PerformanceSummaryProps) {
       value: stats?.successRate || 0,
       unit: '%',
       icon: <CheckCircle2 className="w-4 h-4" />,
-      trend: stats?.successRateTrend || 0,
+      trend: 0, // TODO: Calculate trend from historical data
       target: 95,
     },
     {
       label: 'Avg Response',
-      value: stats?.avgDuration ? (stats.avgDuration / 1000).toFixed(1) : '0',
+      value: stats?.averageDuration ? (stats.averageDuration / 1000).toFixed(1) : '0',
       unit: 's',
       icon: <Clock className="w-4 h-4" />,
-      trend: stats?.avgDurationTrend || 0,
+      trend: 0, // TODO: Calculate trend from historical data
       target: null, // Lower is better
       invertTrend: true,
     },
     {
       label: 'Tasks/Day',
-      value: stats?.tasksPerDay || 0,
+      value: stats ? Math.round(stats.totalExecutions / 7) : 0,
       unit: '',
       icon: <Zap className="w-4 h-4" />,
-      trend: stats?.tasksTrend || 0,
+      trend: 0, // TODO: Calculate trend from historical data
       target: null,
     },
   ];

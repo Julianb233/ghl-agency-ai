@@ -116,8 +116,8 @@ export const knowledgeRouter = router({
    */
   getPattern: publicProcedure
     .input(z.object({ taskType: z.string() }))
-    .query(({ input }) => {
-      const pattern = knowledgeService.getActionPattern(input.taskType);
+    .query(async ({ input }) => {
+      const pattern = await knowledgeService.getActionPattern(input.taskType);
       return {
         success: true,
         pattern: pattern || null,
@@ -127,8 +127,8 @@ export const knowledgeRouter = router({
   /**
    * List all action patterns
    */
-  listPatterns: publicProcedure.query(() => {
-    const patterns = knowledgeService.getAllPatterns();
+  listPatterns: publicProcedure.query(async () => {
+    const patterns = await knowledgeService.getAllPatterns();
     return {
       success: true,
       patterns,
@@ -141,8 +141,8 @@ export const knowledgeRouter = router({
    */
   getTopPatterns: publicProcedure
     .input(z.object({ limit: z.number().optional() }).optional())
-    .query(({ input }) => {
-      const patterns = knowledgeService.getTopPerformingPatterns(input?.limit || 10);
+    .query(async ({ input }) => {
+      const patterns = await knowledgeService.getTopPerformingPatterns(input?.limit || 10);
       return {
         success: true,
         patterns,
@@ -154,9 +154,9 @@ export const knowledgeRouter = router({
    */
   savePattern: publicProcedure
     .input(actionPatternSchema)
-    .mutation(({ input }) => {
+    .mutation(async ({ input }) => {
       try {
-        knowledgeService.saveActionPattern({
+        await knowledgeService.saveActionPattern({
           ...input,
           successCount: input.successCount || 0,
           failureCount: input.failureCount || 0,
@@ -181,8 +181,8 @@ export const knowledgeRouter = router({
       taskType: z.string(),
       success: z.boolean(),
     }))
-    .mutation(({ input }) => {
-      knowledgeService.recordPatternExecution(input.taskType, input.success);
+    .mutation(async ({ input }) => {
+      await knowledgeService.recordPatternExecution(input.taskType, input.success);
       return {
         success: true,
         message: 'Execution recorded',
@@ -194,8 +194,8 @@ export const knowledgeRouter = router({
    */
   deletePattern: publicProcedure
     .input(z.object({ taskType: z.string() }))
-    .mutation(({ input }) => {
-      const deleted = knowledgeService.deletePattern(input.taskType);
+    .mutation(async ({ input }) => {
+      const deleted = await knowledgeService.deletePattern(input.taskType);
       if (!deleted) {
         throw new TRPCError({
           code: 'NOT_FOUND',
@@ -220,8 +220,8 @@ export const knowledgeRouter = router({
       pagePath: z.string(),
       elementName: z.string(),
     }))
-    .query(({ input }) => {
-      const selector = knowledgeService.getSelector(input.pagePath, input.elementName);
+    .query(async ({ input }) => {
+      const selector = await knowledgeService.getSelector(input.pagePath, input.elementName);
       return {
         success: true,
         selector: selector || null,
@@ -233,8 +233,8 @@ export const knowledgeRouter = router({
    */
   listSelectorsForPage: publicProcedure
     .input(z.object({ pagePath: z.string() }))
-    .query(({ input }) => {
-      const selectors = knowledgeService.getSelectorsForPage(input.pagePath);
+    .query(async ({ input }) => {
+      const selectors = await knowledgeService.getSelectorsForPage(input.pagePath);
       return {
         success: true,
         selectors,
@@ -245,8 +245,8 @@ export const knowledgeRouter = router({
   /**
    * List all selectors
    */
-  listAllSelectors: publicProcedure.query(() => {
-    const selectors = knowledgeService.getAllSelectors();
+  listAllSelectors: publicProcedure.query(async () => {
+    const selectors = await knowledgeService.getAllSelectors();
     return {
       success: true,
       selectors,
@@ -259,9 +259,9 @@ export const knowledgeRouter = router({
    */
   saveSelector: publicProcedure
     .input(elementSelectorSchema)
-    .mutation(({ input }) => {
+    .mutation(async ({ input }) => {
       try {
-        knowledgeService.saveSelector({
+        await knowledgeService.saveSelector({
           ...input,
           successRate: input.successRate || 1.0,
           totalAttempts: input.totalAttempts || 0,
@@ -288,8 +288,8 @@ export const knowledgeRouter = router({
       selectorUsed: z.string(),
       success: z.boolean(),
     }))
-    .mutation(({ input }) => {
-      knowledgeService.recordSelectorUsage(
+    .mutation(async ({ input }) => {
+      await knowledgeService.recordSelectorUsage(
         input.pagePath,
         input.elementName,
         input.selectorUsed,
@@ -314,8 +314,8 @@ export const knowledgeRouter = router({
       errorMessage: z.string(),
       context: z.string(),
     }))
-    .mutation(({ input }) => {
-      const strategies = knowledgeService.recordError(
+    .mutation(async ({ input }) => {
+      const strategies = await knowledgeService.recordError(
         input.errorType,
         input.errorMessage,
         input.context
@@ -335,8 +335,8 @@ export const knowledgeRouter = router({
       context: z.string(),
       strategyUsed: z.enum(['wait_and_retry', 'refresh_page', 'fallback_selector', 'skip', 'escalate']),
     }))
-    .mutation(({ input }) => {
-      knowledgeService.recordRecoverySuccess(
+    .mutation(async ({ input }) => {
+      await knowledgeService.recordRecoverySuccess(
         input.errorType,
         input.context,
         input.strategyUsed
@@ -350,8 +350,8 @@ export const knowledgeRouter = router({
   /**
    * Get error statistics
    */
-  getErrorStats: publicProcedure.query(() => {
-    const stats = knowledgeService.getErrorStats();
+  getErrorStats: publicProcedure.query(async () => {
+    const stats = await knowledgeService.getErrorStats();
     return {
       success: true,
       stats,
@@ -367,9 +367,9 @@ export const knowledgeRouter = router({
    */
   submitFeedback: publicProcedure
     .input(agentFeedbackSchema)
-    .mutation(({ input }) => {
+    .mutation(async ({ input }) => {
       try {
-        knowledgeService.submitFeedback(input);
+        await knowledgeService.submitFeedback(input);
         return {
           success: true,
           message: 'Feedback submitted successfully',
@@ -392,8 +392,8 @@ export const knowledgeRouter = router({
       rating: z.number().optional(),
       limit: z.number().optional(),
     }).optional())
-    .query(({ input }) => {
-      const feedback = knowledgeService.getFeedback(input);
+    .query(async ({ input }) => {
+      const feedback = await knowledgeService.getFeedback(input);
       return {
         success: true,
         feedback,
@@ -404,8 +404,8 @@ export const knowledgeRouter = router({
   /**
    * Get feedback statistics
    */
-  getFeedbackStats: publicProcedure.query(() => {
-    const stats = knowledgeService.getFeedbackStats();
+  getFeedbackStats: publicProcedure.query(async () => {
+    const stats = await knowledgeService.getFeedbackStats();
     return {
       success: true,
       stats,
@@ -421,8 +421,8 @@ export const knowledgeRouter = router({
    */
   getBrandVoice: publicProcedure
     .input(z.object({ clientId: z.number() }))
-    .query(({ input }) => {
-      const brandVoice = knowledgeService.getBrandVoice(input.clientId);
+    .query(async ({ input }) => {
+      const brandVoice = await knowledgeService.getBrandVoice(input.clientId);
       return {
         success: true,
         brandVoice: brandVoice || null,
@@ -432,8 +432,8 @@ export const knowledgeRouter = router({
   /**
    * List all brand voices
    */
-  listBrandVoices: publicProcedure.query(() => {
-    const voices = knowledgeService.getAllBrandVoices();
+  listBrandVoices: publicProcedure.query(async () => {
+    const voices = await knowledgeService.getAllBrandVoices();
     return {
       success: true,
       brandVoices: voices,
@@ -446,9 +446,9 @@ export const knowledgeRouter = router({
    */
   saveBrandVoice: publicProcedure
     .input(brandVoiceSchema)
-    .mutation(({ input }) => {
+    .mutation(async ({ input }) => {
       try {
-        knowledgeService.saveBrandVoice(input);
+        await knowledgeService.saveBrandVoice(input);
         return {
           success: true,
           message: `Brand voice for client ${input.clientId} saved`,
@@ -469,8 +469,8 @@ export const knowledgeRouter = router({
       clientId: z.number(),
       contentType: z.string(),
     }))
-    .query(({ input }) => {
-      const prompt = knowledgeService.generateBrandPrompt(
+    .query(async ({ input }) => {
+      const prompt = await knowledgeService.generateBrandPrompt(
         input.clientId,
         input.contentType
       );
@@ -489,8 +489,8 @@ export const knowledgeRouter = router({
    */
   getClientContext: publicProcedure
     .input(z.object({ clientId: z.number() }))
-    .query(({ input }) => {
-      const context = knowledgeService.getClientContext(input.clientId);
+    .query(async ({ input }) => {
+      const context = await knowledgeService.getClientContext(input.clientId);
       return {
         success: true,
         context: context || null,
@@ -500,8 +500,8 @@ export const knowledgeRouter = router({
   /**
    * List all client contexts
    */
-  listClientContexts: publicProcedure.query(() => {
-    const contexts = knowledgeService.getAllClientContexts();
+  listClientContexts: publicProcedure.query(async () => {
+    const contexts = await knowledgeService.getAllClientContexts();
     return {
       success: true,
       contexts,
@@ -514,9 +514,9 @@ export const knowledgeRouter = router({
    */
   saveClientContext: publicProcedure
     .input(clientContextSchema)
-    .mutation(({ input }) => {
+    .mutation(async ({ input }) => {
       try {
-        knowledgeService.saveClientContext(input);
+        await knowledgeService.saveClientContext(input);
         return {
           success: true,
           message: `Context for client ${input.clientId} saved`,
@@ -534,8 +534,8 @@ export const knowledgeRouter = router({
    */
   generateContextPrompt: publicProcedure
     .input(z.object({ clientId: z.number() }))
-    .query(({ input }) => {
-      const prompt = knowledgeService.generateContextPrompt(input.clientId);
+    .query(async ({ input }) => {
+      const prompt = await knowledgeService.generateContextPrompt(input.clientId);
       return {
         success: true,
         prompt,
@@ -551,8 +551,8 @@ export const knowledgeRouter = router({
       taskCompleted: z.boolean(),
       issue: z.string().optional(),
     }))
-    .mutation(({ input }) => {
-      knowledgeService.updateClientHistory(
+    .mutation(async ({ input }) => {
+      await knowledgeService.updateClientHistory(
         input.clientId,
         input.taskCompleted,
         input.issue
@@ -570,8 +570,8 @@ export const knowledgeRouter = router({
   /**
    * Get system-wide statistics
    */
-  getSystemStats: publicProcedure.query(() => {
-    const stats = knowledgeService.getSystemStats();
+  getSystemStats: publicProcedure.query(async () => {
+    const stats = await knowledgeService.getSystemStats();
     return {
       success: true,
       stats,
@@ -586,8 +586,8 @@ export const knowledgeRouter = router({
       taskDescription: z.string(),
       clientId: z.number().optional(),
     }))
-    .query(({ input }) => {
-      const recommendations = knowledgeService.getPatternRecommendations(
+    .query(async ({ input }) => {
+      const recommendations = await knowledgeService.getPatternRecommendations(
         input.taskDescription,
         input.clientId
       );
@@ -600,8 +600,8 @@ export const knowledgeRouter = router({
   /**
    * Health check for knowledge service
    */
-  health: publicProcedure.query(() => {
-    const stats = knowledgeService.getSystemStats();
+  health: publicProcedure.query(async () => {
+    const stats = await knowledgeService.getSystemStats();
     return {
       success: true,
       healthy: true,

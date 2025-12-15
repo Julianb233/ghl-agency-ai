@@ -59,12 +59,12 @@ export function UsageChart({ className, showLimit = true }: UsageChartProps) {
   });
 
   const isLoading = usageQuery.isLoading;
-  const data = usageQuery.data?.data || [];
+  const data = (usageQuery.data && 'data' in usageQuery.data) ? usageQuery.data.data : [];
   const executionLimit = subscriptionQuery.data?.usage?.executionLimit || 0;
   const dailyLimit = executionLimit / 30; // Approximate daily limit
 
   // Format data for chart
-  const chartData = data.map((item) => ({
+  const chartData = data.map((item: any) => ({
     date: new Date(item.period as string).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -257,7 +257,7 @@ export function UsageChart({ className, showLimit = true }: UsageChartProps) {
             </ResponsiveContainer>
           </div>
         )}
-        {!isLoading && usageQuery.data?.summary && (
+        {!isLoading && usageQuery.data && 'summary' in usageQuery.data && (
           <div className="mt-4 pt-4 border-t grid grid-cols-3 gap-4">
             <div>
               <p className="text-xs text-muted-foreground">Total</p>

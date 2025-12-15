@@ -50,6 +50,7 @@ function ExecutionItem({ execution, onReplay, onView }: ExecutionItemProps) {
       bgColor: 'bg-green-50 dark:bg-green-950/20',
       variant: 'success' as const,
       label: 'Success',
+      animate: undefined,
     },
     failed: {
       icon: XCircle,
@@ -57,6 +58,7 @@ function ExecutionItem({ execution, onReplay, onView }: ExecutionItemProps) {
       bgColor: 'bg-red-50 dark:bg-red-950/20',
       variant: 'destructive' as const,
       label: 'Failed',
+      animate: undefined,
     },
     running: {
       icon: Loader2,
@@ -64,7 +66,7 @@ function ExecutionItem({ execution, onReplay, onView }: ExecutionItemProps) {
       bgColor: 'bg-blue-50 dark:bg-blue-950/20',
       variant: 'info' as const,
       label: 'Running',
-      animate: 'animate-spin',
+      animate: 'animate-spin' as const,
     },
     timeout: {
       icon: Clock,
@@ -72,6 +74,7 @@ function ExecutionItem({ execution, onReplay, onView }: ExecutionItemProps) {
       bgColor: 'bg-amber-50 dark:bg-amber-950/20',
       variant: 'warning' as const,
       label: 'Timeout',
+      animate: undefined,
     },
   };
 
@@ -81,6 +84,7 @@ function ExecutionItem({ execution, onReplay, onView }: ExecutionItemProps) {
     bgColor: 'bg-gray-50 dark:bg-gray-950/20',
     variant: 'outline' as const,
     label: execution.status,
+    animate: undefined,
   };
 
   const StatusIcon = status.icon;
@@ -235,7 +239,8 @@ export function AgentPerformance({
   };
 
   const isLoading = taskId ? metricsQuery.isLoading : statsQuery.isLoading;
-  const executions = metricsQuery.data?.recentExecutions || [];
+  const metricsData = metricsQuery.data && 'recentExecutions' in metricsQuery.data ? metricsQuery.data : null;
+  const executions = metricsData?.recentExecutions || [];
 
   return (
     <Card className={cn('w-full', className)}>
@@ -248,7 +253,7 @@ export function AgentPerformance({
             </CardTitle>
             <CardDescription className="mt-1">
               {taskId
-                ? `Recent runs for ${metricsQuery.data?.taskName || 'this task'}`
+                ? `Recent runs for ${metricsData?.taskName || 'this task'}`
                 : 'Latest agent execution history'}
             </CardDescription>
           </div>
@@ -293,26 +298,26 @@ export function AgentPerformance({
           </div>
         )}
 
-        {!isLoading && metricsQuery.data?.execution && (
+        {!isLoading && metricsData?.execution && (
           <div className="mt-4 pt-4 border-t grid grid-cols-3 gap-4">
             <div>
               <p className="text-xs text-muted-foreground">Total Runs</p>
               <p className="text-lg font-semibold">
-                {metricsQuery.data.execution.total}
+                {metricsData.execution.total}
               </p>
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Success Rate</p>
               <p className="text-lg font-semibold text-green-600 dark:text-green-500">
-                {metricsQuery.data.execution.successRate.toFixed(1)}%
+                {metricsData.execution.successRate.toFixed(1)}%
               </p>
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Avg Duration</p>
               <p className="text-lg font-semibold">
-                {metricsQuery.data.duration.average > 1000
-                  ? `${(metricsQuery.data.duration.average / 1000).toFixed(1)}s`
-                  : `${metricsQuery.data.duration.average}ms`}
+                {metricsData.duration.average > 1000
+                  ? `${(metricsData.duration.average / 1000).toFixed(1)}s`
+                  : `${metricsData.duration.average}ms`}
               </p>
             </div>
           </div>

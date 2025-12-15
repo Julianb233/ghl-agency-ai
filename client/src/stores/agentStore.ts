@@ -22,9 +22,12 @@ export interface ToolHistoryEntry {
   duration?: number;
 }
 
+// Agent status type used across the application
+export type AgentStatus = 'idle' | 'planning' | 'executing' | 'completed' | 'error' | 'paused';
+
 export interface CurrentExecution {
   id: number;
-  status: 'started' | 'running' | 'planning' | 'executing' | 'success' | 'completed' | 'failed' | 'timeout' | 'cancelled' | 'needs_input';
+  status: 'started' | 'running' | 'planning' | 'executing' | 'success' | 'completed' | 'failed' | 'timeout' | 'cancelled' | 'needs_input' | 'paused';
   plan: AgentPlan | null;
   thinkingSteps: ThinkingStep[];
   toolHistory: ToolHistoryEntry[];
@@ -86,6 +89,7 @@ interface AgentState {
   cancelExecution: () => Promise<void>;
   respondToAgent: (response: string) => Promise<void>;
   clearCurrentExecution: () => void;
+  setStatus: (status: CurrentExecution['status']) => void;
 
   // Browser session management
   setActiveBrowserSession: (session: BrowserSession | null) => void;
@@ -344,6 +348,30 @@ export const useAgentStore = create<AgentState>((set, get) => ({
       isExecuting: false,
       activeBrowserSession: null,
     });
+  },
+
+  /**
+   * Set the status of the current execution
+   */
+  setStatus: (status: CurrentExecution['status']) => {
+    const { currentExecution } = get();
+
+    if (currentExecution) {
+      set({
+        currentExecution: {
+          ...currentExecution,
+          status,
+        },
+        isExecuting: status === 'executing' || status === 'planning' || status === 'running' || status === 'started',
+      });
+
+      get().addLog({
+        id: `log-${Date.now()}`,
+        timestamp: new Date().toISOString(),
+        level: 'info',
+        message: `Status changed to: ${status}`,
+      });
+    }
   },
 
   /**

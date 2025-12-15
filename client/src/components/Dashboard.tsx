@@ -91,6 +91,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
       }, 1500);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [autoStartTours, hasSeenWelcome, startTour, setHasSeenWelcome]);
 
   const [status, setStatus] = useState<AgentStatus>(AgentStatus.IDLE);

@@ -19,8 +19,10 @@ export interface AgentExecution {
 
 export interface AgentPlan {
   id: string;
+  name?: string;
   phases: AgentPhase[];
   currentPhase?: number;
+  currentPhaseId?: number;
   estimatedDuration?: string;
 }
 
@@ -31,6 +33,8 @@ export interface AgentPhase {
   status: 'pending' | 'in_progress' | 'completed' | 'failed';
   steps?: string[];
   progress?: number;
+  duration?: number;
+  successCriteria?: string[];
 }
 
 export interface ThinkingStep {

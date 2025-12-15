@@ -1,8 +1,5 @@
 import { expect, afterEach } from 'vitest';
-import * as matchers from '@testing-library/jest-dom/matchers';
-
-// Extend vitest expect with jest-dom matchers
-expect.extend(matchers);
+import '@testing-library/jest-dom/vitest';
 
 // Server-side environment setup (node environment)
 if (typeof window === 'undefined') {

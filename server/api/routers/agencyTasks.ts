@@ -838,4 +838,79 @@ export const agencyTasksRouter = router({
         });
       }
     }),
+
+  /**
+   * Get task queue with filtering
+   */
+  getTaskQueue: protectedProcedure
+    .input(z.object({
+      filter: z.enum(['all', 'running', 'pending', 'scheduled']).optional(),
+      limit: z.number().int().min(1).max(100).default(50),
+    }))
+    .query(async ({ input, ctx }) => {
+      const userId = ctx.user.id;
+
+      const db = await getDb();
+      if (!db) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Database not initialized",
+        });
+      }
+
+      try {
+        const conditions: any[] = [eq(agencyTasks.userId, userId)];
+
+        // Apply filter
+        if (input.filter === 'running') {
+          conditions.push(eq(agencyTasks.status, 'in_progress'));
+        } else if (input.filter === 'pending') {
+          conditions.push(inArray(agencyTasks.status, ['pending', 'queued']));
+        } else if (input.filter === 'scheduled') {
+          conditions.push(eq(agencyTasks.status, 'deferred'));
+        }
+
+        const tasks = await db
+          .select()
+          .from(agencyTasks)
+          .where(and(...conditions))
+          .orderBy(desc(agencyTasks.priority), desc(agencyTasks.createdAt))
+          .limit(input.limit);
+
+        // Get counts
+        const [runningCount] = await db
+          .select({ count: count() })
+          .from(agencyTasks)
+          .where(and(eq(agencyTasks.userId, userId), eq(agencyTasks.status, 'in_progress')));
+
+        const [pendingCount] = await db
+          .select({ count: count() })
+          .from(agencyTasks)
+          .where(and(eq(agencyTasks.userId, userId), inArray(agencyTasks.status, ['pending', 'queued'])));
+
+        const [scheduledCount] = await db
+          .select({ count: count() })
+          .from(agencyTasks)
+          .where(and(eq(agencyTasks.userId, userId), eq(agencyTasks.status, 'deferred')));
+
+        return {
+          tasks: tasks.map((task, index) => ({
+            ...task,
+            isRunning: task.status === 'in_progress',
+            queuePosition: task.status === 'pending' || task.status === 'queued' ? index + 1 : undefined,
+          })),
+          counts: {
+            running: Number(runningCount?.count || 0),
+            pending: Number(pendingCount?.count || 0),
+            scheduled: Number(scheduledCount?.count || 0),
+          },
+        };
+      } catch (error) {
+        console.error("Failed to get task queue:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to get task queue: ${error instanceof Error ? error.message : "Unknown error"}`,
+        });
+      }
+    }),
 });

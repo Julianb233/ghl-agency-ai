@@ -94,6 +94,7 @@ export function SessionReplayPlayer({
     } catch (err) {
       console.error('Failed to initialize rrweb player:', err);
       setError(err instanceof Error ? err.message : 'Failed to load replay');
+      return undefined;
     }
   }, [events, width, height, skipInactive, showController, autoPlay]);
 

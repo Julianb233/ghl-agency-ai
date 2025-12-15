@@ -113,15 +113,15 @@ export function DashboardMetrics({ period = '30d', className }: DashboardMetrics
     refetchOnWindowFocus: false,
   });
 
-  const stats = statsQuery.data;
+  const statsData = statsQuery.data && 'successCount' in statsQuery.data ? statsQuery.data : null;
   const subscription = subscriptionQuery.data;
   const isLoading = statsQuery.isLoading;
 
   // Calculate derived metrics
-  const tasksCompleted = stats?.successCount || 0;
-  const successRate = stats?.successRate || 0;
-  const averageTime = stats?.averageDuration
-    ? Math.round(stats.averageDuration / 1000)
+  const tasksCompleted = statsData?.successCount || 0;
+  const successRate = statsData?.successRate || 0;
+  const averageTime = statsData?.averageDuration
+    ? Math.round(statsData.averageDuration / 1000)
     : 0;
   const activeAgents = subscription?.limits?.maxAgents || 0;
 
@@ -152,8 +152,8 @@ export function DashboardMetrics({ period = '30d', className }: DashboardMetrics
         value={`${successRate.toFixed(1)}%`}
         icon={<Activity className="h-4 w-4 text-blue-600 dark:text-blue-500" />}
         description={
-          stats?.totalExecutions
-            ? `${stats.totalExecutions} total executions`
+          statsData?.totalExecutions
+            ? `${statsData.totalExecutions} total executions`
             : 'No executions yet'
         }
         loading={isLoading}

@@ -37,7 +37,7 @@ export function AgentSSEExample() {
   } = useAgentExecution();
 
   // Subscribe to SSE updates for current execution
-  useAgentSSE(currentExecution?.id);
+  useAgentSSE({ autoConnect: false, sessionId: currentExecution?.id });
 
   const handleStart = async () => {
     if (!taskInput.trim()) {

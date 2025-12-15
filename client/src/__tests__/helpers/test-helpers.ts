@@ -5,7 +5,7 @@
  */
 
 import { vi } from "vitest";
-import type { TrpcContext } from "@/server/api/_core/context";
+import type { TrpcContext } from "../../../../server/_core/context";
 
 /**
  * Create a mock tRPC context with an authenticated user
@@ -14,10 +14,15 @@ export function createMockContext(user?: Partial<NonNullable<TrpcContext["user"]
   const defaultUser = {
     id: 1,
     openId: "test-user-openid",
+    googleId: null,
+    password: null,
     email: "test@example.com",
     name: "Test User",
-    loginMethod: "manus" as const,
-    role: "user" as const,
+    loginMethod: "manus",
+    role: "user",
+    onboardingCompleted: true,
+    suspendedAt: null,
+    suspensionReason: null,
     createdAt: new Date(),
     updatedAt: new Date(),
     lastSignedIn: new Date(),

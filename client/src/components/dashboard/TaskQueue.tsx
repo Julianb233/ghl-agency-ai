@@ -387,7 +387,7 @@ export function TaskQueue({ className, maxItems = 5 }: TaskQueueProps) {
         {/* Task List */}
         {!isLoading && !error && filteredTasks.length > 0 && (
           <div className="space-y-3">
-            {filteredTasks.slice(0, maxItems).map((task) => (
+            {filteredTasks.slice(0, maxItems).map((task: any) => (
               <TaskQueueItem
                 key={task.id}
                 task={{

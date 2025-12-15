@@ -409,7 +409,7 @@ export function AgentDashboard() {
   // Handle terminate
   const handleTerminate = () => {
     if (confirm('Are you sure you want to terminate the current execution?')) {
-      setStatus('idle');
+      setStatus('cancelled');
     }
   };
 

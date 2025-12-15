@@ -85,6 +85,7 @@ export function BrowserSessionCard({
 
       return () => clearInterval(interval);
     }
+    return undefined;
   }, [session.status, session.createdAt]);
 
   const getStatusConfig = (status: BrowserSession['status']) => {

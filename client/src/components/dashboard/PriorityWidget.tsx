@@ -48,9 +48,17 @@ export function PriorityWidget({ onViewAll, maxItems = 4 }: PriorityWidgetProps)
   const priorityTasks: PriorityTask[] = React.useMemo(() => {
     if (!data?.tasks) return [];
     return data.tasks
-      .filter((task: PriorityTask) =>
+      .filter((task: any) =>
         task.priority === 'critical' || task.priority === 'high'
       )
+      .map((task: any): PriorityTask => ({
+        id: task.id,
+        name: task.title || task.name,
+        priority: task.priority as 'critical' | 'high' | 'medium' | 'low',
+        status: task.status,
+        scheduledFor: task.scheduledFor ? new Date(task.scheduledFor).toISOString() : undefined,
+        createdAt: task.createdAt ? new Date(task.createdAt).toISOString() : new Date().toISOString(),
+      }))
       .slice(0, maxItems);
   }, [data, maxItems]);
 
