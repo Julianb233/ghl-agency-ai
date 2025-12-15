@@ -1,4 +1,5 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { Suspense, useEffect } from "react";
+import { Route, Switch, useLocation } from "wouter";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "./contexts/ThemeContext";
@@ -6,95 +7,95 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { TourProvider } from "./components/tour/TourProvider";
 import { SkipNavLink } from "./components/SkipNavLink";
 import { NotificationProvider } from "./components/notifications";
+import { LandingPage } from "./components/LandingPage";
+import { FeaturesPage } from "./components/FeaturesPage";
+import { LoginScreen } from "./components/LoginScreen";
+import { PrivacyPolicy } from "./pages/PrivacyPolicy";
+import { TermsOfService } from "./pages/TermsOfService";
+import { Routes as AppRoutes } from "./components/Routes";
 import { trpc } from "@/lib/trpc";
 
-// Lazy load heavy components for better initial bundle size
-const Dashboard = lazy(() => import('./components/Dashboard').then(m => ({ default: m.Dashboard })));
-const AlexRamozyPage = lazy(() => import('./components/AlexRamozyPage').then(m => ({ default: m.AlexRamozyPage })));
-const LandingPage = lazy(() => import('./components/LandingPage').then(m => ({ default: m.LandingPage })));
-const FeaturesPage = lazy(() => import('./components/FeaturesPage').then(m => ({ default: m.FeaturesPage })));
-const LoginScreen = lazy(() => import('./components/LoginScreen').then(m => ({ default: m.LoginScreen })));
-const OnboardingFlow = lazy(() => import('./components/OnboardingFlow').then(m => ({ default: m.OnboardingFlow })));
-const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy').then(m => ({ default: m.PrivacyPolicy })));
-const TermsOfService = lazy(() => import('./pages/TermsOfService').then(m => ({ default: m.TermsOfService })));
-
-// Loading spinner component
 const LoadingSpinner = () => (
   <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-secondary/20 to-accent/10">
     <div className="flex flex-col items-center gap-4">
-      <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+      <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
       <p className="text-sm text-slate-600">Loading...</p>
     </div>
   </div>
 );
 
-type ViewState = 'LANDING' | 'LOGIN' | 'ONBOARDING' | 'DASHBOARD' | 'ALEX_RAMOZY' | 'PRIVACY' | 'TERMS' | 'FEATURES';
-type UserTier = 'STARTER' | 'GROWTH' | 'WHITELABEL';
+function safeReturnTo(raw: string | null): string {
+  if (!raw) return "/app";
+  // Only allow same-origin relative paths.
+  if (!raw.startsWith("/")) return "/app";
+  if (raw.startsWith("/api")) return "/app";
+  return raw;
+}
 
-// Admin email for preview access
-const ADMIN_EMAIL = 'julian@aiacrobatics.com';
+function LoginRoute() {
+  const [, setLocation] = useLocation();
+  const utils = trpc.useUtils();
 
-function App() {
-  // NOTE: Defaulting to LANDING as requested by user
-  const [currentView, setCurrentView] = useState<ViewState>('LANDING');
-  const [userTier, setUserTier] = useState<UserTier>('STARTER'); // Default tier for new users
-  const [credits, setCredits] = useState(100); // Default credits for new users
-  const [isAdminPreview, setIsAdminPreview] = useState(false);
+  const returnTo = safeReturnTo(
+    new URLSearchParams(window.location.search).get("returnTo")
+  );
 
-  // Check for active session
-  const { data: user, isLoading: isAuthLoading, error: authError, refetch: refetchUser } = trpc.auth.me.useQuery(undefined, {
+  return (
+    <LoginScreen
+      onAuthenticated={async () => {
+        // Ensure auth state is refreshed before entering the app shell.
+        await utils.auth.me.invalidate();
+        setLocation(returnTo);
+      }}
+      onBack={() => setLocation("/")}
+    />
+  );
+}
+
+function LandingRoute() {
+  const [, setLocation] = useLocation();
+  return (
+    <LandingPage
+      onLogin={() => setLocation("/login")}
+      onNavigateToFeatures={() => setLocation("/features")}
+    />
+  );
+}
+
+function FeaturesRoute() {
+  const [, setLocation] = useLocation();
+  return (
+    <FeaturesPage
+      onGetStarted={() => setLocation("/login")}
+      onNavigateHome={() => setLocation("/")}
+    />
+  );
+}
+
+function PrivacyRoute() {
+  const [, setLocation] = useLocation();
+  return <PrivacyPolicy onBack={() => setLocation("/")} />;
+}
+
+function TermsRoute() {
+  const [, setLocation] = useLocation();
+  return <TermsOfService onBack={() => setLocation("/")} />;
+}
+
+function RedirectHome() {
+  const [, setLocation] = useLocation();
+  useEffect(() => {
+    setLocation("/");
+  }, [setLocation]);
+  return null;
+}
+
+export default function App() {
+  const [location] = useLocation();
+  const { data: user } = trpc.auth.me.useQuery(undefined, {
     retry: false,
     refetchOnWindowFocus: false,
   });
-
-  // Check if current user is admin
-  const isAdmin = user?.email === ADMIN_EMAIL;
-
-  useEffect(() => {
-    if (user) {
-      // User is logged in - check if onboarding is completed
-      if (user.onboardingCompleted === false) {
-        setCurrentView('ONBOARDING');
-      } else {
-        setCurrentView('DASHBOARD');
-      }
-    }
-  }, [user]);
-
-  // Toggle between landing and dashboard for admin preview
-  const toggleAdminPreview = () => {
-    if (!isAdmin) return;
-    if (currentView === 'DASHBOARD') {
-      setIsAdminPreview(true);
-      setCurrentView('LANDING');
-    } else {
-      setIsAdminPreview(false);
-      setCurrentView('DASHBOARD');
-    }
-  };
-
-  const handleLogin = (tier: UserTier, needsOnboarding?: boolean) => {
-    setUserTier(tier);
-    // Set credits based on tier
-    if (tier === 'STARTER') setCredits(500);
-    if (tier === 'GROWTH') setCredits(1500);
-    if (tier === 'WHITELABEL') setCredits(5000);
-
-    // Route to onboarding if needed, otherwise go to dashboard
-    if (needsOnboarding) {
-      setCurrentView('ONBOARDING');
-    } else {
-      setCurrentView('DASHBOARD');
-    }
-  };
-
-  if (isAuthLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-950">
-        <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
-  }
 
   return (
     <ErrorBoundary>
@@ -103,88 +104,28 @@ function App() {
           <NotificationProvider>
             <TourProvider
               onboardingCompleted={user?.onboardingCompleted === true}
-              isDashboardActive={currentView === 'DASHBOARD'}
+              isDashboardActive={location.startsWith("/app")}
             >
               <SkipNavLink />
               <Toaster />
 
-            {/* Admin Preview Toggle - Only visible for admin user */}
-            {isAdmin && (
-              <button
-                onClick={toggleAdminPreview}
-                className="fixed bottom-4 right-4 z-50 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2 text-sm font-medium transition-all hover:scale-105"
-                title={currentView === 'DASHBOARD' ? 'Preview Landing Page' : 'Back to Dashboard'}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                </svg>
-                {currentView === 'DASHBOARD' ? 'Preview Site' : 'Dashboard'}
-              </button>
-            )}
+              <Suspense fallback={<LoadingSpinner />}>
+                <Switch>
+                  <Route path="/" component={LandingRoute} />
+                  <Route path="/features" component={FeaturesRoute} />
+                  <Route path="/login" component={LoginRoute} />
+                  <Route path="/privacy" component={PrivacyRoute} />
+                  <Route path="/terms" component={TermsRoute} />
 
-            <Suspense fallback={<LoadingSpinner />}>
-              {currentView === 'ALEX_RAMOZY' && (
-                <AlexRamozyPage onDemoClick={() => setCurrentView('LOGIN')} />
-              )}
-              {currentView === 'LANDING' && (
-                <LandingPage
-                  onLogin={() => {
-                    if (isAdminPreview && isAdmin) {
-                      // Admin in preview mode - go back to dashboard
-                      setIsAdminPreview(false);
-                      setCurrentView('DASHBOARD');
-                    } else {
-                      setCurrentView('LOGIN');
-                    }
-                  }}
-                  onNavigateToFeatures={() => setCurrentView('FEATURES')}
-                />
-              )}
+                  {/* Protected app shell */}
+                  <Route path="/app" component={AppRoutes} />
+                  <Route path="/app/:rest*">
+                    {() => <AppRoutes />}
+                  </Route>
 
-              {currentView === 'FEATURES' && (
-                <FeaturesPage
-                  onGetStarted={() => {
-                    if (user && !isAdminPreview) {
-                      // User is logged in - go to dashboard
-                      setCurrentView('DASHBOARD');
-                    } else {
-                      setCurrentView('LOGIN');
-                    }
-                  }}
-                  onNavigateHome={() => setCurrentView('LANDING')}
-                />
-              )}
-
-              {currentView === 'LOGIN' && (
-                <LoginScreen
-                  onAuthenticated={handleLogin}
-                  onBack={() => setCurrentView('LANDING')}
-                />
-              )}
-
-              {currentView === 'ONBOARDING' && (
-                <OnboardingFlow onComplete={async () => {
-                  // Refetch user data to get updated onboardingCompleted status
-                  await refetchUser();
-                  setCurrentView('DASHBOARD');
-                }} />
-              )}
-
-              {currentView === 'DASHBOARD' && (
-                <main id="main-content">
-                  <Dashboard userTier={userTier} credits={credits} />
-                </main>
-              )}
-
-              {currentView === 'PRIVACY' && (
-                <PrivacyPolicy onBack={() => setCurrentView('LANDING')} />
-              )}
-
-              {currentView === 'TERMS' && (
-                <TermsOfService onBack={() => setCurrentView('LANDING')} />
-              )}
-            </Suspense>
+                  <Route component={RedirectHome} />
+                </Switch>
+              </Suspense>
             </TourProvider>
           </NotificationProvider>
         </TooltipProvider>
@@ -192,5 +133,3 @@ function App() {
     </ErrorBoundary>
   );
 }
-
-export default App;

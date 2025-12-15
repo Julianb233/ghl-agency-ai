@@ -21,37 +21,35 @@ import { SystemHealth } from '@/pages/admin/SystemHealth';
 import { AuditLog } from '@/pages/admin/AuditLog';
 import { ConfigCenter } from '@/pages/admin/ConfigCenter';
 import DashboardLayout from './DashboardLayout';
-import { Toaster } from '@/components/ui/sonner';
-import { FeaturesPage } from '@/components/FeaturesPage';
 
 export function Routes() {
   return (
     <>
       <DashboardLayout>
         <Switch>
-          <Route path="/" component={DashboardHome} />
-          <Route path="/scheduled-tasks" component={ScheduledTasksPage} />
-          <Route path="/workflow-builder" component={WorkflowBuilder} />
-          <Route path="/browser-sessions" component={BrowserSessions} />
-          <Route path="/settings" component={Settings} />
-          <Route path="/quizzes" component={Quizzes} />
-          <Route path="/quizzes/create" component={QuizBuilder} />
-          <Route path="/quizzes/:id/edit" component={QuizBuilder} />
-          <Route path="/quizzes/:id/take" component={QuizTake} />
-          <Route path="/quizzes/:id/results/:attemptId" component={QuizResults} />
-          <Route path="/quizzes/my-attempts" component={MyAttempts} />
-          <Route path="/lead-lists" component={LeadLists} />
-          <Route path="/lead-lists/upload" component={LeadUpload} />
-          <Route path="/lead-lists/:id" component={LeadDetails} />
-          <Route path="/ai-campaigns" component={AICampaigns} />
-          <Route path="/ai-campaigns/:id" component={CampaignDetails} />
-          <Route path="/credits" component={CreditPurchase} />
+          <Route path="/app" component={DashboardHome} />
+          <Route path="/app/scheduled-tasks" component={ScheduledTasksPage} />
+          <Route path="/app/workflow-builder" component={WorkflowBuilder} />
+          <Route path="/app/browser-sessions" component={BrowserSessions} />
+          <Route path="/app/settings" component={Settings} />
+          <Route path="/app/quizzes" component={Quizzes} />
+          <Route path="/app/quizzes/create" component={QuizBuilder} />
+          <Route path="/app/quizzes/:id/edit" component={QuizBuilder} />
+          <Route path="/app/quizzes/:id/take" component={QuizTake} />
+          <Route path="/app/quizzes/:id/results/:attemptId" component={QuizResults} />
+          <Route path="/app/quizzes/my-attempts" component={MyAttempts} />
+          <Route path="/app/lead-lists" component={LeadLists} />
+          <Route path="/app/lead-lists/upload" component={LeadUpload} />
+          <Route path="/app/lead-lists/:id" component={LeadDetails} />
+          <Route path="/app/ai-campaigns" component={AICampaigns} />
+          <Route path="/app/ai-campaigns/:id" component={CampaignDetails} />
+          <Route path="/app/credits" component={CreditPurchase} />
           {/* Admin routes */}
-          <Route path="/admin" component={AdminDashboard} />
-          <Route path="/admin/users" component={UserManagement} />
-          <Route path="/admin/system" component={SystemHealth} />
-          <Route path="/admin/audit" component={AuditLog} />
-          <Route path="/admin/config" component={ConfigCenter} />
+          <Route path="/app/admin" component={AdminDashboard} />
+          <Route path="/app/admin/users" component={UserManagement} />
+          <Route path="/app/admin/system" component={SystemHealth} />
+          <Route path="/app/admin/audit" component={AuditLog} />
+          <Route path="/app/admin/config" component={ConfigCenter} />
 {/* Team management route - redirects to settings for now */}
           <Route>
             {() => (
@@ -63,7 +61,6 @@ export function Routes() {
           </Route>
         </Switch>
       </DashboardLayout>
-      <Toaster />
     </>
   );
 }

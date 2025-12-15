@@ -78,6 +78,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthenticated, onBac
       const needsOnboarding = isSignUp || data.user?.onboardingCompleted === false;
 
       // Call onAuthenticated with tier and onboarding flag
+      setIsLoading(false);
       onAuthenticated(tier, needsOnboarding);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Authentication failed');
