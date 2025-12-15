@@ -50,11 +50,16 @@
     "baseUrl": ".",
     "types": [
       "node",
-      "vite/client"
+      "vite/client",
+      "vitest/globals",
+      "@testing-library/jest-dom"
     ],
     "paths": {
       "@/*": [
         "./client/src/*"
+      ],
+      "@/server/*": [
+        "./server/*"
       ],
       "@shared/*": [
         "./shared/*"

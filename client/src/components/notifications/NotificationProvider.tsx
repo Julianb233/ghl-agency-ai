@@ -39,7 +39,8 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
   const [settings, setSettings] = useState<NotificationSettings>(defaultSettings);
   const previousLogsRef = useRef<LogEntry[]>([]);
 
-  const logs = useAgentStore((state) => state.logs);
+  const rawLogs = useAgentStore((state) => state.logs);
+  const logs: LogEntry[] = Array.isArray(rawLogs) ? rawLogs : [];
 
   // Load persisted notifications and settings on mount
   useEffect(() => {
@@ -47,7 +48,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        setNotifications(parsed);
+        setNotifications(Array.isArray(parsed) ? parsed : []);
       }
 
       const storedSettings = localStorage.getItem(SETTINGS_KEY);

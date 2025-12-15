@@ -11,8 +11,21 @@ export class NotificationSounds {
   private enabled: boolean = true;
 
   constructor() {
-    if (typeof window !== 'undefined' && 'AudioContext' in window) {
-      this.audioContext = new AudioContext();
+    if (typeof window === 'undefined') return;
+
+    // In some environments (e.g. jsdom), `AudioContext` may exist but not be constructible.
+    const Ctor =
+      (window as any).AudioContext ??
+      (window as any).webkitAudioContext ??
+      undefined;
+
+    if (typeof Ctor !== 'function') return;
+
+    try {
+      this.audioContext = new Ctor();
+    } catch {
+      // Gracefully degrade: no sounds in environments that don't support AudioContext.
+      this.audioContext = null;
     }
   }
 

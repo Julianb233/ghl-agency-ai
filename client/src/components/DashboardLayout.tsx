@@ -19,7 +19,7 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { APP_LOGO, APP_TITLE, getLoginUrl } from "@/const";
+import { APP_LOGO, APP_TITLE } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
 import {
   LayoutDashboard,
@@ -39,14 +39,14 @@ import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/" },
-  { icon: Globe, label: "Browser Sessions", path: "/browser-sessions" },
-  { icon: Calendar, label: "Scheduled Tasks", path: "/scheduled-tasks" },
-  { icon: Workflow, label: "Workflow Builder", path: "/workflow-builder" },
-  { icon: Users, label: "Lead Lists", path: "/lead-lists" },
-  { icon: Megaphone, label: "AI Campaigns", path: "/ai-campaigns" },
-  { icon: CreditCard, label: "Credits", path: "/credits" },
-  { icon: Settings, label: "Settings", path: "/settings" },
+  { icon: LayoutDashboard, label: "Dashboard", path: "/app" },
+  { icon: Globe, label: "Browser Sessions", path: "/app/browser-sessions" },
+  { icon: Calendar, label: "Scheduled Tasks", path: "/app/scheduled-tasks" },
+  { icon: Workflow, label: "Workflow Builder", path: "/app/workflow-builder" },
+  { icon: Users, label: "Lead Lists", path: "/app/lead-lists" },
+  { icon: Megaphone, label: "AI Campaigns", path: "/app/ai-campaigns" },
+  { icon: CreditCard, label: "Credits", path: "/app/credits" },
+  { icon: Settings, label: "Settings", path: "/app/settings" },
 ];
 
 const SIDEBAR_WIDTH_KEY = "sidebar-width";
@@ -59,6 +59,7 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const [location, setLocation] = useLocation();
   const [sidebarWidth, setSidebarWidth] = useState(() => {
     const saved = localStorage.getItem(SIDEBAR_WIDTH_KEY);
     return saved ? parseInt(saved, 10) : DEFAULT_WIDTH;
@@ -96,7 +97,8 @@ export default function DashboardLayout({
           </div>
           <Button
             onClick={() => {
-              window.location.href = getLoginUrl();
+              const returnTo = `${location}${window.location.search}${window.location.hash}`;
+              setLocation(`/login?returnTo=${encodeURIComponent(returnTo)}`);
             }}
             size="lg"
             className="w-full shadow-lg hover:shadow-xl transition-all"
