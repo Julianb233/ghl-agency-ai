@@ -42,23 +42,20 @@ export function SessionReplayPlayer({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!playerRef.current || events.length === 0) {
-      return;
-    }
+    const el = playerRef.current;
+    if (!el || events.length === 0) return () => {};
 
     // Cleanup previous player instance
-    if (playerRef.current.innerHTML !== '') {
-      playerRef.current.innerHTML = '';
-    }
+    if (el.innerHTML !== '') el.innerHTML = '';
 
     try {
       // Calculate actual dimensions if strings are provided
-      const containerWidth = typeof width === 'number' ? width : playerRef.current.offsetWidth;
-      const containerHeight = typeof height === 'number' ? height : playerRef.current.offsetHeight;
+      const containerWidth = typeof width === 'number' ? width : el.offsetWidth;
+      const containerHeight = typeof height === 'number' ? height : el.offsetHeight;
 
       // Initialize rrweb player
       const rrwebPlayerInstance = new rrwebPlayer({
-        target: playerRef.current,
+        target: el,
         props: {
           events,
           width: containerWidth,
@@ -71,30 +68,31 @@ export function SessionReplayPlayer({
 
       // Add event listeners
       rrwebPlayerInstance.addEventListener('play', () => {
-        console.log('Playback started');
         setIsPlaying(true);
       });
 
       rrwebPlayerInstance.addEventListener('pause', () => {
-        console.log('Playback paused');
         setIsPlaying(false);
       });
 
       rrwebPlayerInstance.addEventListener('finish', () => {
-        console.log('Playback finished');
         setIsPlaying(false);
       });
 
       setPlayer(rrwebPlayerInstance);
-
-      return () => {
-        // Cleanup is handled by clearing innerHTML above or we can try to destroy if method exists
-        // rrwebPlayerInstance.destroy(); 
-      };
     } catch (err) {
       console.error('Failed to initialize rrweb player:', err);
       setError(err instanceof Error ? err.message : 'Failed to load replay');
     }
+
+    return () => {
+      // rrweb-player doesn't expose a stable destroy API across versions; clearing the container
+      // reliably tears down the DOM and associated listeners.
+      if (el.innerHTML !== '') el.innerHTML = '';
+      setPlayer(null);
+      setIsPlaying(false);
+      setCurrentTime(0);
+    };
   }, [events, width, height, skipInactive, showController, autoPlay]);
 
   const handlePlay = () => {

@@ -6,13 +6,16 @@ export const CookieConsent: React.FC = () => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
     // Check if user has already consented
     const consent = localStorage.getItem('cookieConsent');
     if (!consent) {
       // Small delay before showing
-      const timer = setTimeout(() => setIsVisible(true), 1500);
-      return () => clearTimeout(timer);
+      timer = setTimeout(() => setIsVisible(true), 1500);
     }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
   }, []);
 
   const handleAccept = () => {

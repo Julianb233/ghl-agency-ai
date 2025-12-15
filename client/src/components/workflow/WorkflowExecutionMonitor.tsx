@@ -292,6 +292,56 @@ export const WorkflowExecutionMonitor: React.FC<WorkflowExecutionMonitorProps> =
           aria-labelledby="execution-monitor-title"
           aria-describedby="execution-monitor-description"
         >
+          <DialogHeader>
+            {executionData ? (
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {StatusIcon && (
+                    <StatusIcon
+                      className={cn(
+                        'h-6 w-6',
+                        statusConfig?.color,
+                        executionData.status === 'running' && 'animate-spin'
+                      )}
+                    />
+                  )}
+                  <div>
+                    <DialogTitle id="execution-monitor-title">
+                      Execution #{executionId}
+                    </DialogTitle>
+                    <DialogDescription id="execution-monitor-description">
+                      Started {formatTime(executionData.startedAt)}
+                      {executionData.completedAt && ` • Completed ${formatTime(executionData.completedAt)}`}
+                    </DialogDescription>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary" className={cn(statusConfig?.color)}>
+                    {statusConfig?.label}
+                  </Badge>
+                  {isRunning && (
+                    <span className="text-sm text-muted-foreground">
+                      {formatDuration(elapsedTime)}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div>
+                <DialogTitle id="execution-monitor-title">
+                  Execution #{executionId}
+                </DialogTitle>
+                <DialogDescription id="execution-monitor-description">
+                  {isLoading
+                    ? 'Loading execution data…'
+                    : error
+                      ? 'Failed to load execution details.'
+                      : 'Workflow execution monitor.'}
+                </DialogDescription>
+              </div>
+            )}
+          </DialogHeader>
+
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -308,41 +358,6 @@ export const WorkflowExecutionMonitor: React.FC<WorkflowExecutionMonitorProps> =
             </div>
           ) : executionData ? (
             <>
-              <DialogHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    {StatusIcon && (
-                      <StatusIcon
-                        className={cn(
-                          'h-6 w-6',
-                          statusConfig?.color,
-                          executionData.status === 'running' && 'animate-spin'
-                        )}
-                      />
-                    )}
-                    <div>
-                      <DialogTitle id="execution-monitor-title">
-                        Execution #{executionId}
-                      </DialogTitle>
-                      <DialogDescription id="execution-monitor-description">
-                        Started {formatTime(executionData.startedAt)}
-                        {executionData.completedAt && ` • Completed ${formatTime(executionData.completedAt)}`}
-                      </DialogDescription>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className={cn(statusConfig?.color)}>
-                      {statusConfig?.label}
-                    </Badge>
-                    {isRunning && (
-                      <span className="text-sm text-muted-foreground">
-                        {formatDuration(elapsedTime)}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </DialogHeader>
-
               {/* Progress Bar */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
