@@ -5,7 +5,7 @@
  */
 
 import { getDb } from "../../db";
-import { eq, and, desc, sql, gte } from "drizzle-orm";
+import { eq, and, desc, sql, gte, type SQL } from "drizzle-orm";
 import { reasoningPatterns } from "./schema";
 import type {
   ReasoningPattern,
@@ -14,13 +14,16 @@ import type {
   MemoryStats
 } from "./types";
 import { v4 as uuidv4 } from "uuid";
+import { getTenantService } from "../tenantIsolation.service";
 
 /**
  * Reasoning Bank Service - Manages reasoning patterns and learning
+ * Now with multi-tenant isolation support
  */
 export class ReasoningBankService {
   private cache: Map<string, ReasoningPattern>;
   private cacheMaxSize: number;
+  private tenantService = getTenantService();
 
   constructor(options: { cacheMaxSize?: number } = {}) {
     this.cache = new Map();
@@ -28,7 +31,39 @@ export class ReasoningBankService {
   }
 
   /**
+   * Get tenant-scoped domain
+   * Ensures reasoning patterns are isolated per tenant
+   */
+  private getTenantDomain(domain?: string): string {
+    if (!this.tenantService.hasTenantContext()) {
+      return domain || 'default';
+    }
+
+    const tenantId = this.tenantService.getTenantId();
+    const baseDomain = domain || 'general';
+    return `tenant:${tenantId}:${baseDomain}`;
+  }
+
+  /**
+   * Add tenant filter to query conditions
+   */
+  private addTenantDomainFilter(conditions: any[], domain?: string): void {
+    if (!this.tenantService.hasTenantContext()) {
+      // No tenant context - filter by original domain if provided
+      if (domain) {
+        conditions.push(eq(reasoningPatterns.domain, domain));
+      }
+      return;
+    }
+
+    // With tenant context - filter by tenant-scoped domain
+    const tenantDomain = this.getTenantDomain(domain);
+    conditions.push(eq(reasoningPatterns.domain, tenantDomain));
+  }
+
+  /**
    * Store a reasoning pattern
+   * Now with tenant isolation - automatically scopes to current tenant
    */
   async storeReasoning(
     pattern: string,
@@ -47,6 +82,18 @@ export class ReasoningBankService {
       throw new Error("Database not initialized");
     }
 
+    // Apply tenant isolation to domain
+    const tenantDomain = this.getTenantDomain(options.domain);
+
+    // Add tenant metadata
+    const tenantMetadata = this.tenantService.hasTenantContext()
+      ? {
+          tenantId: this.tenantService.getTenantId(),
+          userId: this.tenantService.getUserId(),
+          namespace: this.tenantService.getTenantNamespace('reasoning-bank'),
+        }
+      : {};
+
     const patternId = uuidv4();
     const now = new Date();
 
@@ -58,9 +105,12 @@ export class ReasoningBankService {
       confidence: options.confidence || 0.8,
       usageCount: 0,
       successRate: 1.0,
-      domain: options.domain,
+      domain: tenantDomain,
       tags: options.tags,
-      metadata: options.metadata,
+      metadata: {
+        ...tenantMetadata,
+        ...options.metadata,
+      },
       createdAt: now,
       updatedAt: now,
     };
@@ -73,9 +123,9 @@ export class ReasoningBankService {
       confidence: options.confidence || 0.8,
       usageCount: 0,
       successRate: 1.0,
-      domain: options.domain || null,
+      domain: tenantDomain,
       tags: (options.tags || []) as any,
-      metadata: (options.metadata || {}) as any,
+      metadata: reasoningPattern.metadata as any,
       embedding: options.embedding ? (options.embedding as any) : null,
       createdAt: now,
       updatedAt: now,
@@ -84,11 +134,19 @@ export class ReasoningBankService {
     // Add to cache
     this.cache.set(patternId, reasoningPattern);
 
+    // Audit log
+    this.tenantService.auditLog('reasoning.store', {
+      patternId,
+      domain: tenantDomain,
+      confidence: options.confidence || 0.8,
+    });
+
     return patternId;
   }
 
   /**
    * Find similar reasoning patterns
+   * Now with tenant isolation - only searches within tenant's patterns
    */
   async findSimilarReasoning(
     query: string,
@@ -104,11 +162,10 @@ export class ReasoningBankService {
       throw new Error("Database not initialized");
     }
 
-    const conditions = [];
+    const conditions: SQL<unknown>[] = [];
 
-    if (options.domain) {
-      conditions.push(eq(reasoningPatterns.domain, options.domain));
-    }
+    // Add tenant domain filter
+    this.addTenantDomainFilter(conditions, options.domain);
 
     if (options.minConfidence !== undefined) {
       conditions.push(gte(reasoningPatterns.confidence, options.minConfidence));

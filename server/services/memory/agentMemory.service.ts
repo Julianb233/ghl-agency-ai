@@ -16,15 +16,18 @@ import type {
   MemoryStats
 } from "./types";
 import { v4 as uuidv4 } from "uuid";
+import { getTenantService } from "../tenantIsolation.service";
 
 /**
  * Agent Memory Service - Manages agent context and session data
+ * Now with multi-tenant isolation support
  */
 export class AgentMemoryService {
   private cache: Map<string, MemoryEntry>;
   private cacheMaxSize: number;
   private cacheHits: number;
   private cacheMisses: number;
+  private tenantService = getTenantService();
 
   constructor(options: { cacheMaxSize?: number } = {}) {
     this.cache = new Map();
@@ -34,7 +37,63 @@ export class AgentMemoryService {
   }
 
   /**
+   * Get tenant-scoped session ID
+   * Ensures sessions are isolated per tenant
+   */
+  private getTenantSessionId(sessionId: string): string {
+    if (!this.tenantService.hasTenantContext()) {
+      // No tenant context - return as-is (backward compatibility)
+      return sessionId;
+    }
+    return this.tenantService.getTenantSessionId(sessionId);
+  }
+
+  /**
+   * Get tenant-scoped memory key
+   * Ensures memory keys are isolated per tenant
+   */
+  private getTenantMemoryKey(key: string): string {
+    if (!this.tenantService.hasTenantContext()) {
+      // No tenant context - return as-is (backward compatibility)
+      return key;
+    }
+    return this.tenantService.getTenantMemoryKey(key);
+  }
+
+  /**
+   * Add tenant filter to query conditions
+   * Ensures queries are scoped to current tenant's userId
+   */
+  private addTenantFilter(conditions: any[]): any[] {
+    if (!this.tenantService.hasTenantContext()) {
+      // No tenant context - return conditions as-is
+      return conditions;
+    }
+
+    const userId = this.tenantService.getUserId();
+    if (userId !== undefined) {
+      conditions.push(eq(memoryEntries.userId, userId));
+    }
+
+    return conditions;
+  }
+
+  /**
+   * Validate tenant ownership of memory entry
+   */
+  private validateTenantOwnership(entry: MemoryEntry): void {
+    if (!this.tenantService.hasTenantContext()) {
+      return; // No tenant context - skip validation
+    }
+
+    if (!this.tenantService.validateTenantOwnership(entry.userId)) {
+      throw new Error("Access denied: Memory entry does not belong to current tenant");
+    }
+  }
+
+  /**
    * Store context for a session
+   * Now with tenant isolation - automatically scopes to current tenant
    */
   async storeContext(
     sessionId: string,
@@ -53,20 +112,37 @@ export class AgentMemoryService {
       throw new Error("Database not initialized");
     }
 
+    // Apply tenant isolation
+    const tenantSessionId = this.getTenantSessionId(sessionId);
+    const tenantKey = this.getTenantMemoryKey(key);
+
+    // Auto-inject userId from tenant context if not provided
+    const tenantUserId = this.tenantService.getUserId();
+    const userId = options.userId ?? tenantUserId;
+
+    // Add tenant metadata
+    const tenantMetadata = this.tenantService.hasTenantContext()
+      ? {
+          tenantId: this.tenantService.getTenantId(),
+          namespace: this.tenantService.getTenantNamespace('agent-memory'),
+        }
+      : {};
+
     const entryId = uuidv4();
     const now = new Date();
     const expiresAt = options.ttl ? new Date(now.getTime() + options.ttl * 1000) : undefined;
 
     const entry: MemoryEntry = {
       id: entryId,
-      sessionId,
+      sessionId: tenantSessionId,
       agentId: options.agentId,
-      userId: options.userId,
-      key,
+      userId,
+      key: tenantKey,
       value,
       embedding: options.embedding,
       metadata: {
         type: 'context',
+        ...tenantMetadata,
         ...options.metadata,
       },
       createdAt: now,
@@ -76,10 +152,10 @@ export class AgentMemoryService {
 
     await db.insert(memoryEntries).values({
       entryId,
-      sessionId,
+      sessionId: tenantSessionId,
       agentId: options.agentId || null,
-      userId: options.userId || null,
-      key,
+      userId: userId || null,
+      key: tenantKey,
       value: value as any,
       embedding: options.embedding ? (options.embedding as any) : null,
       metadata: entry.metadata as any,
@@ -88,14 +164,22 @@ export class AgentMemoryService {
       expiresAt,
     });
 
-    // Add to cache
+    // Add to cache with tenant-scoped key
     this.addToCache(entry);
+
+    // Audit log
+    this.tenantService.auditLog('memory.store', {
+      sessionId: tenantSessionId,
+      key: tenantKey,
+      entryId,
+    });
 
     return entryId;
   }
 
   /**
    * Retrieve context by session ID
+   * Now with tenant isolation - automatically filters by tenant
    */
   async retrieveContext(sessionId: string, options: MemoryQueryOptions = {}): Promise<MemoryEntry[]> {
     const db = await getDb();
@@ -103,7 +187,10 @@ export class AgentMemoryService {
       throw new Error("Database not initialized");
     }
 
-    const conditions = [eq(memoryEntries.sessionId, sessionId)];
+    // Apply tenant scoping
+    const tenantSessionId = this.getTenantSessionId(sessionId);
+
+    const conditions = [eq(memoryEntries.sessionId, tenantSessionId)];
 
     if (options.agentId) {
       conditions.push(eq(memoryEntries.agentId, options.agentId));
@@ -112,6 +199,9 @@ export class AgentMemoryService {
     if (options.userId) {
       conditions.push(eq(memoryEntries.userId, options.userId));
     }
+
+    // Add tenant filter to ensure data isolation
+    this.addTenantFilter(conditions);
 
     if (!options.includeExpired) {
       conditions.push(
@@ -130,18 +220,29 @@ export class AgentMemoryService {
       .limit(options.limit || 1000)
       .offset(options.offset || 0);
 
-    return results.map(row => this.rowToMemoryEntry(row));
+    const entries = results.map(row => this.rowToMemoryEntry(row));
+
+    // Validate tenant ownership of retrieved entries
+    entries.forEach(entry => this.validateTenantOwnership(entry));
+
+    return entries;
   }
 
   /**
    * Retrieve a specific context entry by key
+   * Now with tenant isolation
    */
   async retrieveByKey(sessionId: string, key: string): Promise<MemoryEntry | null> {
-    // Check cache first
-    const cacheKey = `${sessionId}:${key}`;
+    // Apply tenant scoping
+    const tenantSessionId = this.getTenantSessionId(sessionId);
+    const tenantKey = this.getTenantMemoryKey(key);
+
+    // Check cache first with tenant-scoped key
+    const cacheKey = `${tenantSessionId}:${tenantKey}`;
     const cached = this.cache.get(cacheKey);
     if (cached) {
       this.cacheHits++;
+      this.validateTenantOwnership(cached);
       return cached;
     }
     this.cacheMisses++;
@@ -151,19 +252,22 @@ export class AgentMemoryService {
       throw new Error("Database not initialized");
     }
 
+    const conditions = [
+      eq(memoryEntries.sessionId, tenantSessionId),
+      eq(memoryEntries.key, tenantKey),
+      or(
+        sql`${memoryEntries.expiresAt} IS NULL`,
+        sql`${memoryEntries.expiresAt} > NOW()`
+      )!
+    ];
+
+    // Add tenant filter
+    this.addTenantFilter(conditions);
+
     const results = await db
       .select()
       .from(memoryEntries)
-      .where(
-        and(
-          eq(memoryEntries.sessionId, sessionId),
-          eq(memoryEntries.key, key),
-          or(
-            sql`${memoryEntries.expiresAt} IS NULL`,
-            sql`${memoryEntries.expiresAt} > NOW()`
-          )!
-        )
-      )
+      .where(and(...conditions))
       .orderBy(desc(memoryEntries.createdAt))
       .limit(1);
 
@@ -172,6 +276,7 @@ export class AgentMemoryService {
     }
 
     const entry = this.rowToMemoryEntry(results[0]);
+    this.validateTenantOwnership(entry);
     this.addToCache(entry);
     return entry;
   }
@@ -315,6 +420,7 @@ export class AgentMemoryService {
 
   /**
    * Search context entries with filters
+   * Now with tenant isolation
    */
   async searchContext(query: MemoryQueryOptions): Promise<MemoryEntry[]> {
     const db = await getDb();
@@ -325,7 +431,8 @@ export class AgentMemoryService {
     const conditions = [];
 
     if (query.sessionId) {
-      conditions.push(eq(memoryEntries.sessionId, query.sessionId));
+      const tenantSessionId = this.getTenantSessionId(query.sessionId);
+      conditions.push(eq(memoryEntries.sessionId, tenantSessionId));
     }
 
     if (query.agentId) {
@@ -335,6 +442,9 @@ export class AgentMemoryService {
     if (query.userId) {
       conditions.push(eq(memoryEntries.userId, query.userId));
     }
+
+    // Add tenant filter to ensure data isolation
+    this.addTenantFilter(conditions);
 
     if (query.namespace) {
       conditions.push(sql`${memoryEntries.metadata}->>'namespace' = ${query.namespace}`);
@@ -364,7 +474,13 @@ export class AgentMemoryService {
       .orderBy(desc(memoryEntries.createdAt))
       .limit(query.limit || 1000)
       .offset(query.offset || 0);
-    return results.map(row => this.rowToMemoryEntry(row));
+
+    const entries = results.map(row => this.rowToMemoryEntry(row));
+
+    // Validate tenant ownership
+    entries.forEach(entry => this.validateTenantOwnership(entry));
+
+    return entries;
   }
 
   /**
