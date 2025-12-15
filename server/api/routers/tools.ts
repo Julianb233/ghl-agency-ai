@@ -16,6 +16,7 @@ import { z } from 'zod';
 import { getMCPServer } from '../../mcp';
 import { TRPCError } from '@trpc/server';
 import type { ToolCategory } from '../../mcp/types';
+import { getAgentPermissionsService, PermissionDeniedError } from '../../services/agentPermissions.service';
 
 // ========================================
 // VALIDATION SCHEMAS
@@ -224,6 +225,32 @@ export const toolsRouter = router({
       activeExecutions.set(executionId, execution);
 
       try {
+        // SECURITY: Check permission before executing tool
+        const permissionsService = getAgentPermissionsService();
+        try {
+          await permissionsService.requirePermission(ctx.user.id, input.name);
+        } catch (error) {
+          if (error instanceof PermissionDeniedError) {
+            // Update execution record with permission error
+            const endTime = new Date();
+            execution.status = 'failed';
+            execution.endTime = endTime;
+            execution.error = error.message;
+            execution.executionTime = endTime.getTime() - execution.startTime.getTime();
+
+            activeExecutions.delete(executionId);
+            abortControllers.delete(executionId);
+            addToHistory(execution);
+
+            throw new TRPCError({
+              code: 'FORBIDDEN',
+              message: error.message,
+              cause: error,
+            });
+          }
+          throw error;
+        }
+
         const server = await getMCPServer();
         const registry = (server as any).toolRegistry;
 

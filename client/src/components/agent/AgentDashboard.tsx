@@ -421,24 +421,24 @@ export function AgentDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="mx-auto max-w-7xl space-y-6">
+    <div className="min-h-screen bg-gray-50 p-3 sm:p-4 md:p-6">
+      <div className="mx-auto max-w-7xl space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 shadow-lg shadow-purple-500/20">
-              <Bot className="h-6 w-6 text-white" />
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0 w-full sm:w-auto">
+            <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-lg sm:rounded-xl bg-gradient-to-br from-purple-600 to-indigo-600 shadow-lg shadow-purple-500/20 shrink-0">
+              <Bot className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate">
                 Agent Dashboard
               </h1>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground truncate">
                 Monitor and control AI agent execution
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <Badge
               variant="outline"
               className={`${
@@ -454,7 +454,7 @@ export function AgentDashboard() {
               />
               {isConnected ? 'Connected' : 'Disconnected'}
             </Badge>
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" className="min-h-[44px] min-w-[44px]">
               <Settings className="h-5 w-5" />
             </Button>
           </div>
@@ -498,7 +498,7 @@ export function AgentDashboard() {
         )}
 
         {/* Metrics Grid */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
           <MetricCard
             title="Active Tasks"
             value={status === 'executing' || status === 'planning' ? 1 : 0}
@@ -532,7 +532,7 @@ export function AgentDashboard() {
         </div>
 
         {/* Main Content Grid */}
-        <div className="grid gap-6 lg:grid-cols-3">
+        <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
           {/* Left Column - Task Control & Executions */}
           <div className="lg:col-span-2 space-y-6">
             {/* Task Input Card */}
@@ -547,14 +547,14 @@ export function AgentDashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Input
                     placeholder="e.g., Create a landing page for a SaaS product..."
                     value={taskInput}
                     onChange={(e) => setTaskInput(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSubmitTask()}
                     disabled={isSubmitting || status === 'executing'}
-                    className="flex-1"
+                    className="flex-1 min-h-[44px]"
                   />
                   <Button
                     onClick={handleSubmitTask}
@@ -564,6 +564,7 @@ export function AgentDashboard() {
                       status === 'executing' ||
                       status === 'planning'
                     }
+                    className="min-h-[44px] w-full sm:w-auto"
                   >
                     {isSubmitting ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
@@ -715,21 +716,21 @@ export function AgentDashboard() {
                 <CardTitle className="text-base">Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <Button variant="outline" className="w-full justify-start">
-                  <Activity className="mr-2 h-4 w-4" />
-                  View All Executions
+                <Button variant="outline" className="w-full justify-start min-h-[44px]">
+                  <Activity className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">View All Executions</span>
                 </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <Users className="mr-2 h-4 w-4" />
-                  Swarm Configuration
+                <Button variant="outline" className="w-full justify-start min-h-[44px]">
+                  <Users className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Swarm Configuration</span>
                 </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <Wrench className="mr-2 h-4 w-4" />
-                  Tool Library
+                <Button variant="outline" className="w-full justify-start min-h-[44px]">
+                  <Wrench className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Tool Library</span>
                 </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <Settings className="mr-2 h-4 w-4" />
-                  Agent Settings
+                <Button variant="outline" className="w-full justify-start min-h-[44px]">
+                  <Settings className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">Agent Settings</span>
                 </Button>
               </CardContent>
             </Card>

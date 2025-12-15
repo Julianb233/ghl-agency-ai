@@ -38,6 +38,7 @@ import { subscriptionRouter } from "./api/routers/subscription";
 import { memoryRouter } from "./api/routers/memory";
 import { toolsRouter } from "./api/routers/tools";
 import { subAccountsRouter } from "./api/routers/subAccounts";
+import { agentPermissionsRouter } from "./api/routers/agentPermissions";
 import { publicProcedure, router } from "./_core/trpc";
 
 export const appRouter = router({
@@ -102,6 +103,7 @@ export const appRouter = router({
 
   // Autonomous Agent
   agent: agentRouter,
+  agentPermissions: agentPermissionsRouter,
 
   // Webdev Projects
   webdev: webdevRouter,

@@ -30,6 +30,10 @@ import {
 } from "./agentBrowserTools";
 import { ragService } from "./rag.service";
 import { getToolRegistry, ShellTool, FileTool } from "./tools";
+import {
+  getAgentPermissionsService,
+  PermissionDeniedError,
+} from "./agentPermissions.service";
 
 // ========================================
 // TYPES & INTERFACES
@@ -795,6 +799,19 @@ export class AgentOrchestratorService {
         throw new Error(`Tool not found: ${toolName}`);
       }
 
+      // SECURITY: Check permission before executing tool
+      const permissionsService = getAgentPermissionsService();
+      try {
+        await permissionsService.requirePermission(state.userId, toolName);
+      } catch (error) {
+        if (error instanceof PermissionDeniedError) {
+          throw new Error(
+            `Permission denied: ${error.message} (Tool: ${toolName}, Permission Level: ${error.permissionLevel})`
+          );
+        }
+        throw error;
+      }
+
       // Special handling for certain tools that need state
       let result: unknown;
       if (toolName === "update_plan") {
@@ -1147,6 +1164,14 @@ export class AgentOrchestratorService {
     const emitter = this.createSSEEmitter(userId, execution.id);
 
     try {
+      // SECURITY: Check execution limits before starting
+      const permissionsService = getAgentPermissionsService();
+      const limitsCheck = await permissionsService.checkExecutionLimits(userId);
+
+      if (!limitsCheck.canExecute) {
+        throw new Error(limitsCheck.reason || "Execution limit reached");
+      }
+
       // Emit execution started event
       emitter.executionStarted({
         task: taskDescription,

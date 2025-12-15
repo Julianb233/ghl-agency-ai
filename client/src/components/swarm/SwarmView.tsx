@@ -209,16 +209,16 @@ export function SwarmView({
   }
 
   return (
-    <div className={cn('space-y-6', className)}>
+    <div className={cn('space-y-4 sm:space-y-6 p-3 sm:p-4 md:p-6', className)}>
       {/* Header with Swarm Selection */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold tracking-tight">Swarm Coordination</h1>
-          <p className="text-muted-foreground mt-1">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="flex-1 min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight truncate">Swarm Coordination</h1>
+          <p className="text-sm sm:text-base text-muted-foreground mt-1 truncate">
             Monitor and control your multi-agent swarms in real-time
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <Button
             variant="outline"
             size="icon"
@@ -227,6 +227,7 @@ export function SwarmView({
               refetchStatus();
             }}
             aria-label="Refresh data"
+            className="min-h-[44px] min-w-[44px]"
           >
             <RefreshCw className="h-4 w-4" />
           </Button>
@@ -235,14 +236,14 @@ export function SwarmView({
 
       {/* Swarm Selector */}
       {activeSwarms.swarms.length > 1 && (
-        <div className="flex gap-2 overflow-x-auto pb-2">
+        <div className="flex gap-2 overflow-x-auto pb-2 -mx-3 sm:-mx-4 md:-mx-6 px-3 sm:px-4 md:px-6">
           {activeSwarms.swarms.map((s: any) => (
             <Button
               key={s.id}
               variant={selectedSwarmId === s.id ? 'default' : 'outline'}
               size="sm"
               onClick={() => setSelectedSwarmId(s.id)}
-              className="whitespace-nowrap"
+              className="whitespace-nowrap min-h-[44px] shrink-0"
             >
               {s.name}
               <Badge variant="secondary" className="ml-2">
@@ -254,7 +255,7 @@ export function SwarmView({
       )}
 
       {/* Main Grid Layout */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
         {/* Left Column - Overview & Controls */}
         <div className="space-y-6 lg:col-span-2">
           {/* Swarm Overview Card */}
@@ -286,7 +287,7 @@ export function SwarmView({
               </div>
 
               {/* Key Metrics Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 <MetricCard
                   icon={Users}
                   label="Active Agents"
@@ -316,7 +317,7 @@ export function SwarmView({
               </div>
 
               {/* Control Buttons */}
-              <div className="flex items-center gap-2 pt-2">
+              <div className="flex flex-wrap items-center gap-2 pt-2">
                 {swarm?.status === 'executing' ? (
                   <>
                     <Button
@@ -324,16 +325,19 @@ export function SwarmView({
                       size="sm"
                       onClick={handlePauseResume}
                       disabled={stopSwarm.isPending}
+                      className="min-h-[44px]"
                     >
                       {isPaused ? (
                         <>
                           <Play className="h-4 w-4" />
-                          Resume Monitoring
+                          <span className="ml-2 hidden sm:inline">Resume Monitoring</span>
+                          <span className="ml-2 sm:hidden">Resume</span>
                         </>
                       ) : (
                         <>
                           <Pause className="h-4 w-4" />
-                          Pause Monitoring
+                          <span className="ml-2 hidden sm:inline">Pause Monitoring</span>
+                          <span className="ml-2 sm:hidden">Pause</span>
                         </>
                       )}
                     </Button>
@@ -343,9 +347,10 @@ export function SwarmView({
                       onClick={handleStopSwarm}
                       isLoading={stopSwarm.isPending}
                       loadingText="Stopping..."
+                      className="min-h-[44px]"
                     >
                       <StopCircle className="h-4 w-4" />
-                      Stop Swarm
+                      <span className="ml-2">Stop Swarm</span>
                     </Button>
                   </>
                 ) : (
@@ -355,18 +360,21 @@ export function SwarmView({
                     onClick={handleStartSwarm}
                     isLoading={startSwarm.isPending}
                     loadingText="Starting..."
+                    className="min-h-[44px]"
                   >
                     <Play className="h-4 w-4" />
-                    Start Swarm
+                    <span className="ml-2">Start Swarm</span>
                   </Button>
                 )}
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" className="min-h-[44px]">
                   <Plus className="h-4 w-4" />
-                  Add Agent
+                  <span className="ml-2 hidden sm:inline">Add Agent</span>
+                  <span className="ml-2 sm:hidden">Add</span>
                 </Button>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" className="min-h-[44px]">
                   <RefreshCw className="h-4 w-4" />
-                  Redistribute Tasks
+                  <span className="ml-2 hidden sm:inline">Redistribute Tasks</span>
+                  <span className="ml-2 sm:hidden">Redistribute</span>
                 </Button>
               </div>
             </CardContent>
@@ -411,7 +419,7 @@ export function SwarmView({
             </CardHeader>
             <CardContent>
               {/* Priority Summary */}
-              <div className="flex gap-2 mb-4 flex-wrap">
+              <div className="flex gap-2 mb-4 overflow-x-auto pb-2 -mx-3 sm:-mx-0 px-3 sm:px-0">
                 <PriorityBadge priority="critical" count={tasksByPriority.critical} />
                 <PriorityBadge priority="high" count={tasksByPriority.high} />
                 <PriorityBadge priority="normal" count={tasksByPriority.normal} />
@@ -419,7 +427,7 @@ export function SwarmView({
                 <PriorityBadge priority="background" count={tasksByPriority.background} />
               </div>
 
-              <ScrollArea className="h-[300px] pr-4">
+              <ScrollArea className="h-[300px] sm:h-[400px] pr-2 sm:pr-4">
                 <div className="space-y-2">
                   {tasks.length === 0 ? (
                     <div className="flex items-center justify-center py-12 text-muted-foreground">

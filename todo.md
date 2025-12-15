@@ -351,14 +351,16 @@ Merge three systems:
 - [x] `BROWSERBASE_PROJECT_ID`
 - [x] All vars from `.env.example`
 
+### Batch 1 ✅ COMPLETE (Dec 15, 2025)
+- [x] Linting in CI (Phase 7.2) - ESLint with TypeScript/React
+- [x] Scheduled memory cleanup jobs (Phase 6.1) - Auto cleanup every 6h
+- [x] Sentry error tracking (Phase 8.1) - Client + Server integration
+
 ### Remaining Work (Next Priority)
 - [ ] Mobile-first layouts (Phase 3.2)
 - [ ] Agent execution permissions (Phase 5.1)
 - [ ] Multi-tenant namespace isolation (Phase 5.2)
-- [ ] Scheduled memory cleanup jobs (Phase 6.1)
 - [ ] CDN integration (Phase 6.2)
-- [ ] Linting in CI (Phase 7.2)
-- [ ] Sentry error tracking (Phase 8.1)
 - [ ] Load testing (Phase 10.1)
 
 ---

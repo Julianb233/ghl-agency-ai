@@ -608,65 +608,67 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
 
       {/* Header */}
       <header className="border-b border-gray-200 bg-white shadow-sm sticky top-0 z-40" role="banner">
-        <div className="max-w-[2000px] mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20 text-white font-bold font-mono text-lg">
+        <div className="max-w-[2000px] mx-auto px-3 sm:px-4 h-14 sm:h-16 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-gradient-to-br from-emerald-600 to-teal-600 flex items-center justify-center shadow-lg shadow-emerald-500/20 text-white font-bold font-mono text-sm sm:text-lg shrink-0">
               AI
             </div>
-            <div>
-              <h1 className="font-bold text-slate-800 leading-tight">GHL Agent <span className="text-emerald-600">Command</span></h1>
-              <div className="flex items-center gap-2 text-[10px] font-mono text-slate-500 uppercase tracking-wider">
-                <span className={`w-2 h-2 rounded-full ${status === AgentStatus.EXECUTING ? 'bg-amber-400 animate-pulse' : status === AgentStatus.COMPLETED ? 'bg-emerald-500' : 'bg-slate-300'}`}></span>
-                Status: {status}
+            <div className="min-w-0">
+              <h1 className="font-bold text-slate-800 leading-tight text-sm sm:text-base truncate">GHL Agent <span className="text-emerald-600">Command</span></h1>
+              <div className="flex items-center gap-2 text-[9px] sm:text-[10px] font-mono text-slate-500 uppercase tracking-wider">
+                <span className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${status === AgentStatus.EXECUTING ? 'bg-amber-400 animate-pulse' : status === AgentStatus.COMPLETED ? 'bg-emerald-500' : 'bg-slate-300'}`}></span>
+                <span className="hidden sm:inline">Status: </span>{status}
               </div>
             </div>
           </div>
 
-          <div className="flex-1 flex justify-center">
+          <div className="hidden lg:flex flex-1 justify-center">
             <SystemStatus />
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1.5 sm:gap-4">
             {/* Subscription Usage Display */}
             {subscriptionQuery.data?.hasSubscription ? (
               <button
                 onClick={() => setShowUpgradeModal(true)}
-                className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-white/50 border border-slate-200 rounded-lg hover:bg-white hover:border-emerald-300 transition-all group"
+                className="hidden sm:flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 bg-white/50 border border-slate-200 rounded-lg hover:bg-white hover:border-emerald-300 transition-all group min-h-[44px]"
               >
-                <Zap className="w-4 h-4 text-emerald-500" />
-                <span className="text-xs font-bold text-slate-500 uppercase group-hover:text-emerald-600">
+                <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-500" />
+                <span className="text-xs font-bold text-slate-500 uppercase group-hover:text-emerald-600 hidden md:inline">
                   {subscriptionQuery.data.tier?.name}
                 </span>
                 <span className="text-sm font-mono font-bold text-emerald-600">
-                  {subscriptionQuery.data.usage?.executionsRemaining ?? 0} left
+                  {subscriptionQuery.data.usage?.executionsRemaining ?? 0}
                 </span>
               </button>
             ) : (
               <button
                 onClick={() => setShowUpgradeModal(true)}
-                className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg hover:from-purple-600 hover:to-indigo-600 transition-all"
+                className="hidden sm:flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg hover:from-purple-600 hover:to-indigo-600 transition-all min-h-[44px]"
               >
-                <Zap className="w-4 h-4" />
-                <span className="text-xs font-bold uppercase">Subscribe</span>
+                <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span className="text-xs font-bold uppercase hidden sm:inline">Subscribe</span>
               </button>
             )}
 
             {/* User Profile */}
-            <div className="flex items-center gap-3 pl-4 border-l border-slate-200">
+            <div className="flex items-center gap-1.5 sm:gap-3 pl-2 sm:pl-4 border-l border-slate-200">
               <div className="text-right hidden md:block">
                 <p className="text-xs font-bold text-slate-700">{currentUser.name}</p>
                 <p className="text-[10px] text-slate-500 uppercase tracking-wide">{currentUser.role} Account</p>
               </div>
               <button
                 onClick={() => handleOpenSettings('GENERAL')}
-                className="w-9 h-9 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 text-white flex items-center justify-center text-xs font-bold hover:shadow-lg transition-shadow"
+                className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-gradient-to-br from-slate-700 to-slate-900 text-white flex items-center justify-center text-xs font-bold hover:shadow-lg transition-shadow min-h-[44px] min-w-[44px]"
+                aria-label={`Settings for ${currentUser.name}`}
               >
                 {currentUser.avatarInitials}
               </button>
               <button
                 onClick={handleLogout}
-                className="p-2 text-slate-400 hover:text-red-500 transition-colors"
+                className="p-2.5 sm:p-2 text-slate-400 hover:text-red-500 transition-colors min-h-[44px] min-w-[44px]"
                 title="Logout"
+                aria-label="Logout"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -680,108 +682,108 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
       <div className="flex max-w-[2000px] mx-auto h-[calc(100vh-64px)]">
 
         {/* Navigation Rail - Hidden on mobile */}
-        <nav className="hidden md:flex w-16 flex-col items-center py-4 gap-4 border-r border-gray-200 bg-white" role="navigation" aria-label="Main navigation">
+        <nav className="hidden md:flex w-14 lg:w-16 flex-col items-center py-3 lg:py-4 gap-2 lg:gap-3 border-r border-gray-200 bg-white" role="navigation" aria-label="Main navigation">
           <button
             onClick={() => setViewMode('GLOBAL')}
-            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${viewMode === 'GLOBAL' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30' : 'text-slate-400 hover:bg-gray-100 hover:text-emerald-500'}`}
+            className={`w-11 h-11 lg:w-12 lg:h-12 rounded-xl flex items-center justify-center transition-all min-h-[44px] min-w-[44px] ${viewMode === 'GLOBAL' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30' : 'text-slate-400 hover:bg-gray-100 hover:text-emerald-500'}`}
             aria-label="Global Operations"
             aria-current={viewMode === 'GLOBAL' ? 'page' : undefined}
           >
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+            <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
           </button>
 
           <button
             onClick={() => setViewMode('TERMINAL')}
-            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${viewMode === 'TERMINAL' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30' : 'text-slate-400 hover:bg-gray-100 hover:text-emerald-500'}`}
+            className={`w-11 h-11 lg:w-12 lg:h-12 rounded-xl flex items-center justify-center transition-all min-h-[44px] min-w-[44px] ${viewMode === 'TERMINAL' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30' : 'text-slate-400 hover:bg-gray-100 hover:text-emerald-500'}`}
             aria-label="Live Terminal"
             aria-current={viewMode === 'TERMINAL' ? 'page' : undefined}
           >
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+            <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
           </button>
 
           <button
             onClick={() => setViewMode('EMAIL_AGENT')}
-            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${viewMode === 'EMAIL_AGENT' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30' : 'text-slate-400 hover:bg-gray-100 hover:text-emerald-500'}`}
+            className={`w-11 h-11 lg:w-12 lg:h-12 rounded-xl flex items-center justify-center transition-all min-h-[44px] min-w-[44px] ${viewMode === 'EMAIL_AGENT' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30' : 'text-slate-400 hover:bg-gray-100 hover:text-emerald-500'}`}
             aria-label="AI Email Agent"
             aria-current={viewMode === 'EMAIL_AGENT' ? 'page' : undefined}
           >
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+            <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
           </button>
 
           <button
             onClick={() => setViewMode('VOICE_AGENT')}
-            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${viewMode === 'VOICE_AGENT' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30' : 'text-slate-400 hover:bg-gray-100 hover:text-emerald-500'}`}
+            className={`w-11 h-11 lg:w-12 lg:h-12 rounded-xl flex items-center justify-center transition-all min-h-[44px] min-w-[44px] ${viewMode === 'VOICE_AGENT' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30' : 'text-slate-400 hover:bg-gray-100 hover:text-emerald-500'}`}
             aria-label="AI Voice Agent"
             aria-current={viewMode === 'VOICE_AGENT' ? 'page' : undefined}
           >
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+            <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
           </button>
 
           <button
             onClick={() => setViewMode('SEO')}
-            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${viewMode === 'SEO' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30' : 'text-slate-400 hover:bg-gray-100 hover:text-slate-600'}`}
+            className={`w-11 h-11 lg:w-12 lg:h-12 rounded-xl flex items-center justify-center transition-all min-h-[44px] min-w-[44px] ${viewMode === 'SEO' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30' : 'text-slate-400 hover:bg-gray-100 hover:text-slate-600'}`}
             aria-label="SEO and Reports"
             aria-current={viewMode === 'SEO' ? 'page' : undefined}
           >
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+            <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
           </button>
 
           <button
             onClick={() => setViewMode('ADS')}
-            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${viewMode === 'ADS' ? 'bg-pink-600 text-white shadow-lg shadow-pink-500/30' : 'text-slate-400 hover:bg-gray-100 hover:text-slate-600'}`}
+            className={`w-11 h-11 lg:w-12 lg:h-12 rounded-xl flex items-center justify-center transition-all min-h-[44px] min-w-[44px] ${viewMode === 'ADS' ? 'bg-pink-600 text-white shadow-lg shadow-pink-500/30' : 'text-slate-400 hover:bg-gray-100 hover:text-slate-600'}`}
             aria-label="AI Ad Manager"
             aria-current={viewMode === 'ADS' ? 'page' : undefined}
           >
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" /></svg>
+            <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" /></svg>
           </button>
 
           <button
             onClick={() => setViewMode('MARKETPLACE')}
-            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${viewMode === 'MARKETPLACE' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30' : 'text-slate-400 hover:bg-gray-100 hover:text-slate-600'}`}
+            className={`w-11 h-11 lg:w-12 lg:h-12 rounded-xl flex items-center justify-center transition-all min-h-[44px] min-w-[44px] ${viewMode === 'MARKETPLACE' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30' : 'text-slate-400 hover:bg-gray-100 hover:text-slate-600'}`}
             aria-label="Marketplace"
             aria-current={viewMode === 'MARKETPLACE' ? 'page' : undefined}
           >
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
+            <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
           </button>
 
           <button
             onClick={() => setViewMode('AI_BROWSER')}
-            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${viewMode === 'AI_BROWSER' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30' : 'text-slate-400 hover:bg-gray-100 hover:text-emerald-500'}`}
+            className={`w-11 h-11 lg:w-12 lg:h-12 rounded-xl flex items-center justify-center transition-all min-h-[44px] min-w-[44px] ${viewMode === 'AI_BROWSER' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30' : 'text-slate-400 hover:bg-gray-100 hover:text-emerald-500'}`}
             aria-label="AI Browser"
             aria-current={viewMode === 'AI_BROWSER' ? 'page' : undefined}
           >
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>
+            <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>
           </button>
 
           <button
             onClick={() => setViewMode('AGENT')}
-            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${viewMode === 'AGENT' ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/30' : 'text-slate-400 hover:bg-gray-100 hover:text-purple-500'}`}
+            className={`w-11 h-11 lg:w-12 lg:h-12 rounded-xl flex items-center justify-center transition-all min-h-[44px] min-w-[44px] ${viewMode === 'AGENT' ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/30' : 'text-slate-400 hover:bg-gray-100 hover:text-purple-500'}`}
             aria-label="AI Agent (Manus)"
             aria-current={viewMode === 'AGENT' ? 'page' : undefined}
             title="AI Agent - Autonomous Task Execution"
           >
-            <Bot className="w-6 h-6" aria-hidden="true" />
+            <Bot className="w-5 h-5 lg:w-6 lg:h-6" aria-hidden="true" />
           </button>
 
           <button
             onClick={() => setViewMode('SWARM')}
-            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${viewMode === 'SWARM' ? 'bg-violet-600 text-white shadow-lg shadow-violet-500/30' : 'text-slate-400 hover:bg-gray-100 hover:text-violet-500'}`}
+            className={`w-11 h-11 lg:w-12 lg:h-12 rounded-xl flex items-center justify-center transition-all min-h-[44px] min-w-[44px] ${viewMode === 'SWARM' ? 'bg-violet-600 text-white shadow-lg shadow-violet-500/30' : 'text-slate-400 hover:bg-gray-100 hover:text-violet-500'}`}
             aria-label="Swarm Coordinator"
             aria-current={viewMode === 'SWARM' ? 'page' : undefined}
             title="Swarm - Multi-Agent Coordination"
           >
-            <Network className="w-6 h-6" aria-hidden="true" />
+            <Network className="w-5 h-5 lg:w-6 lg:h-6" aria-hidden="true" />
           </button>
 
           <div className="flex-1"></div>
 
           <button
             onClick={() => setViewMode('SETTINGS')}
-            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${viewMode === 'SETTINGS' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30' : 'text-slate-400 hover:bg-gray-100 hover:text-slate-600'}`}
+            className={`w-11 h-11 lg:w-12 lg:h-12 rounded-xl flex items-center justify-center transition-all min-h-[44px] min-w-[44px] ${viewMode === 'SETTINGS' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30' : 'text-slate-400 hover:bg-gray-100 hover:text-slate-600'}`}
             aria-label="Settings"
             aria-current={viewMode === 'SETTINGS' ? 'page' : undefined}
           >
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+            <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
           </button>
         </nav>
 
@@ -1093,75 +1095,75 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
       />
 
       {/* Mobile Bottom Navigation */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50" role="navigation" aria-label="Mobile navigation">
-        <div className="flex justify-around items-center h-16 px-2">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50 safe-area-inset-bottom" role="navigation" aria-label="Mobile navigation">
+        <div className="flex justify-around items-center h-20 px-1">
           <button
             onClick={() => setViewMode('GLOBAL')}
-            className={`flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-all ${
+            className={`flex flex-col items-center justify-center gap-1 px-2 py-2 rounded-lg transition-all min-h-[48px] min-w-[48px] ${
               viewMode === 'GLOBAL'
                 ? 'text-emerald-600 bg-emerald-50'
-                : 'text-slate-500 hover:text-slate-700'
+                : 'text-slate-500 active:bg-slate-100'
             }`}
             aria-label="Global Operations"
             aria-current={viewMode === 'GLOBAL' ? 'page' : undefined}
           >
-            <Home className="w-5 h-5" />
+            <Home className="w-6 h-6" />
             <span className="text-xs font-medium">Home</span>
           </button>
 
           <button
             onClick={() => setViewMode('TERMINAL')}
-            className={`flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-all ${
+            className={`flex flex-col items-center justify-center gap-1 px-2 py-2 rounded-lg transition-all min-h-[48px] min-w-[48px] ${
               viewMode === 'TERMINAL'
                 ? 'text-emerald-600 bg-emerald-50'
-                : 'text-slate-500 hover:text-slate-700'
+                : 'text-slate-500 active:bg-slate-100'
             }`}
             aria-label="Live Terminal"
             aria-current={viewMode === 'TERMINAL' ? 'page' : undefined}
           >
-            <Terminal className="w-5 h-5" />
+            <Terminal className="w-6 h-6" />
             <span className="text-xs font-medium">Terminal</span>
           </button>
 
           <button
             onClick={() => setViewMode('EMAIL_AGENT')}
-            className={`flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-all ${
+            className={`flex flex-col items-center justify-center gap-1 px-2 py-2 rounded-lg transition-all min-h-[48px] min-w-[48px] ${
               viewMode === 'EMAIL_AGENT'
                 ? 'text-emerald-600 bg-emerald-50'
-                : 'text-slate-500 hover:text-slate-700'
+                : 'text-slate-500 active:bg-slate-100'
             }`}
             aria-label="AI Email Agent"
             aria-current={viewMode === 'EMAIL_AGENT' ? 'page' : undefined}
           >
-            <Mail className="w-5 h-5" />
+            <Mail className="w-6 h-6" />
             <span className="text-xs font-medium">Email</span>
           </button>
 
           <button
             onClick={() => setViewMode('AI_BROWSER')}
-            className={`flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-all ${
+            className={`flex flex-col items-center justify-center gap-1 px-2 py-2 rounded-lg transition-all min-h-[48px] min-w-[48px] ${
               viewMode === 'AI_BROWSER'
                 ? 'text-emerald-600 bg-emerald-50'
-                : 'text-slate-500 hover:text-slate-700'
+                : 'text-slate-500 active:bg-slate-100'
             }`}
             aria-label="AI Browser"
             aria-current={viewMode === 'AI_BROWSER' ? 'page' : undefined}
           >
-            <Globe className="w-5 h-5" />
+            <Globe className="w-6 h-6" />
             <span className="text-xs font-medium">Browser</span>
           </button>
 
           <button
             onClick={() => setViewMode('SETTINGS')}
-            className={`flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-all ${
+            className={`flex flex-col items-center justify-center gap-1 px-2 py-2 rounded-lg transition-all min-h-[48px] min-w-[48px] ${
               viewMode === 'SETTINGS'
                 ? 'text-emerald-600 bg-emerald-50'
-                : 'text-slate-500 hover:text-slate-700'
+                : 'text-slate-500 active:bg-slate-100'
             }`}
             aria-label="Settings"
             aria-current={viewMode === 'SETTINGS' ? 'page' : undefined}
           >
-            <Settings className="w-5 h-5" />
+            <Settings className="w-6 h-6" />
             <span className="text-xs font-medium">Settings</span>
           </button>
         </div>
