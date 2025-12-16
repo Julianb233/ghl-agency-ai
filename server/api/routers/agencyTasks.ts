@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { router, protectedProcedure } from "../../_core/trpc";
 import { TRPCError } from "@trpc/server";
-import { getDb } from "../../db";
 import { eq, and, or, desc, asc, inArray, gte, lte, isNull, sql, count } from "drizzle-orm";
 
 import {
@@ -14,40 +13,28 @@ import {
 
 import { taskExecutionService } from "../../services/taskExecution.service";
 
+// Import shared utilities
+import { requireDb, withTrpcErrorHandling } from "../../_core/dbHelper";
+import { getDb } from "../../db"; // Keep for procedures not yet refactored
+import {
+  priorityEnum,
+  urgencyEnum,
+  taskStatusEnum,
+  taskTypeEnum,
+  sourceTypeEnum,
+  executionTypeEnum,
+  paginationSchema,
+  sortOrderSchema,
+  tagsSchema,
+  metadataSchema,
+} from "../schemas/common";
+
 // ========================================
-// VALIDATION SCHEMAS
+// VALIDATION SCHEMAS (use shared + local)
 // ========================================
 
-const priorityEnum = z.enum(["low", "medium", "high", "critical"]);
-const urgencyEnum = z.enum(["normal", "soon", "urgent", "immediate"]);
-const statusEnum = z.enum([
-  "pending",
-  "queued",
-  "in_progress",
-  "waiting_input",
-  "completed",
-  "failed",
-  "cancelled",
-  "deferred",
-]);
-const taskTypeEnum = z.enum([
-  "browser_automation",
-  "api_call",
-  "notification",
-  "reminder",
-  "ghl_action",
-  "data_extraction",
-  "report_generation",
-  "custom",
-]);
-const sourceTypeEnum = z.enum([
-  "webhook_sms",
-  "webhook_email",
-  "webhook_custom",
-  "manual",
-  "scheduled",
-  "conversation",
-]);
+// Re-export for backward compatibility if needed elsewhere
+const statusEnum = taskStatusEnum;
 
 const createTaskSchema = z.object({
   title: z.string().min(1).max(500),
@@ -115,16 +102,9 @@ export const agencyTasksRouter = router({
     .input(createTaskSchema)
     .mutation(async ({ input, ctx }) => {
       const userId = ctx.user.id;
+      const db = await requireDb();
 
-      const db = await getDb();
-      if (!db) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Database not initialized",
-        });
-      }
-
-      try {
+      return withTrpcErrorHandling(async () => {
         const [task] = await db
           .insert(agencyTasks)
           .values({
@@ -167,13 +147,7 @@ export const agencyTasksRouter = router({
         }
 
         return task;
-      } catch (error) {
-        console.error("Failed to create task:", error);
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: `Failed to create task: ${error instanceof Error ? error.message : "Unknown error"}`,
-        });
-      }
+      }, "Failed to create task");
     }),
 
   /**
@@ -183,16 +157,9 @@ export const agencyTasksRouter = router({
     .input(listTasksSchema)
     .query(async ({ input, ctx }) => {
       const userId = ctx.user.id;
+      const db = await requireDb();
 
-      const db = await getDb();
-      if (!db) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Database not initialized",
-        });
-      }
-
-      try {
+      return withTrpcErrorHandling(async () => {
         const conditions: any[] = [eq(agencyTasks.userId, userId)];
 
         // Status filters
@@ -256,13 +223,7 @@ export const agencyTasksRouter = router({
           limit: input.limit,
           offset: input.offset,
         };
-      } catch (error) {
-        console.error("Failed to list tasks:", error);
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: `Failed to list tasks: ${error instanceof Error ? error.message : "Unknown error"}`,
-        });
-      }
+      }, "Failed to list tasks");
     }),
 
   /**

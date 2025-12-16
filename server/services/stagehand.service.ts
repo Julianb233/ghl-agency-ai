@@ -5,9 +5,16 @@
  * Features:
  * - AI-powered browser actions via natural language
  * - Structured data extraction with schemas
- * - Action caching for cost reduction
+ * - Automatic action caching (Stagehand v3 feature)
+ * - Self-healing execution layer
  * - Session management and lifecycle
  * - GHL-specific automation helpers
+ *
+ * Best Practices (Stagehand v3):
+ * - Keep act() instructions atomic and specific
+ * - Use observe() with Gemini for best results
+ * - Provide context for similar elements
+ * - Claude for reasoning, GPT-4o for actions
  */
 
 import { Stagehand } from '@browserbasehq/stagehand';
@@ -354,6 +361,13 @@ export class StagehandService {
 
   /**
    * Execute an AI-powered action using natural language
+   *
+   * BEST PRACTICE (Stagehand v3):
+   * - Keep instructions atomic and specific
+   * - BAD: "Order me a pizza" (too high-level)
+   * - GOOD: "Click the 'Add to Cart' button"
+   * - GOOD: "Type 'john@example.com' into the email field"
+   * - Provide context for similar elements when needed
    */
   public async act(
     sessionId: string,
@@ -361,6 +375,7 @@ export class StagehandService {
     options?: {
       variables?: Record<string, string>;
       timeout?: number;
+      context?: string; // Additional context for similar elements
     }
   ): Promise<ActResult> {
     const session = this.sessions.get(sessionId);
@@ -370,7 +385,6 @@ export class StagehandService {
 
     try {
       this.updateActivity(session);
-      console.log(`[StagehandService] Executing action: ${instruction}`);
 
       // Stagehand v3 uses string argument for act()
       let actionInstruction = instruction;
@@ -382,9 +396,21 @@ export class StagehandService {
         }
       }
 
-      const result = await session.stagehand.act(actionInstruction);
+      // Add context for disambiguation if provided (Stagehand v3 best practice)
+      if (options?.context) {
+        actionInstruction = `${actionInstruction}. Context: ${options.context}`;
+      }
 
-      console.log(`[StagehandService] Action completed:`, result);
+      // Warn if instruction seems too high-level (best practice validation)
+      const highLevelKeywords = ['complete the', 'finish the', 'do the entire', 'handle all'];
+      const isHighLevel = highLevelKeywords.some(kw => instruction.toLowerCase().includes(kw));
+      if (isHighLevel) {
+        console.warn(`[StagehandService] Warning: Instruction may be too high-level. Consider breaking it into atomic steps: "${instruction}"`);
+      }
+
+      console.log(`[StagehandService] Executing action: ${actionInstruction}`);
+      const result = await session.stagehand.act(actionInstruction);
+      console.log(`[StagehandService] Action completed (cached: ${(result as any)?.cached ?? 'unknown'})`);
 
       return {
         success: true,

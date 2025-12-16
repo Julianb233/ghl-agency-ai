@@ -13,6 +13,9 @@ import { browserbaseSDK } from "../_core/browserbaseSDK";
 import { cacheService, CACHE_TTL } from "./cache.service";
 import { cacheKeys } from "../lib/cacheKeys";
 import { evaluateExpression } from "../lib/safeExpressionParser";
+
+// Import shared variable substitution utility
+import { substituteVariables as substituteVariablesUtil } from "../_core/variableSubstitution";
 import type {
   WorkflowStep,
   WorkflowStepType,
@@ -90,25 +93,9 @@ function resolveModelApiKey(modelName: string): string {
 /**
  * Substitute variables in a string value
  * Supports {{variableName}} syntax
+ * @deprecated Import from '../_core/variableSubstitution' instead
  */
-export function substituteVariables(value: unknown, variables: Record<string, unknown>): unknown {
-  if (typeof value === "string") {
-    return value.replace(/\{\{(\w+)\}\}/g, (match, varName) => {
-      return variables[varName] !== undefined ? String(variables[varName]) : match;
-    });
-  }
-  if (typeof value === "object" && value !== null) {
-    if (Array.isArray(value)) {
-      return value.map((item) => substituteVariables(item, variables));
-    }
-    const result: Record<string, unknown> = {};
-    for (const [key, val] of Object.entries(value)) {
-      result[key] = substituteVariables(val, variables);
-    }
-    return result;
-  }
-  return value;
-}
+export const substituteVariables = substituteVariablesUtil;
 
 /**
  * Update execution status in database

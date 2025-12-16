@@ -637,3 +637,19 @@ export {
   type WorkflowPattern,
   type InsertWorkflowPattern,
 } from "./schema-memory";
+
+// Cost Tracking
+export {
+  apiTokenUsage,
+  browserbaseCosts,
+  dailyCostSummaries,
+  costBudgets,
+  type ApiTokenUsage,
+  type InsertApiTokenUsage,
+  type BrowserbaseCost,
+  type InsertBrowserbaseCost,
+  type DailyCostSummary,
+  type InsertDailyCostSummary,
+  type CostBudget,
+  type InsertCostBudget,
+} from "./schema-costs";

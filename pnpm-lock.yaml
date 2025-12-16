@@ -248,6 +248,9 @@ importers:
       pino-pretty:
         specifier: file:stubs/pino-pretty
         version: file:stubs/pino-pretty
+      playwright-core:
+        specifier: ^1.57.0
+        version: 1.57.0
       puppeteer-core:
         specifier: ^24.33.0
         version: 24.33.0(bufferutil@4.0.9)

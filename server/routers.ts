@@ -40,6 +40,7 @@ import { toolsRouter } from "./api/routers/tools";
 import { subAccountsRouter } from "./api/routers/subAccounts";
 import { agentPermissionsRouter } from "./api/routers/agentPermissions";
 import { agentMemoryRouter } from "./api/routers/agentMemory";
+import { costsRouter } from "./api/routers/costs";
 import { publicProcedure, router } from "./_core/trpc";
 
 export const appRouter = router({
@@ -85,6 +86,7 @@ export const appRouter = router({
   // Monitoring & Analytics
   alerts: alertsRouter,
   analytics: analyticsRouter,
+  costs: costsRouter,
   health: healthRouter,
 
   // Settings & Configuration
