@@ -615,21 +615,21 @@ export const useAgentStore = create<AgentState>((set, get) => ({
 
       case 'progress':
         set({
-          progress: data as ProgressData,
+          progress: data as unknown as ProgressData,
         });
         break;
 
       case 'reasoning':
         set((state) => ({
-          reasoningSteps: [...state.reasoningSteps, data as ReasoningStep],
+          reasoningSteps: [...state.reasoningSteps, data as unknown as ReasoningStep],
         }));
 
         get().addLog({
           id: `log-${Date.now()}`,
           timestamp: new Date().toISOString(),
           level: 'info',
-          message: `Decision: ${(data as ReasoningStep).decision}`,
-          detail: `Confidence: ${Math.round((data as ReasoningStep).confidence * 100)}%`,
+          message: `Decision: ${(data as unknown as ReasoningStep).decision}`,
+          detail: `Confidence: ${Math.round((data as unknown as ReasoningStep).confidence * 100)}%`,
         });
         break;
 

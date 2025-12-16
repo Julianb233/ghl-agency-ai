@@ -1088,7 +1088,7 @@ export class AgentOrchestratorService {
         console.log('[SelfCorrection] Escalating to user');
         if (emitter) {
           emitter.thinking({
-            thought: `Unable to recover automatically. ${analysis.ambiguityReasons?.join('. ') || 'All alternatives exhausted.'}`,
+            thought: `Unable to recover automatically. ${analysis.reasoning || 'All alternatives exhausted.'}`,
             iteration: state.iterations,
           });
         }

@@ -2051,17 +2051,18 @@ export const browserRouter = router({
         });
 
         // Emit WebSocket event
+        const resultMessage = (result as { message?: string }).message || 'Task completed';
         websocketService.broadcastToUser(userId, "browser:agent:completed", {
           sessionId: input.sessionId,
           instruction: input.instruction,
-          message: result.message,
+          message: resultMessage,
           durationMs: duration,
           timestamp: new Date(),
         });
 
         return {
           success: true,
-          message: result.message,
+          message: resultMessage,
           instruction: input.instruction,
           durationMs: duration,
           timestamp: new Date(),

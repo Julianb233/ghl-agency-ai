@@ -496,7 +496,7 @@ Be creative and practical. Consider:
     const byErrorType: Record<string, number> = {};
     const byStrategy: Record<string, number> = {};
 
-    for (const records of this.recoveryMemory.values()) {
+    for (const records of Array.from(this.recoveryMemory.values())) {
       for (const record of records) {
         totalRecoveries++;
         byErrorType[record.originalError] = (byErrorType[record.originalError] || 0) + 1;

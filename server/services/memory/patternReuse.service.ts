@@ -212,7 +212,7 @@ export class PatternReuseService {
     let intersection = 0;
     let matching = 0;
 
-    for (const key of keys1) {
+    for (const key of Array.from(keys1)) {
       if (keys2.has(key)) {
         intersection++;
 

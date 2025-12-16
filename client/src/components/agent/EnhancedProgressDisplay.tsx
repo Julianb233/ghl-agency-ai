@@ -240,9 +240,9 @@ export function EnhancedProgressDisplay({
         setDisplayPercent((prev) => prev + step);
       }, 50);
       return () => clearTimeout(timer);
-    } else {
-      setDisplayPercent(target);
     }
+    setDisplayPercent(target);
+    return undefined;
   }, [progress.percentComplete, isComplete, displayPercent]);
 
   return (

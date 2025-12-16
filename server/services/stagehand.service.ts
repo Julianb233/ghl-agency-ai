@@ -1015,7 +1015,7 @@ export class StagehandService {
         const element = await session.page.$(selector);
         if (element) {
           const actualValue = await element.evaluate(
-            (el, prop) => (el as any)[prop],
+            (el: Element, prop: string) => (el as any)[prop],
             property
           );
           if (actualValue === expectedValue) {

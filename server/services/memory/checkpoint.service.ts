@@ -334,7 +334,8 @@ export class CheckpointService {
       .where(eq(executionCheckpoints.executionId, executionId));
 
     // Clear from cache
-    for (const [key, checkpoint] of this.checkpointCache.entries()) {
+    const entries = Array.from(this.checkpointCache.entries());
+    for (const [key, checkpoint] of entries) {
       if (checkpoint.executionId === executionId) {
         this.checkpointCache.delete(key);
       }

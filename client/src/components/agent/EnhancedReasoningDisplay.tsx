@@ -528,7 +528,7 @@ export function EnhancedReasoningDisplay({
   useEffect(() => {
     if (steps.length > 0) {
       const latestStep = steps[steps.length - 1];
-      setExpandedSteps((prev) => new Set([...prev, latestStep.id]));
+      setExpandedSteps((prev) => new Set([...Array.from(prev), latestStep.id]));
     }
   }, [steps]);
 

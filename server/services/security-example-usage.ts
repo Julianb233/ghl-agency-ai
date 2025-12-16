@@ -380,7 +380,7 @@ async function exampleErrorHandling() {
     console.log('Attempting unauthorized credential access...');
     await vault.retrieveCredential(999, 1); // Wrong user
   } catch (error) {
-    console.log('ERROR (expected):', error.message);
+    console.log('ERROR (expected):', error instanceof Error ? error.message : String(error));
     console.log('Security: User 999 cannot access User 123\'s credentials');
   }
 
@@ -390,7 +390,7 @@ async function exampleErrorHandling() {
     // This would fail in real scenario with actual corrupted data
     console.log('Security: Decryption would fail, protecting against tampering');
   } catch (error) {
-    console.log('ERROR:', error.message);
+    console.log('ERROR:', error instanceof Error ? error.message : String(error));
   }
 
   // All errors are logged to audit log with details
