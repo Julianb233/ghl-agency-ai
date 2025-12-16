@@ -30,9 +30,10 @@ vi.mock('@/lib/notificationSounds', () => ({
 }));
 
 vi.mock('@/stores/agentStore', () => ({
-  useAgentStore: vi.fn(() => ({
-    logs: [],
-  })),
+  useAgentStore: vi.fn((selector?: (state: { logs: unknown[] }) => unknown) => {
+    const state = { logs: [] };
+    return selector ? selector(state) : state;
+  }),
 }));
 
 // Test component to access context
