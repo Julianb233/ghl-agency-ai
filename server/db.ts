@@ -115,15 +115,21 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       updateSet.role = 'admin';
     }
 
+    const now = new Date();
+
     if (!values.lastSignedIn) {
-      values.lastSignedIn = new Date();
+      values.lastSignedIn = now;
     }
 
+    // Always set createdAt and updatedAt for new inserts
+    values.createdAt = now;
+    values.updatedAt = now;
+
     // Always update updatedAt on conflict
-    updateSet.updatedAt = new Date();
+    updateSet.updatedAt = now;
 
     if (Object.keys(updateSet).length === 0) {
-      updateSet.lastSignedIn = new Date();
+      updateSet.lastSignedIn = now;
     }
 
     // Determine conflict target
@@ -199,13 +205,16 @@ export async function createUserWithPassword(data: {
   }
 
   try {
+    const now = new Date();
     const result = await db.insert(users).values({
       email: data.email,
       password: data.password,
       name: data.name || null,
       loginMethod: 'email',
       role: 'user',
-      lastSignedIn: new Date(),
+      lastSignedIn: now,
+      createdAt: now,
+      updatedAt: now,
     }).returning();
 
     return result.length > 0 ? result[0] : undefined;
