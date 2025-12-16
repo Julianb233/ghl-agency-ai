@@ -286,6 +286,12 @@ export type {
   MemoryCleanupStats,
 } from "./memoryCleanup.scheduler";
 
+// Re-export new memory & learning services
+export { UserMemoryService, getUserMemoryService } from "./userMemory.service";
+export { CheckpointService, getCheckpointService } from "./checkpoint.service";
+export { LearningEngineService, getLearningEngine } from "./learningEngine.service";
+export { PatternReuseService, getPatternReuseService } from "./patternReuse.service";
+
 // Re-export types
 export type {
   MemoryEntry,
@@ -296,6 +302,35 @@ export type {
   SearchResult,
   MemoryStats,
 } from "./types";
+
+export type {
+  UserPreferences,
+  TaskHistoryEntry,
+  LearnedPatterns,
+  WorkflowPattern,
+  ErrorRecoveryPattern,
+  CustomCommand,
+  UserStats,
+} from "./userMemory.service";
+
+export type {
+  CheckpointOptions,
+  SessionState,
+  BrowserContext,
+  ErrorInfo,
+  ResumeResult,
+} from "./checkpoint.service";
+
+export type {
+  LearningContext,
+  AdaptedStrategy,
+} from "./learningEngine.service";
+
+export type {
+  TaskContext,
+  PatternMatch,
+  AdaptedPattern,
+} from "./patternReuse.service";
 
 // Re-export schema for migrations
 export * from "./schema";

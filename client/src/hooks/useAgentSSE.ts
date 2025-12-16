@@ -27,7 +27,7 @@ export function useAgentSSE(options: UseAgentSSEOptions = {}) {
   const [error, setError] = useState<string | null>(null);
   const [eventSource, setEventSource] = useState<EventSource | null>(null);
 
-  const { setStatus, addLog, setConnectedAgents } = useAgentStore();
+  const { setStatus, addLog, setConnectedAgents, handleSSEEvent } = useAgentStore();
 
   const connect = useCallback((sid?: string) => {
     const targetSessionId = sid || sessionId;
@@ -185,6 +185,22 @@ export function useAgentSSE(options: UseAgentSSEOptions = {}) {
 
       case 'swarm_update':
         setConnectedAgents(message.data?.agentCount || 0);
+        break;
+
+      case 'progress':
+      case 'reasoning':
+      case 'browser:session':
+      case 'execution:started':
+      case 'plan:created':
+      case 'phase:start':
+      case 'phase:complete':
+      case 'execution:complete':
+      case 'execution:error':
+        // Handle all these events through the store's central handler
+        handleSSEEvent({
+          type: message.type,
+          data: message.data || message,
+        });
         break;
 
       case 'error':

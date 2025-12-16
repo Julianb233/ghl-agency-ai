@@ -52,6 +52,26 @@ export interface BrowserSession {
   liveViewUrl?: string;
 }
 
+export interface ProgressData {
+  currentStep: number;
+  totalSteps: number;
+  percentComplete: number;
+  elapsedTime: number;
+  estimatedTimeRemaining: number;
+  currentAction: string;
+}
+
+export interface ReasoningStep {
+  step: number;
+  thought: string;
+  evidence: string[];
+  hypothesis: string;
+  decision: string;
+  alternatives: string[];
+  confidence: number;
+  timestamp?: string;
+}
+
 interface AgentState {
   // Execution state
   currentExecution: CurrentExecution | null;
@@ -59,6 +79,12 @@ interface AgentState {
 
   // Browser session tracking
   activeBrowserSession: BrowserSession | null;
+
+  // Progress tracking
+  progress: ProgressData | null;
+
+  // Reasoning steps
+  reasoningSteps: ReasoningStep[];
 
   // History
   executionHistory: AgentExecutionListItem[];
@@ -116,6 +142,8 @@ const initialState = {
   currentExecution: null,
   isExecuting: false,
   activeBrowserSession: null,
+  progress: null,
+  reasoningSteps: [],
   executionHistory: [],
   isLoadingHistory: false,
   thinkingSteps: [],
@@ -563,18 +591,63 @@ export const useAgentStore = create<AgentState>((set, get) => ({
         set({
           isExecuting: false,
           activeBrowserSession: null,
+          progress: null,
           currentExecution: state.currentExecution ? {
             ...state.currentExecution,
             status: 'failed',
             error: data.error as string,
           } : null,
         });
+
+        // Handle explained errors with all details
+        const errorData = data as any;
+        const errorMessage = errorData.title || errorData.error || 'Execution failed';
+        const errorDetail = errorData.explanation || errorData.error;
+
         get().addLog({
           id: `log-${Date.now()}`,
           timestamp: new Date().toISOString(),
           level: 'error',
-          message: 'Execution failed',
-          detail: data.error as string,
+          message: errorMessage,
+          detail: errorDetail,
+        });
+        break;
+
+      case 'progress':
+        set({
+          progress: data as ProgressData,
+        });
+        break;
+
+      case 'reasoning':
+        set((state) => ({
+          reasoningSteps: [...state.reasoningSteps, data as ReasoningStep],
+        }));
+
+        get().addLog({
+          id: `log-${Date.now()}`,
+          timestamp: new Date().toISOString(),
+          level: 'info',
+          message: `Decision: ${(data as ReasoningStep).decision}`,
+          detail: `Confidence: ${Math.round((data as ReasoningStep).confidence * 100)}%`,
+        });
+        break;
+
+      case 'browser:session':
+        const sessionData = data as { sessionId: string; debugUrl?: string };
+        set({
+          activeBrowserSession: {
+            sessionId: sessionData.sessionId,
+            debugUrl: sessionData.debugUrl,
+          },
+        });
+
+        get().addLog({
+          id: `log-${Date.now()}`,
+          timestamp: new Date().toISOString(),
+          level: 'success',
+          message: 'Browser session created',
+          detail: sessionData.debugUrl ? 'Live view available' : sessionData.sessionId,
         });
         break;
     }

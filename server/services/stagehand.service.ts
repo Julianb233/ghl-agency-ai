@@ -25,14 +25,27 @@ export interface StagehandConfig {
   timeout?: number;
 }
 
+export interface TabInfo {
+  id: string;
+  page: any;
+  title: string;
+  url: string;
+  createdAt: Date;
+}
+
 export interface StagehandSession {
   id: string;
   stagehand: Stagehand;
-  page: any; // Stagehand's page type is compatible but not exact match with Page
+  page: any; // Stagehand's page type is compatible but not exact match with Page (default/primary tab)
   context: any; // Stagehand's context type is compatible but not exact match with BrowserContext
   createdAt: Date;
   lastActivityAt: Date;
   status: 'active' | 'idle' | 'closed';
+  // Multi-tab support
+  pages: Map<string, TabInfo>;
+  activeTabId: string;
+  // File handling
+  downloads: Array<{ filename: string; path: string; timestamp: Date }>;
 }
 
 export interface ActResult {
@@ -69,6 +82,55 @@ export interface ScreenshotResult {
   success: boolean;
   screenshot?: Buffer;
   base64?: string;
+  error?: string;
+}
+
+export interface ActionVerificationResult {
+  canProceed: boolean;
+  issues: string[];
+  elementInfo?: {
+    exists: boolean;
+    visible: boolean;
+    enabled: boolean;
+    selector: string;
+  };
+}
+
+export interface UploadFileResult {
+  success: boolean;
+  filename?: string;
+  error?: string;
+}
+
+export interface DownloadInfo {
+  filename: string;
+  path: string;
+  timestamp: Date;
+  size?: number;
+}
+
+export interface PageStructureResult {
+  success: boolean;
+  structure?: {
+    forms: Array<{ selector: string; action?: string; method?: string }>;
+    links: Array<{ text: string; href: string; selector: string }>;
+    buttons: Array<{ text: string; selector: string; type?: string }>;
+    inputs: Array<{ type: string; name?: string; placeholder?: string; selector: string }>;
+  };
+  error?: string;
+}
+
+export interface ElementInspectionResult {
+  success: boolean;
+  element?: {
+    tagName: string;
+    attributes: Record<string, string>;
+    text: string;
+    html: string;
+    isVisible: boolean;
+    isEnabled: boolean;
+    boundingBox?: { x: number; y: number; width: number; height: number };
+  };
   error?: string;
 }
 
@@ -206,6 +268,18 @@ export class StagehandService {
       // Generate unique session ID
       const sessionId = `stagehand_${Date.now()}_${Math.random().toString(36).substring(7)}`;
 
+      // Initialize primary tab
+      const primaryTabId = `tab_${Date.now()}_0`;
+      const pagesMap = new Map<string, TabInfo>();
+
+      pagesMap.set(primaryTabId, {
+        id: primaryTabId,
+        page,
+        title: await page.title().catch(() => 'New Tab'),
+        url: page.url(),
+        createdAt: new Date(),
+      });
+
       const session: StagehandSession = {
         id: sessionId,
         stagehand,
@@ -214,6 +288,9 @@ export class StagehandService {
         createdAt: new Date(),
         lastActivityAt: new Date(),
         status: 'active',
+        pages: pagesMap,
+        activeTabId: primaryTabId,
+        downloads: [],
       };
 
       this.sessions.set(sessionId, session);
@@ -583,6 +660,510 @@ export class StagehandService {
     await Promise.allSettled(closePromises);
 
     console.log('[StagehandService] Shutdown complete');
+  }
+
+  // ========================================
+  // MULTI-TAB SUPPORT
+  // ========================================
+
+  /**
+   * Open a new tab in the browser session
+   */
+  public async openTab(
+    sessionId: string,
+    url?: string,
+    background?: boolean
+  ): Promise<{ success: boolean; tabId?: string; error?: string }> {
+    const session = this.sessions.get(sessionId);
+    if (!session) {
+      return { success: false, error: 'Session not found' };
+    }
+
+    try {
+      this.updateActivity(session);
+
+      // Create new page in the browser context
+      const newPage = await session.context.newPage();
+
+      // Navigate to URL if provided
+      if (url) {
+        await newPage.goto(url, { waitUntil: 'domcontentloaded' });
+      }
+
+      // Generate tab ID
+      const tabId = `tab_${Date.now()}_${session.pages.size}`;
+
+      // Store tab info
+      const tabInfo: TabInfo = {
+        id: tabId,
+        page: newPage,
+        title: await newPage.title().catch(() => 'New Tab'),
+        url: newPage.url(),
+        createdAt: new Date(),
+      };
+
+      session.pages.set(tabId, tabInfo);
+
+      // Switch to new tab if not opening in background
+      if (!background) {
+        session.activeTabId = tabId;
+        session.page = newPage;
+      }
+
+      console.log(`[StagehandService] Opened new tab: ${tabId} (background: ${background})`);
+      return { success: true, tabId };
+
+    } catch (error) {
+      console.error('[StagehandService] Failed to open tab:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  /**
+   * Switch to a specific tab
+   */
+  public async switchTab(
+    sessionId: string,
+    tabId: string
+  ): Promise<{ success: boolean; error?: string }> {
+    const session = this.sessions.get(sessionId);
+    if (!session) {
+      return { success: false, error: 'Session not found' };
+    }
+
+    const tabInfo = session.pages.get(tabId);
+    if (!tabInfo) {
+      return { success: false, error: `Tab not found: ${tabId}` };
+    }
+
+    try {
+      this.updateActivity(session);
+      session.activeTabId = tabId;
+      session.page = tabInfo.page;
+
+      console.log(`[StagehandService] Switched to tab: ${tabId}`);
+      return { success: true };
+
+    } catch (error) {
+      console.error('[StagehandService] Failed to switch tab:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  /**
+   * Close a specific tab
+   */
+  public async closeTab(
+    sessionId: string,
+    tabId: string
+  ): Promise<{ success: boolean; error?: string }> {
+    const session = this.sessions.get(sessionId);
+    if (!session) {
+      return { success: false, error: 'Session not found' };
+    }
+
+    const tabInfo = session.pages.get(tabId);
+    if (!tabInfo) {
+      return { success: false, error: `Tab not found: ${tabId}` };
+    }
+
+    // Prevent closing the last tab
+    if (session.pages.size === 1) {
+      return { success: false, error: 'Cannot close the last tab' };
+    }
+
+    try {
+      this.updateActivity(session);
+
+      // Close the page
+      await tabInfo.page.close();
+
+      // Remove from map
+      session.pages.delete(tabId);
+
+      // If this was the active tab, switch to first available tab
+      if (session.activeTabId === tabId) {
+        const firstTab = session.pages.values().next().value as TabInfo;
+        session.activeTabId = firstTab.id;
+        session.page = firstTab.page;
+      }
+
+      console.log(`[StagehandService] Closed tab: ${tabId}`);
+      return { success: true };
+
+    } catch (error) {
+      console.error('[StagehandService] Failed to close tab:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  /**
+   * List all tabs in the session
+   */
+  public async listTabs(sessionId: string): Promise<{
+    success: boolean;
+    tabs?: Array<{ id: string; title: string; url: string; isActive: boolean }>;
+    error?: string;
+  }> {
+    const session = this.sessions.get(sessionId);
+    if (!session) {
+      return { success: false, error: 'Session not found' };
+    }
+
+    try {
+      this.updateActivity(session);
+
+      const tabs = await Promise.all(
+        Array.from(session.pages.entries()).map(async ([id, tabInfo]) => ({
+          id,
+          title: await tabInfo.page.title().catch(() => tabInfo.title),
+          url: tabInfo.page.url(),
+          isActive: id === session.activeTabId,
+        }))
+      );
+
+      return { success: true, tabs };
+
+    } catch (error) {
+      console.error('[StagehandService] Failed to list tabs:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  // ========================================
+  // FILE UPLOAD/DOWNLOAD
+  // ========================================
+
+  /**
+   * Upload a file to a file input element
+   */
+  public async uploadFile(
+    sessionId: string,
+    selector: string,
+    filePath: string
+  ): Promise<UploadFileResult> {
+    const session = this.sessions.get(sessionId);
+    if (!session) {
+      return { success: false, error: 'Session not found' };
+    }
+
+    try {
+      this.updateActivity(session);
+
+      // Set files on the file input
+      await session.page.setInputFiles(selector, filePath);
+
+      const filename = filePath.split('/').pop() || filePath;
+      console.log(`[StagehandService] Uploaded file: ${filename} to ${selector}`);
+
+      return { success: true, filename };
+
+    } catch (error) {
+      console.error('[StagehandService] Failed to upload file:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  /**
+   * Get list of downloaded files
+   */
+  public async getDownloads(sessionId: string): Promise<{
+    success: boolean;
+    downloads?: DownloadInfo[];
+    error?: string;
+  }> {
+    const session = this.sessions.get(sessionId);
+    if (!session) {
+      return { success: false, error: 'Session not found' };
+    }
+
+    try {
+      this.updateActivity(session);
+      return { success: true, downloads: session.downloads };
+
+    } catch (error) {
+      console.error('[StagehandService] Failed to get downloads:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  // ========================================
+  // ACTION VERIFICATION
+  // ========================================
+
+  /**
+   * Verify action preconditions before executing
+   */
+  public async verifyActionPreconditions(
+    sessionId: string,
+    selector: string,
+    actionType: 'click' | 'type' | 'navigate'
+  ): Promise<ActionVerificationResult> {
+    const session = this.sessions.get(sessionId);
+    if (!session) {
+      return { canProceed: false, issues: ['Session not found'] };
+    }
+
+    const issues: string[] = [];
+
+    try {
+      this.updateActivity(session);
+
+      // Check if element exists
+      const element = await session.page.$(selector);
+      if (!element) {
+        issues.push(`Element not found: ${selector}`);
+        return {
+          canProceed: false,
+          issues,
+          elementInfo: {
+            exists: false,
+            visible: false,
+            enabled: false,
+            selector,
+          },
+        };
+      }
+
+      // Check if element is visible
+      const isVisible = await element.isVisible().catch(() => false);
+      if (!isVisible) {
+        issues.push(`Element is not visible: ${selector}`);
+      }
+
+      // Check if element is enabled (for clicks and typing)
+      let isEnabled = true;
+      if (actionType === 'click' || actionType === 'type') {
+        isEnabled = await element.isEnabled().catch(() => false);
+        if (!isEnabled) {
+          issues.push(`Element is disabled: ${selector}`);
+        }
+      }
+
+      return {
+        canProceed: issues.length === 0,
+        issues,
+        elementInfo: {
+          exists: true,
+          visible: isVisible,
+          enabled: isEnabled,
+          selector,
+        },
+      };
+
+    } catch (error) {
+      console.error('[StagehandService] Verification failed:', error);
+      return {
+        canProceed: false,
+        issues: [`Verification error: ${error instanceof Error ? error.message : 'Unknown error'}`],
+      };
+    }
+  }
+
+  /**
+   * Verify action success after execution
+   */
+  public async verifyActionSuccess(
+    sessionId: string,
+    actionType: 'click' | 'type' | 'navigate',
+    expectedChange: {
+      urlPattern?: string;
+      elementSelector?: string;
+      elementProperty?: { selector: string; property: string; expectedValue: any };
+    }
+  ): Promise<{ success: boolean; changes: string[]; issues: string[] }> {
+    const session = this.sessions.get(sessionId);
+    if (!session) {
+      return { success: false, changes: [], issues: ['Session not found'] };
+    }
+
+    const changes: string[] = [];
+    const issues: string[] = [];
+
+    try {
+      this.updateActivity(session);
+
+      // Verify URL change if expected
+      if (expectedChange.urlPattern) {
+        const currentUrl = session.page.url();
+        const matches = new RegExp(expectedChange.urlPattern).test(currentUrl);
+        if (matches) {
+          changes.push(`URL changed to: ${currentUrl}`);
+        } else {
+          issues.push(`URL did not match expected pattern: ${expectedChange.urlPattern}`);
+        }
+      }
+
+      // Verify element appeared if expected
+      if (expectedChange.elementSelector) {
+        const element = await session.page.$(expectedChange.elementSelector);
+        if (element) {
+          const isVisible = await element.isVisible().catch(() => false);
+          if (isVisible) {
+            changes.push(`Element appeared: ${expectedChange.elementSelector}`);
+          } else {
+            issues.push(`Element exists but not visible: ${expectedChange.elementSelector}`);
+          }
+        } else {
+          issues.push(`Expected element not found: ${expectedChange.elementSelector}`);
+        }
+      }
+
+      // Verify element property if expected
+      if (expectedChange.elementProperty) {
+        const { selector, property, expectedValue } = expectedChange.elementProperty;
+        const element = await session.page.$(selector);
+        if (element) {
+          const actualValue = await element.evaluate(
+            (el, prop) => (el as any)[prop],
+            property
+          );
+          if (actualValue === expectedValue) {
+            changes.push(`Property ${property} updated to: ${actualValue}`);
+          } else {
+            issues.push(`Property ${property} is ${actualValue}, expected ${expectedValue}`);
+          }
+        } else {
+          issues.push(`Element not found for property check: ${selector}`);
+        }
+      }
+
+      return {
+        success: issues.length === 0,
+        changes,
+        issues,
+      };
+
+    } catch (error) {
+      console.error('[StagehandService] Post-action verification failed:', error);
+      return {
+        success: false,
+        changes,
+        issues: [`Verification error: ${error instanceof Error ? error.message : 'Unknown error'}`],
+      };
+    }
+  }
+
+  // ========================================
+  // DOM INSPECTION
+  // ========================================
+
+  /**
+   * Inspect a specific element
+   */
+  public async inspectElement(
+    sessionId: string,
+    selector: string
+  ): Promise<ElementInspectionResult> {
+    const session = this.sessions.get(sessionId);
+    if (!session) {
+      return { success: false, error: 'Session not found' };
+    }
+
+    try {
+      this.updateActivity(session);
+
+      const element = await session.page.$(selector);
+      if (!element) {
+        return { success: false, error: `Element not found: ${selector}` };
+      }
+
+      const [tagName, attributes, text, html, isVisible, boundingBox] = await Promise.all([
+        element.evaluate((el: any) => el.tagName.toLowerCase()),
+        element.evaluate((el: any) => {
+          const attrs: Record<string, string> = {};
+          for (const attr of el.attributes) {
+            attrs[attr.name] = attr.value;
+          }
+          return attrs;
+        }),
+        element.textContent().catch(() => ''),
+        element.innerHTML().catch(() => ''),
+        element.isVisible().catch(() => false),
+        element.boundingBox().catch(() => null),
+      ]);
+
+      const isEnabled = await element.isEnabled().catch(() => true);
+
+      return {
+        success: true,
+        element: {
+          tagName,
+          attributes,
+          text,
+          html,
+          isVisible,
+          isEnabled,
+          boundingBox: boundingBox || undefined,
+        },
+      };
+
+    } catch (error) {
+      console.error('[StagehandService] Element inspection failed:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
+  }
+
+  /**
+   * Get page structure (forms, links, buttons, inputs)
+   */
+  public async getPageStructure(sessionId: string): Promise<PageStructureResult> {
+    const session = this.sessions.get(sessionId);
+    if (!session) {
+      return { success: false, error: 'Session not found' };
+    }
+
+    try {
+      this.updateActivity(session);
+
+      const structure = await session.page.evaluate(() => {
+        // Extract forms
+        const forms = Array.from(document.querySelectorAll('form')).map((form, idx) => ({
+          selector: form.id ? `#${form.id}` : `form:nth-of-type(${idx + 1})`,
+          action: form.action,
+          method: form.method,
+        }));
+
+        // Extract links
+        const links = Array.from(document.querySelectorAll('a[href]'))
+          .slice(0, 50) // Limit to first 50
+          .map((link, idx) => ({
+            text: link.textContent?.trim() || '',
+            href: (link as HTMLAnchorElement).href,
+            selector: link.id ? `#${link.id}` : `a:nth-of-type(${idx + 1})`,
+          }));
+
+        // Extract buttons
+        const buttons = Array.from(document.querySelectorAll('button, input[type="button"], input[type="submit"]'))
+          .slice(0, 50)
+          .map((button, idx) => ({
+            text: button.textContent?.trim() || (button as HTMLInputElement).value || '',
+            selector: button.id ? `#${button.id}` : `button:nth-of-type(${idx + 1})`,
+            type: (button as HTMLButtonElement).type || (button as HTMLInputElement).type,
+          }));
+
+        // Extract inputs
+        const inputs = Array.from(document.querySelectorAll('input, textarea, select'))
+          .slice(0, 50)
+          .map((input, idx) => {
+            const inputEl = input as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
+            return {
+              type: inputEl.tagName.toLowerCase() === 'input' ? (inputEl as HTMLInputElement).type : inputEl.tagName.toLowerCase(),
+              name: inputEl.name,
+              placeholder: 'placeholder' in inputEl ? inputEl.placeholder : undefined,
+              selector: inputEl.id ? `#${inputEl.id}` : inputEl.name ? `[name="${inputEl.name}"]` : `input:nth-of-type(${idx + 1})`,
+            };
+          });
+
+        return { forms, links, buttons, inputs };
+      });
+
+      return { success: true, structure };
+
+    } catch (error) {
+      console.error('[StagehandService] Failed to get page structure:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    }
   }
 }
 

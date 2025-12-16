@@ -118,6 +118,96 @@ export function emitThinking(
 }
 
 /**
+ * Emit progress update event with step count and time estimates
+ */
+export function emitProgress(
+  userId: number,
+  executionId: string,
+  data: {
+    currentStep: number;
+    totalSteps: number;
+    percentComplete: number;
+    elapsedTime: number;
+    estimatedTimeRemaining: number;
+    currentAction: string;
+  }
+) {
+  const event: AgentSSEEvent = {
+    type: 'progress',
+    executionId,
+    data: {
+      currentStep: data.currentStep,
+      totalSteps: data.totalSteps,
+      percentComplete: data.percentComplete,
+      elapsedTime: data.elapsedTime,
+      estimatedTimeRemaining: data.estimatedTimeRemaining,
+      currentAction: data.currentAction,
+      timestamp: new Date().toISOString(),
+    },
+  };
+
+  sendAgentEvent(userId, executionId, event);
+}
+
+/**
+ * Emit structured reasoning event
+ */
+export function emitReasoning(
+  userId: number,
+  executionId: string,
+  data: {
+    step: number;
+    thought: string;
+    evidence: string[];
+    hypothesis: string;
+    decision: string;
+    alternatives: string[];
+    confidence: number;
+  }
+) {
+  const event: AgentSSEEvent = {
+    type: 'reasoning',
+    executionId,
+    data: {
+      step: data.step,
+      thought: data.thought,
+      evidence: data.evidence,
+      hypothesis: data.hypothesis,
+      decision: data.decision,
+      alternatives: data.alternatives,
+      confidence: data.confidence,
+      timestamp: new Date().toISOString(),
+    },
+  };
+
+  sendAgentEvent(userId, executionId, event);
+}
+
+/**
+ * Emit browser session created event with debug URL
+ */
+export function emitBrowserSession(
+  userId: number,
+  executionId: string,
+  data: {
+    sessionId: string;
+    debugUrl?: string;
+  }
+) {
+  const event: AgentSSEEvent = {
+    type: 'browser:session',
+    executionId,
+    data: {
+      sessionId: data.sessionId,
+      debugUrl: data.debugUrl,
+      timestamp: new Date().toISOString(),
+    },
+  };
+
+  sendAgentEvent(userId, executionId, event);
+}
+
+/**
  * Emit tool start event
  */
 export function emitToolStart(
@@ -283,6 +373,18 @@ export class AgentSSEEmitter {
 
   thinking(data: Parameters<typeof emitThinking>[2]) {
     emitThinking(this.userId, this.executionId, data);
+  }
+
+  progress(data: Parameters<typeof emitProgress>[2]) {
+    emitProgress(this.userId, this.executionId, data);
+  }
+
+  reasoning(data: Parameters<typeof emitReasoning>[2]) {
+    emitReasoning(this.userId, this.executionId, data);
+  }
+
+  browserSession(data: Parameters<typeof emitBrowserSession>[2]) {
+    emitBrowserSession(this.userId, this.executionId, data);
   }
 
   toolStart(data: Parameters<typeof emitToolStart>[2]) {

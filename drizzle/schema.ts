@@ -618,3 +618,22 @@ export {
   type SubscriptionUsageRecord,
   type InsertSubscriptionUsageRecord,
 } from "./schema-subscriptions";
+
+// Memory & Learning System
+export {
+  userMemory,
+  executionCheckpoints,
+  taskSuccessPatterns,
+  userFeedback,
+  workflowPatterns,
+  type UserMemory,
+  type InsertUserMemory,
+  type ExecutionCheckpoint,
+  type InsertExecutionCheckpoint,
+  type TaskSuccessPattern,
+  type InsertTaskSuccessPattern,
+  type UserFeedback,
+  type InsertUserFeedback,
+  type WorkflowPattern,
+  type InsertWorkflowPattern,
+} from "./schema-memory";

@@ -28,12 +28,33 @@ import {
   registerBrowserTools,
   getBrowserToolDefinitions,
 } from "./agentBrowserTools";
+import { explainError, emitExplainedError } from "./agentErrorExplainer";
 import { ragService } from "./rag.service";
 import { getToolRegistry, ShellTool, FileTool } from "./tools";
 import {
   getAgentPermissionsService,
   PermissionDeniedError,
 } from "./agentPermissions.service";
+import { getSelfCorrectionService, type FailureAttempt } from "./browser/selfCorrection.service";
+import { getConfidenceService } from "./agentConfidence.service";
+import { getStrategyService, type ExecutionStrategy } from "./agentStrategy.service";
+import { ErrorType, RecoveryStrategy, classifyError } from "../lib/errorTypes";
+import {
+  AgentProgressTracker,
+  createProgressTracker,
+  inferTaskType,
+  estimateStepCount,
+} from "./agentProgressTracker.service";
+
+// Memory & Learning Services
+import {
+  getCheckpointService,
+  getLearningEngine,
+  getPatternReuseService,
+  getUserMemoryService,
+  type CheckpointOptions,
+  type ResumeResult,
+} from "./memory";
 
 // ========================================
 // TYPES & INTERFACES
@@ -46,6 +67,8 @@ export interface AgentPlan {
   goal: string;
   phases: AgentPhase[];
   currentPhaseId: number;
+  estimatedSteps: number;
+  estimatedDuration: number; // in milliseconds
   createdAt: Date;
   updatedAt: Date;
 }
@@ -64,6 +87,19 @@ export interface AgentPhase {
 }
 
 /**
+ * Structured reasoning data for enhanced visibility
+ */
+export interface ReasoningStep {
+  step: number;
+  thought: string;
+  evidence: string[];
+  hypothesis: string;
+  decision: string;
+  alternatives: string[];
+  confidence: number; // 0-1
+}
+
+/**
  * A single thinking step in the agent's reasoning process
  */
 export interface ThinkingStep {
@@ -73,6 +109,7 @@ export interface ThinkingStep {
   nextAction: string;
   reasoning: string;
   toolSelected?: string;
+  structuredReasoning?: ReasoningStep;
 }
 
 /**
@@ -105,6 +142,17 @@ export interface AgentState {
   context: Record<string, unknown>;
   conversationHistory: Anthropic.MessageParam[];
   status: 'initializing' | 'planning' | 'executing' | 'completed' | 'failed' | 'needs_input';
+  // Self-correction tracking
+  failureAttempts: FailureAttempt[];
+  currentStrategy?: ExecutionStrategy;
+  recoveryAttempts: number;
+  // Progress tracking
+  progressTracker?: AgentProgressTracker;
+  // Memory & Learning
+  checkpointId?: string;
+  resumedFromCheckpoint?: ResumeResult;
+  recommendedStrategy?: any;
+  patternMatch?: any;
 }
 
 /**
@@ -196,7 +244,13 @@ export class AgentOrchestratorService {
         successCriteria: string[];
       }>;
       currentPhaseId: number;
+      estimatedSteps?: number;
+      estimatedDuration?: number;
     }) => {
+      // Calculate estimates if not provided
+      const estimatedSteps = params.estimatedSteps || params.phases.reduce((acc, p) => acc + p.successCriteria.length, 0);
+      const estimatedDuration = params.estimatedDuration || (params.phases.length * 60000); // 1 min per phase default
+
       return {
         success: true,
         plan: {
@@ -209,6 +263,8 @@ export class AgentOrchestratorService {
             startedAt: i + 1 === params.currentPhaseId ? new Date() : undefined,
           })),
           currentPhaseId: params.currentPhaseId,
+          estimatedSteps,
+          estimatedDuration,
           createdAt: new Date(),
           updatedAt: new Date(),
         }
@@ -814,7 +870,24 @@ export class AgentOrchestratorService {
 
       // Special handling for certain tools that need state
       let result: unknown;
-      if (toolName === "update_plan") {
+      if (toolName === "browser_create_session") {
+        result = await toolFunction(parameters);
+
+        // Emit browser session event with debug URL
+        if (result && typeof result === 'object' && 'success' in result && result.success && 'sessionId' in result) {
+          const sessionId = (result as any).sessionId;
+          // Import stagehand service to get debug URL
+          const { stagehandService } = await import('./stagehand.service');
+          const debugUrl = await stagehandService.getDebugUrl(sessionId);
+
+          if (emitter && debugUrl) {
+            emitter.browserSession({
+              sessionId,
+              debugUrl,
+            });
+          }
+        }
+      } else if (toolName === "update_plan") {
         result = await toolFunction(parameters);
         if (result && typeof result === 'object' && 'plan' in result) {
           state.plan = (result as any).plan;
@@ -938,6 +1011,158 @@ export class AgentOrchestratorService {
   }
 
   /**
+   * Execute a tool with self-correction and retry logic
+   */
+  private async executeToolWithSelfCorrection(
+    toolName: string,
+    parameters: Record<string, unknown>,
+    state: AgentState,
+    emitter?: AgentSSEEmitter
+  ): Promise<ToolExecutionResult> {
+    const MAX_RECOVERY_ATTEMPTS = 3;
+    const selfCorrection = getSelfCorrectionService();
+    const confidence = getConfidenceService();
+
+    // First attempt
+    let result = await this.executeTool(toolName, parameters, state, emitter);
+
+    if (result.success) {
+      // Record success for learning
+      confidence.recordOutcome(toolName, true);
+      state.recoveryAttempts = 0;
+      state.consecutiveErrors = 0;
+      return result;
+    }
+
+    // Tool failed - initiate self-correction
+    console.log(`[SelfCorrection] Tool ${toolName} failed: ${result.error}`);
+    confidence.recordOutcome(toolName, false);
+
+    // Build failure context
+    const failureAttempt: FailureAttempt = {
+      action: toolName,
+      parameters,
+      error: result.error || 'Unknown error',
+      timestamp: new Date(),
+      strategy: RecoveryStrategy.RETRY_SAME,
+    };
+    state.failureAttempts.push(failureAttempt);
+
+    // Try recovery alternatives
+    for (let attempt = 1; attempt <= MAX_RECOVERY_ATTEMPTS; attempt++) {
+      state.recoveryAttempts = attempt;
+
+      // Analyze failure and get alternatives
+      const analysis = await selfCorrection.analyzeFailure(
+        toolName,
+        result.error || 'Unknown error',
+        {
+          parameters,
+          attemptNumber: attempt,
+          previousAttempts: state.failureAttempts,
+          pageState: {
+            url: state.context.currentUrl as string,
+            title: state.context.pageTitle as string,
+          },
+          taskContext: {
+            taskDescription: state.taskDescription,
+            currentPhase: state.plan?.phases[state.currentPhaseId - 1]?.name,
+          },
+        }
+      );
+
+      console.log(`[SelfCorrection] Analysis: ${analysis.rootCause}`);
+      console.log(`[SelfCorrection] Confidence: ${(analysis.confidence * 100).toFixed(0)}%`);
+      console.log(`[SelfCorrection] Found ${analysis.alternatives.length} alternatives`);
+
+      // Emit self-correction event
+      if (emitter) {
+        emitter.thinking({
+          thought: `Self-correcting after failure. Root cause: ${analysis.rootCause}. Trying ${analysis.alternatives.length} alternatives...`,
+          iteration: state.iterations,
+        });
+      }
+
+      // Should we escalate to user?
+      if (analysis.shouldEscalate || !analysis.shouldRetry) {
+        console.log('[SelfCorrection] Escalating to user');
+        if (emitter) {
+          emitter.thinking({
+            thought: `Unable to recover automatically. ${analysis.ambiguityReasons?.join('. ') || 'All alternatives exhausted.'}`,
+            iteration: state.iterations,
+          });
+        }
+        break;
+      }
+
+      // Try each alternative
+      for (const alternative of analysis.alternatives) {
+        console.log(`[SelfCorrection] Trying alternative: ${alternative.strategy} - ${alternative.description}`);
+
+        if (emitter) {
+          emitter.thinking({
+            thought: `Attempting recovery strategy: ${alternative.description}`,
+            iteration: state.iterations,
+          });
+        }
+
+        // Execute alternative action
+        const altResult = await this.executeTool(
+          alternative.actionType,
+          alternative.parameters,
+          state,
+          emitter
+        );
+
+        // Record attempt
+        const altFailureAttempt: FailureAttempt = {
+          action: alternative.actionType,
+          parameters: alternative.parameters,
+          error: altResult.error || '',
+          timestamp: new Date(),
+          strategy: alternative.strategy,
+        };
+        state.failureAttempts.push(altFailureAttempt);
+
+        if (altResult.success) {
+          console.log(`[SelfCorrection] Recovery successful with strategy: ${alternative.strategy}`);
+
+          // Record successful recovery for learning
+          selfCorrection.recordSuccess(
+            analysis.errorType,
+            toolName,
+            alternative.strategy,
+            alternative.actionType,
+            { parameters: alternative.parameters }
+          );
+
+          if (emitter) {
+            emitter.thinking({
+              thought: `Successfully recovered using ${alternative.strategy}`,
+              iteration: state.iterations,
+            });
+          }
+
+          state.recoveryAttempts = 0;
+          state.consecutiveErrors = 0;
+          return altResult;
+        }
+
+        console.log(`[SelfCorrection] Alternative failed: ${altResult.error}`);
+      }
+
+      // All alternatives failed, continue to next analysis iteration
+    }
+
+    // All recovery attempts exhausted
+    console.log('[SelfCorrection] All recovery attempts exhausted');
+    state.errorCount++;
+    state.consecutiveErrors++;
+
+    return result; // Return original failure
+  }
+
+  /**
    * Run the agent loop for one iteration
    */
   private async runAgentLoop(state: AgentState, emitter?: AgentSSEEmitter): Promise<boolean> {
@@ -1057,7 +1282,11 @@ export class AgentOrchestratorService {
 
       console.log(`[Agent] Executing tool: ${toolName}`, toolParams);
 
-      const toolResult = await this.executeTool(toolName, toolParams, state, emitter);
+      // Use self-correction for browser automation tools
+      const isBrowserTool = toolName.startsWith('browser_') || toolName.startsWith('ghl_');
+      const toolResult = isBrowserTool
+        ? await this.executeToolWithSelfCorrection(toolName, toolParams, state, emitter)
+        : await this.executeTool(toolName, toolParams, state, emitter);
 
       // Record tool execution
       const historyEntry: ToolHistoryEntry = {
@@ -1158,10 +1387,66 @@ export class AgentOrchestratorService {
       context,
       conversationHistory: [],
       status: 'initializing',
+      // Self-correction state
+      failureAttempts: [],
+      recoveryAttempts: 0,
     };
+
+    // ========================================
+    // MEMORY & LEARNING: Pre-execution setup
+    // ========================================
+    const learningEngine = getLearningEngine();
+    const patternReuse = getPatternReuseService();
+    const checkpointService = getCheckpointService();
+    const userMemoryService = getUserMemoryService();
+
+    try {
+      // 1. Get recommended strategy from learning engine
+      const taskType = inferTaskType(taskDescription);
+      const recommendedStrategy = await learningEngine.getRecommendedStrategy({
+        userId,
+        executionId: execution.id,
+        taskType,
+      });
+      state.recommendedStrategy = recommendedStrategy;
+      console.log(`[Memory] Recommended strategy: ${recommendedStrategy.source} (confidence: ${recommendedStrategy.confidence.toFixed(2)})`);
+
+      // 2. Look for reusable patterns
+      const patternMatch = await patternReuse.findBestPattern({
+        userId,
+        taskType,
+        parameters: context,
+      });
+      if (patternMatch) {
+        state.patternMatch = patternMatch;
+        console.log(`[Memory] Found matching pattern: ${patternMatch.source} (similarity: ${patternMatch.similarity.toFixed(2)}, confidence: ${patternMatch.confidence.toFixed(2)})`);
+      }
+
+      // 3. Get cached selectors for GHL
+      if (taskType.includes('ghl')) {
+        const cachedSelectors = await learningEngine.getCachedSelector(userId, 'ghl_nav');
+        if (cachedSelectors) {
+          state.context.cachedSelectors = cachedSelectors;
+          console.log(`[Memory] Loaded cached GHL selectors`);
+        }
+      }
+    } catch (memoryError) {
+      console.warn('[Memory] Pre-execution setup error (continuing):', memoryError);
+    }
 
     // Create SSE emitter for real-time updates
     const emitter = this.createSSEEmitter(userId, execution.id);
+
+    // Initialize progress tracker with intelligent estimates
+    const taskType = inferTaskType(taskDescription);
+    const estimatedSteps = estimateStepCount(taskDescription, taskType);
+    const progressTracker = createProgressTracker(
+      execution.id.toString(),
+      userId,
+      taskType,
+      estimatedSteps
+    );
+    state.progressTracker = progressTracker;
 
     try {
       // SECURITY: Check execution limits before starting
@@ -1178,14 +1463,59 @@ export class AgentOrchestratorService {
         startedAt: new Date(),
       });
 
+      // Start progress tracking
+      progressTracker.startPhase('initialization');
+
+      // ========================================
+      // MEMORY & LEARNING: Create initial checkpoint
+      // ========================================
+      try {
+        state.checkpointId = await checkpointService.createCheckpoint({
+          executionId: execution.id,
+          userId,
+          phaseName: 'initialization',
+          stepIndex: 0,
+          completedSteps: [],
+          partialResults: {},
+          extractedData: {},
+          checkpointReason: 'auto',
+          ttlSeconds: 24 * 60 * 60, // 24 hours
+        });
+        console.log(`[Memory] Created initial checkpoint: ${state.checkpointId}`);
+      } catch (checkpointError) {
+        console.warn('[Memory] Failed to create initial checkpoint:', checkpointError);
+      }
+
       // Update status to executing
       state.status = 'executing';
       await this.updateExecutionRecord(state);
 
       // Run agent loop
       let continueLoop = true;
+      const loopStartTime = Date.now();
+
       while (continueLoop && state.iterations < maxIterations) {
+        // Get current action for progress tracking
+        let currentAction = 'Processing...';
+        let currentPhase = 'execution';
+        if (state.plan?.phases[state.currentPhaseId - 1]) {
+          currentPhase = state.plan.phases[state.currentPhaseId - 1].name;
+          currentAction = currentPhase;
+        }
+
+        // Update progress tracker with current step
+        progressTracker.stepStarted(currentAction, currentPhase);
+
+        // Run the agent loop iteration
         continueLoop = await this.runAgentLoop(state, emitter);
+
+        // Mark step completed for accurate ETA calculation
+        progressTracker.stepCompleted();
+
+        // Update total steps estimate if we have a plan
+        if (state.plan?.estimatedSteps) {
+          progressTracker.updateTotalSteps(state.plan.estimatedSteps);
+        }
 
         // Periodic state save
         if (state.iterations % 5 === 0) {
@@ -1196,11 +1526,34 @@ export class AgentOrchestratorService {
       // Check completion status
       if (state.iterations >= maxIterations && state.status === 'executing') {
         state.status = 'failed';
+        progressTracker.complete(false);
         await this.updateExecutionRecord(state, "Max iterations reached");
+
+        // Create error checkpoint
+        try {
+          await checkpointService.createCheckpoint({
+            executionId: execution.id,
+            userId,
+            phaseName: state.plan?.phases[state.currentPhaseId - 1]?.name || 'unknown',
+            stepIndex: state.iterations,
+            completedSteps: state.toolHistory.filter(t => t.success).map(t => t.toolName),
+            partialResults: state.context as Record<string, any>,
+            errorInfo: {
+              error: 'MAX_ITERATIONS',
+              message: 'Maximum iterations reached',
+              timestamp: new Date(),
+              retryable: true,
+            },
+            checkpointReason: 'error',
+          });
+        } catch (e) {
+          console.warn('[Memory] Failed to create error checkpoint:', e);
+        }
       } else if (state.status === 'executing') {
         // Didn't explicitly complete - check if plan is done
         if (state.plan && state.plan.phases.every(p => p.status === 'completed')) {
           state.status = 'completed';
+          progressTracker.complete(true);
         }
       }
 
@@ -1208,6 +1561,10 @@ export class AgentOrchestratorService {
       await this.updateExecutionRecord(state);
 
       const duration = Date.now() - startTime;
+
+      // Get progress statistics for logging
+      const progressStats = progressTracker.getStats();
+      console.log(`[Agent] Execution completed. Duration: ${progressStats.totalDuration}ms, Steps: ${progressStats.stepCount}, Avg step: ${progressStats.avgStepDuration.toFixed(0)}ms`);
 
       // Determine final result status
       // Note: state.status type is narrowed by TypeScript control flow analysis
@@ -1217,22 +1574,91 @@ export class AgentOrchestratorService {
 
       if (currentStatus === 'completed') {
         resultStatus = 'completed';
+        progressTracker.complete(true);
         // Emit completion event
         emitter.executionComplete({
           result: state.context,
           duration,
+          tokensUsed: progressStats.stepCount, // Approximate token usage
         });
+
+        // ========================================
+        // MEMORY & LEARNING: Record success feedback
+        // ========================================
+        try {
+          const taskType = inferTaskType(taskDescription);
+
+          // Record task history and feedback
+          await learningEngine.processFeedback({
+            userId,
+            executionId: execution.id,
+            taskType,
+            success: true,
+            approach: state.recommendedStrategy?.approach || 'standard',
+            executionTime: duration,
+          });
+
+          // Update pattern usage if we used one
+          if (state.patternMatch?.pattern?.patternId) {
+            await patternReuse.recordPatternUsage(
+              state.patternMatch.pattern.patternId,
+              true,
+              duration
+            );
+          }
+
+          // Invalidate checkpoint (execution complete)
+          if (state.checkpointId) {
+            await checkpointService.invalidateCheckpoint(state.checkpointId);
+          }
+
+          console.log(`[Memory] Recorded successful execution feedback for user ${userId}`);
+        } catch (feedbackError) {
+          console.warn('[Memory] Failed to record feedback:', feedbackError);
+        }
       } else if (currentStatus === 'needs_input') {
         resultStatus = 'needs_input';
       } else if (currentStatus === 'failed') {
         resultStatus = 'failed';
+        progressTracker.complete(false);
         // Emit error event
         emitter.executionError({
           error: state.errorCount > 0 ? 'Execution failed after multiple errors' : 'Execution failed',
         });
+
+        // ========================================
+        // MEMORY & LEARNING: Record failure feedback
+        // ========================================
+        try {
+          const taskType = inferTaskType(taskDescription);
+
+          // Record task history and feedback
+          await learningEngine.processFeedback({
+            userId,
+            executionId: execution.id,
+            taskType,
+            success: false,
+            approach: state.recommendedStrategy?.approach || 'standard',
+            executionTime: duration,
+          });
+
+          // Update pattern usage if we used one (mark as failed)
+          if (state.patternMatch?.pattern?.patternId) {
+            await patternReuse.recordPatternUsage(
+              state.patternMatch.pattern.patternId,
+              false,
+              duration
+            );
+          }
+
+          console.log(`[Memory] Recorded failed execution feedback for user ${userId}`);
+        } catch (feedbackError) {
+          console.warn('[Memory] Failed to record failure feedback:', feedbackError);
+        }
       } else {
         // All other statuses (initializing, planning, executing) are treated as max_iterations
         resultStatus = 'max_iterations';
+        progressTracker.complete(false);
         // Emit error event
         emitter.executionError({
           error: 'Maximum iterations reached',
@@ -1253,11 +1679,12 @@ export class AgentOrchestratorService {
     } catch (error) {
       console.error("[Agent Execution] Fatal error:", error);
 
-      // Emit error event
-      emitter.executionError({
-        error: error instanceof Error ? error.message : "Unknown error",
-        stack: error instanceof Error ? error.stack : undefined,
-      });
+      // Mark progress tracker as failed
+      progressTracker.complete(false);
+
+      // Emit enhanced error event with explanation
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      emitExplainedError(userId, execution.id.toString(), errorMessage);
 
       await db.update(taskExecutions)
         .set({

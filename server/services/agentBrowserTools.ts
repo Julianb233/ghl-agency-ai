@@ -236,6 +236,191 @@ export const browserTools = {
   },
 
   // ========================================
+  // MULTI-TAB SUPPORT
+  // ========================================
+
+  /**
+   * Open a new tab in the browser session
+   */
+  browser_open_tab: async (params: {
+    sessionId: string;
+    url?: string;
+    background?: boolean;
+  }): Promise<{
+    success: boolean;
+    tabId?: string;
+    error?: string;
+  }> => {
+    return stagehandService.openTab(params.sessionId, params.url, params.background);
+  },
+
+  /**
+   * Switch to a specific tab
+   */
+  browser_switch_tab: async (params: {
+    sessionId: string;
+    tabId: string;
+  }): Promise<{
+    success: boolean;
+    error?: string;
+  }> => {
+    return stagehandService.switchTab(params.sessionId, params.tabId);
+  },
+
+  /**
+   * Close a specific tab
+   */
+  browser_close_tab: async (params: {
+    sessionId: string;
+    tabId: string;
+  }): Promise<{
+    success: boolean;
+    error?: string;
+  }> => {
+    return stagehandService.closeTab(params.sessionId, params.tabId);
+  },
+
+  /**
+   * List all open tabs
+   */
+  browser_list_tabs: async (params: {
+    sessionId: string;
+  }): Promise<{
+    success: boolean;
+    tabs?: Array<{ id: string; title: string; url: string; isActive: boolean }>;
+    error?: string;
+  }> => {
+    return stagehandService.listTabs(params.sessionId);
+  },
+
+  // ========================================
+  // FILE UPLOAD/DOWNLOAD
+  // ========================================
+
+  /**
+   * Upload a file to a file input element
+   */
+  browser_upload_file: async (params: {
+    sessionId: string;
+    selector: string;
+    filePath: string;
+  }): Promise<{
+    success: boolean;
+    filename?: string;
+    error?: string;
+  }> => {
+    return stagehandService.uploadFile(params.sessionId, params.selector, params.filePath);
+  },
+
+  /**
+   * Get list of downloaded files
+   */
+  browser_get_downloads: async (params: {
+    sessionId: string;
+  }): Promise<{
+    success: boolean;
+    downloads?: Array<{ filename: string; path: string; timestamp: Date; size?: number }>;
+    error?: string;
+  }> => {
+    return stagehandService.getDownloads(params.sessionId);
+  },
+
+  // ========================================
+  // ACTION VERIFICATION
+  // ========================================
+
+  /**
+   * Verify action preconditions before executing
+   */
+  browser_verify_action: async (params: {
+    sessionId: string;
+    selector: string;
+    actionType: 'click' | 'type' | 'navigate';
+  }): Promise<{
+    canProceed: boolean;
+    issues: string[];
+    elementInfo?: {
+      exists: boolean;
+      visible: boolean;
+      enabled: boolean;
+      selector: string;
+    };
+  }> => {
+    return stagehandService.verifyActionPreconditions(
+      params.sessionId,
+      params.selector,
+      params.actionType
+    );
+  },
+
+  /**
+   * Verify action success after execution
+   */
+  browser_verify_success: async (params: {
+    sessionId: string;
+    actionType: 'click' | 'type' | 'navigate';
+    expectedChange: {
+      urlPattern?: string;
+      elementSelector?: string;
+      elementProperty?: { selector: string; property: string; expectedValue: any };
+    };
+  }): Promise<{
+    success: boolean;
+    changes: string[];
+    issues: string[];
+  }> => {
+    return stagehandService.verifyActionSuccess(
+      params.sessionId,
+      params.actionType,
+      params.expectedChange
+    );
+  },
+
+  // ========================================
+  // DOM INSPECTION
+  // ========================================
+
+  /**
+   * Inspect a specific element
+   */
+  browser_inspect_element: async (params: {
+    sessionId: string;
+    selector: string;
+  }): Promise<{
+    success: boolean;
+    element?: {
+      tagName: string;
+      attributes: Record<string, string>;
+      text: string;
+      html: string;
+      isVisible: boolean;
+      isEnabled: boolean;
+      boundingBox?: { x: number; y: number; width: number; height: number };
+    };
+    error?: string;
+  }> => {
+    return stagehandService.inspectElement(params.sessionId, params.selector);
+  },
+
+  /**
+   * Get page structure (forms, links, buttons, inputs)
+   */
+  browser_get_page_structure: async (params: {
+    sessionId: string;
+  }): Promise<{
+    success: boolean;
+    structure?: {
+      forms: Array<{ selector: string; action?: string; method?: string }>;
+      links: Array<{ text: string; href: string; selector: string }>;
+      buttons: Array<{ text: string; selector: string; type?: string }>;
+      inputs: Array<{ type: string; name?: string; placeholder?: string; selector: string }>;
+    };
+    error?: string;
+  }> => {
+    return stagehandService.getPageStructure(params.sessionId);
+  },
+
+  // ========================================
   // GHL-SPECIFIC TOOLS
   // ========================================
 
@@ -491,6 +676,216 @@ export const browserToolDefinitions: Anthropic.Tool[] = [
   {
     name: 'browser_get_debug_url',
     description: 'Get the live view URL for the browser session. Use this to see what the browser is doing in real-time.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        sessionId: {
+          type: 'string',
+          description: 'The browser session ID',
+        },
+      },
+      required: ['sessionId'],
+    },
+  },
+  // Multi-tab support
+  {
+    name: 'browser_open_tab',
+    description: 'Open a new tab in the browser session. Optionally navigate to a URL and choose whether to open in background.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        sessionId: {
+          type: 'string',
+          description: 'The browser session ID',
+        },
+        url: {
+          type: 'string',
+          description: 'Optional URL to navigate to in the new tab',
+        },
+        background: {
+          type: 'boolean',
+          description: 'Whether to open the tab in the background (default: false)',
+        },
+      },
+      required: ['sessionId'],
+    },
+  },
+  {
+    name: 'browser_switch_tab',
+    description: 'Switch to a specific tab by its tab ID.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        sessionId: {
+          type: 'string',
+          description: 'The browser session ID',
+        },
+        tabId: {
+          type: 'string',
+          description: 'The ID of the tab to switch to',
+        },
+      },
+      required: ['sessionId', 'tabId'],
+    },
+  },
+  {
+    name: 'browser_close_tab',
+    description: 'Close a specific tab by its tab ID. Cannot close the last remaining tab.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        sessionId: {
+          type: 'string',
+          description: 'The browser session ID',
+        },
+        tabId: {
+          type: 'string',
+          description: 'The ID of the tab to close',
+        },
+      },
+      required: ['sessionId', 'tabId'],
+    },
+  },
+  {
+    name: 'browser_list_tabs',
+    description: 'List all open tabs in the browser session with their titles, URLs, and active status.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        sessionId: {
+          type: 'string',
+          description: 'The browser session ID',
+        },
+      },
+      required: ['sessionId'],
+    },
+  },
+  // File upload/download
+  {
+    name: 'browser_upload_file',
+    description: 'Upload a file to a file input element on the page.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        sessionId: {
+          type: 'string',
+          description: 'The browser session ID',
+        },
+        selector: {
+          type: 'string',
+          description: 'CSS selector for the file input element',
+        },
+        filePath: {
+          type: 'string',
+          description: 'Absolute path to the file to upload',
+        },
+      },
+      required: ['sessionId', 'selector', 'filePath'],
+    },
+  },
+  {
+    name: 'browser_get_downloads',
+    description: 'Get the list of files downloaded during this browser session.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        sessionId: {
+          type: 'string',
+          description: 'The browser session ID',
+        },
+      },
+      required: ['sessionId'],
+    },
+  },
+  // Action verification
+  {
+    name: 'browser_verify_action',
+    description: 'Verify that an action can be performed on an element before attempting it. Checks if element exists, is visible, and is enabled.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        sessionId: {
+          type: 'string',
+          description: 'The browser session ID',
+        },
+        selector: {
+          type: 'string',
+          description: 'CSS selector for the element to verify',
+        },
+        actionType: {
+          type: 'string',
+          description: 'Type of action to verify',
+          enum: ['click', 'type', 'navigate'],
+        },
+      },
+      required: ['sessionId', 'selector', 'actionType'],
+    },
+  },
+  {
+    name: 'browser_verify_success',
+    description: 'Verify that an action was successful by checking for expected changes (URL change, element appearance, property update).',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        sessionId: {
+          type: 'string',
+          description: 'The browser session ID',
+        },
+        actionType: {
+          type: 'string',
+          description: 'Type of action that was performed',
+          enum: ['click', 'type', 'navigate'],
+        },
+        expectedChange: {
+          type: 'object',
+          description: 'Expected changes to verify',
+          properties: {
+            urlPattern: {
+              type: 'string',
+              description: 'Regex pattern for expected URL change',
+            },
+            elementSelector: {
+              type: 'string',
+              description: 'Selector for element that should appear',
+            },
+            elementProperty: {
+              type: 'object',
+              description: 'Element property that should change',
+              properties: {
+                selector: { type: 'string' },
+                property: { type: 'string' },
+                expectedValue: {},
+              },
+              required: ['selector', 'property', 'expectedValue'],
+            },
+          },
+        },
+      },
+      required: ['sessionId', 'actionType', 'expectedChange'],
+    },
+  },
+  // DOM inspection
+  {
+    name: 'browser_inspect_element',
+    description: 'Inspect a specific element to get detailed information about it (tag, attributes, text, visibility, bounding box).',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        sessionId: {
+          type: 'string',
+          description: 'The browser session ID',
+        },
+        selector: {
+          type: 'string',
+          description: 'CSS selector for the element to inspect',
+        },
+      },
+      required: ['sessionId', 'selector'],
+    },
+  },
+  {
+    name: 'browser_get_page_structure',
+    description: 'Get the overall structure of the page including all forms, links, buttons, and input fields.',
     input_schema: {
       type: 'object' as const,
       properties: {

@@ -22,11 +22,14 @@ export type AgentSSEEventType =
   | 'plan:created'
   | 'phase:start'
   | 'thinking'
+  | 'progress'
+  | 'reasoning'
   | 'tool:start'
   | 'tool:complete'
   | 'phase:complete'
   | 'execution:complete'
-  | 'execution:error';
+  | 'execution:error'
+  | 'browser:session';
 
 export interface AgentSSEEvent {
   type: AgentSSEEventType;

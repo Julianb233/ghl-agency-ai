@@ -2427,4 +2427,376 @@ export const browserRouter = router({
         });
       }
     }),
+
+  // ========================================
+  // MULTI-TAB MANAGEMENT
+  // ========================================
+
+  /**
+   * Open a new tab in the browser session
+   */
+  openTab: protectedProcedure
+    .input(z.object({
+      sessionId: z.string().min(1),
+      url: z.string().url().optional(),
+      background: z.boolean().default(false),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const { stagehandService } = await import('../../services/stagehand.service');
+
+      try {
+        const result = await stagehandService.openTab(input.sessionId, input.url, input.background);
+
+        if (!result.success) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: result.error || "Failed to open tab",
+          });
+        }
+
+        return {
+          success: true,
+          tabId: result.tabId,
+          url: input.url,
+          timestamp: new Date(),
+        };
+      } catch (error) {
+        console.error("[Browser] Failed to open tab:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to open tab: ${error instanceof Error ? error.message : "Unknown error"}`,
+        });
+      }
+    }),
+
+  /**
+   * Switch to a specific tab
+   */
+  switchTab: protectedProcedure
+    .input(z.object({
+      sessionId: z.string().min(1),
+      tabId: z.string().min(1),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const { stagehandService } = await import('../../services/stagehand.service');
+
+      try {
+        const result = await stagehandService.switchTab(input.sessionId, input.tabId);
+
+        if (!result.success) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: result.error || "Failed to switch tab",
+          });
+        }
+
+        return {
+          success: true,
+          tabId: input.tabId,
+          timestamp: new Date(),
+        };
+      } catch (error) {
+        console.error("[Browser] Failed to switch tab:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to switch tab: ${error instanceof Error ? error.message : "Unknown error"}`,
+        });
+      }
+    }),
+
+  /**
+   * Close a specific tab
+   */
+  closeTab: protectedProcedure
+    .input(z.object({
+      sessionId: z.string().min(1),
+      tabId: z.string().min(1),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const { stagehandService } = await import('../../services/stagehand.service');
+
+      try {
+        const result = await stagehandService.closeTab(input.sessionId, input.tabId);
+
+        if (!result.success) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: result.error || "Failed to close tab",
+          });
+        }
+
+        return {
+          success: true,
+          tabId: input.tabId,
+          timestamp: new Date(),
+        };
+      } catch (error) {
+        console.error("[Browser] Failed to close tab:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to close tab: ${error instanceof Error ? error.message : "Unknown error"}`,
+        });
+      }
+    }),
+
+  /**
+   * List all tabs in a session
+   */
+  listTabsInSession: protectedProcedure
+    .input(z.object({
+      sessionId: z.string().min(1),
+    }))
+    .query(async ({ input, ctx }) => {
+      const { stagehandService } = await import('../../services/stagehand.service');
+
+      try {
+        const result = await stagehandService.listTabs(input.sessionId);
+
+        if (!result.success) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: result.error || "Failed to list tabs",
+          });
+        }
+
+        return {
+          success: true,
+          tabs: result.tabs || [],
+          totalTabs: result.tabs?.length || 0,
+          timestamp: new Date(),
+        };
+      } catch (error) {
+        console.error("[Browser] Failed to list tabs:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to list tabs: ${error instanceof Error ? error.message : "Unknown error"}`,
+        });
+      }
+    }),
+
+  // ========================================
+  // FILE UPLOAD/DOWNLOAD
+  // ========================================
+
+  /**
+   * Upload a file to a file input element
+   */
+  uploadFile: protectedProcedure
+    .input(z.object({
+      sessionId: z.string().min(1),
+      selector: z.string().min(1),
+      filePath: z.string().min(1),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const { stagehandService } = await import('../../services/stagehand.service');
+
+      try {
+        const result = await stagehandService.uploadFile(input.sessionId, input.selector, input.filePath);
+
+        if (!result.success) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: result.error || "Failed to upload file",
+          });
+        }
+
+        return {
+          success: true,
+          filename: result.filename,
+          selector: input.selector,
+          timestamp: new Date(),
+        };
+      } catch (error) {
+        console.error("[Browser] Failed to upload file:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to upload file: ${error instanceof Error ? error.message : "Unknown error"}`,
+        });
+      }
+    }),
+
+  /**
+   * Get list of downloads for a session
+   */
+  getDownloads: protectedProcedure
+    .input(z.object({
+      sessionId: z.string().min(1),
+    }))
+    .query(async ({ input, ctx }) => {
+      const { stagehandService } = await import('../../services/stagehand.service');
+
+      try {
+        const result = await stagehandService.getDownloads(input.sessionId);
+
+        if (!result.success) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: result.error || "Failed to get downloads",
+          });
+        }
+
+        return {
+          success: true,
+          downloads: result.downloads || [],
+          totalDownloads: result.downloads?.length || 0,
+          timestamp: new Date(),
+        };
+      } catch (error) {
+        console.error("[Browser] Failed to get downloads:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to get downloads: ${error instanceof Error ? error.message : "Unknown error"}`,
+        });
+      }
+    }),
+
+  // ========================================
+  // ACTION VERIFICATION
+  // ========================================
+
+  /**
+   * Verify action preconditions
+   */
+  verifyAction: protectedProcedure
+    .input(z.object({
+      sessionId: z.string().min(1),
+      selector: z.string().min(1),
+      actionType: z.enum(['click', 'type', 'navigate']),
+    }))
+    .query(async ({ input, ctx }) => {
+      const { stagehandService } = await import('../../services/stagehand.service');
+
+      try {
+        const result = await stagehandService.verifyActionPreconditions(
+          input.sessionId,
+          input.selector,
+          input.actionType
+        );
+
+        return {
+          ...result,
+          timestamp: new Date(),
+        };
+      } catch (error) {
+        console.error("[Browser] Failed to verify action:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to verify action: ${error instanceof Error ? error.message : "Unknown error"}`,
+        });
+      }
+    }),
+
+  /**
+   * Verify action success
+   */
+  verifySuccess: protectedProcedure
+    .input(z.object({
+      sessionId: z.string().min(1),
+      actionType: z.enum(['click', 'type', 'navigate']),
+      expectedChange: z.object({
+        urlPattern: z.string().optional(),
+        elementSelector: z.string().optional(),
+        elementProperty: z.object({
+          selector: z.string(),
+          property: z.string(),
+          expectedValue: z.any(),
+        }).optional(),
+      }),
+    }))
+    .query(async ({ input, ctx }) => {
+      const { stagehandService } = await import('../../services/stagehand.service');
+
+      try {
+        const result = await stagehandService.verifyActionSuccess(
+          input.sessionId,
+          input.actionType,
+          input.expectedChange
+        );
+
+        return {
+          ...result,
+          timestamp: new Date(),
+        };
+      } catch (error) {
+        console.error("[Browser] Failed to verify success:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to verify success: ${error instanceof Error ? error.message : "Unknown error"}`,
+        });
+      }
+    }),
+
+  // ========================================
+  // DOM INSPECTION
+  // ========================================
+
+  /**
+   * Inspect a specific element
+   */
+  inspectElement: protectedProcedure
+    .input(z.object({
+      sessionId: z.string().min(1),
+      selector: z.string().min(1),
+    }))
+    .query(async ({ input, ctx }) => {
+      const { stagehandService } = await import('../../services/stagehand.service');
+
+      try {
+        const result = await stagehandService.inspectElement(input.sessionId, input.selector);
+
+        if (!result.success) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: result.error || "Failed to inspect element",
+          });
+        }
+
+        return {
+          success: true,
+          element: result.element,
+          selector: input.selector,
+          timestamp: new Date(),
+        };
+      } catch (error) {
+        console.error("[Browser] Failed to inspect element:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to inspect element: ${error instanceof Error ? error.message : "Unknown error"}`,
+        });
+      }
+    }),
+
+  /**
+   * Get page structure
+   */
+  getPageStructure: protectedProcedure
+    .input(z.object({
+      sessionId: z.string().min(1),
+    }))
+    .query(async ({ input, ctx }) => {
+      const { stagehandService } = await import('../../services/stagehand.service');
+
+      try {
+        const result = await stagehandService.getPageStructure(input.sessionId);
+
+        if (!result.success) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: result.error || "Failed to get page structure",
+          });
+        }
+
+        return {
+          success: true,
+          structure: result.structure,
+          timestamp: new Date(),
+        };
+      } catch (error) {
+        console.error("[Browser] Failed to get page structure:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to get page structure: ${error instanceof Error ? error.message : "Unknown error"}`,
+        });
+      }
+    }),
 });

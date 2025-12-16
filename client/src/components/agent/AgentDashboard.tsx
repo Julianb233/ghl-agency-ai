@@ -30,6 +30,8 @@ import {
   UpgradeModal,
   ExecutionPacksModal,
 } from '@/components/subscription';
+import { BrowserLiveView } from './BrowserLiveView';
+import { ReasoningChain } from './ReasoningChain';
 import {
   Bot,
   Play,
@@ -274,7 +276,16 @@ export function AgentDashboard() {
   const [recentExecutions, setRecentExecutions] = useState<RecentExecution[]>([]);
 
   // Agent store state
-  const { currentExecution, isExecuting, logs, connectedAgents, setStatus } = useAgentStore();
+  const {
+    currentExecution,
+    isExecuting,
+    logs,
+    connectedAgents,
+    setStatus,
+    activeBrowserSession,
+    progress,
+    reasoningSteps,
+  } = useAgentStore();
   const status = currentExecution?.status || (isExecuting ? 'executing' : 'idle');
   const currentTask = currentExecution?.taskDescription;
 
@@ -533,7 +544,7 @@ export function AgentDashboard() {
 
         {/* Main Content Grid */}
         <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
-          {/* Left Column - Task Control & Executions */}
+          {/* Left Column - Task Control, Executions & Browser Live View */}
           <div className="lg:col-span-2 space-y-6">
             {/* Task Input Card */}
             <Card>
@@ -620,8 +631,26 @@ export function AgentDashboard() {
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-purple-800 mb-3">{currentTask}</p>
-                    <StatusBadge status={status} />
-                    <Progress value={45} className="mt-3" />
+                    <div className="flex items-center justify-between mb-2">
+                      <StatusBadge status={status} />
+                      {progress && (
+                        <span className="text-xs text-purple-600 font-medium">
+                          {progress.currentStep} / {progress.totalSteps} steps
+                        </span>
+                      )}
+                    </div>
+                    <Progress
+                      value={progress?.percentComplete || 0}
+                      className="mt-3"
+                    />
+                    {progress && (
+                      <div className="flex items-center justify-between mt-2 text-xs text-purple-600">
+                        <span>{progress.currentAction}</span>
+                        <span>
+                          {Math.round(progress.estimatedTimeRemaining / 1000)}s remaining
+                        </span>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               )}
@@ -665,6 +694,20 @@ export function AgentDashboard() {
                 </ScrollArea>
               </CardContent>
             </Card>
+
+            {/* Browser Live View */}
+            {activeBrowserSession && (
+              <BrowserLiveView
+                debugUrl={activeBrowserSession.debugUrl}
+                sessionId={activeBrowserSession.sessionId}
+                isActive={isExecuting}
+              />
+            )}
+
+            {/* Reasoning Chain */}
+            {reasoningSteps.length > 0 && (
+              <ReasoningChain steps={reasoningSteps} />
+            )}
           </div>
 
           {/* Right Column - Logs, Subscription & Controls */}

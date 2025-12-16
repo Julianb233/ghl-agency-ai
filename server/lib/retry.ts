@@ -1,7 +1,14 @@
 /**
  * Retry Utility
- * Implements exponential backoff retry logic for transient failures
+ * Implements exponential backoff retry logic with context-aware error recovery
  */
+
+import {
+  ErrorType,
+  classifyError,
+  getErrorMetadata,
+  isErrorRetryable,
+} from './errorTypes';
 
 export interface RetryOptions {
   maxAttempts: number;
@@ -10,6 +17,10 @@ export interface RetryOptions {
   backoffMultiplier: number;
   retryableErrors?: string[];
   onRetry?: (error: Error, attempt: number, nextDelayMs: number) => void;
+  // Context-aware options
+  errorContext?: Record<string, unknown>;
+  useIntelligentRetry?: boolean;
+  onErrorClassified?: (errorType: ErrorType, attempt: number) => void;
 }
 
 export const DEFAULT_RETRY_OPTIONS: RetryOptions = {
@@ -20,11 +31,15 @@ export const DEFAULT_RETRY_OPTIONS: RetryOptions = {
 };
 
 /**
- * Check if an error is retryable
+ * Check if an error is retryable (enhanced with intelligent classification)
  * Network errors, timeouts, 5xx responses are retryable
  * NOT: 4xx client errors, validation errors
  */
-export function isRetryableError(error: Error, retryableErrors?: string[]): boolean {
+export function isRetryableError(
+  error: Error,
+  retryableErrors?: string[],
+  useIntelligentRetry: boolean = false
+): boolean {
   const errorMessage = error.message.toLowerCase();
 
   // Custom retryable error patterns
@@ -34,6 +49,13 @@ export function isRetryableError(error: Error, retryableErrors?: string[]): bool
     );
   }
 
+  // Use intelligent classification if enabled
+  if (useIntelligentRetry) {
+    const errorType = classifyError(error);
+    return isErrorRetryable(errorType);
+  }
+
+  // Legacy pattern matching (kept for backwards compatibility)
   // Network errors
   const networkErrors = [
     'network',
@@ -87,15 +109,24 @@ export function isRetryableError(error: Error, retryableErrors?: string[]): bool
 
 /**
  * Calculate delay with exponential backoff and jitter
+ * Enhanced with error-type-specific backoff multipliers
  */
 function calculateDelay(
   attempt: number,
   initialDelayMs: number,
   maxDelayMs: number,
-  backoffMultiplier: number
+  backoffMultiplier: number,
+  errorType?: ErrorType
 ): number {
+  // Use error-specific backoff multiplier if available
+  let effectiveMultiplier = backoffMultiplier;
+  if (errorType) {
+    const metadata = getErrorMetadata(errorType);
+    effectiveMultiplier = metadata.backoffMultiplier;
+  }
+
   // Exponential backoff: initialDelay * (multiplier ^ attempt)
-  const exponentialDelay = initialDelayMs * Math.pow(backoffMultiplier, attempt - 1);
+  const exponentialDelay = initialDelayMs * Math.pow(effectiveMultiplier, attempt - 1);
 
   // Cap at max delay
   const cappedDelay = Math.min(exponentialDelay, maxDelayMs);
@@ -149,6 +180,7 @@ export async function withRetry<T>(
 
   const errors: Error[] = [];
   let lastError: Error | null = null;
+  let lastErrorType: ErrorType | undefined;
 
   for (let attempt = 1; attempt <= config.maxAttempts; attempt++) {
     try {
@@ -166,17 +198,47 @@ export async function withRetry<T>(
       lastError = err;
       errors.push(err);
 
+      // Classify error if intelligent retry is enabled
+      let errorType: ErrorType | undefined;
+      if (config.useIntelligentRetry) {
+        errorType = classifyError(err, config.errorContext);
+        lastErrorType = errorType;
+
+        // Notify about error classification
+        if (config.onErrorClassified) {
+          config.onErrorClassified(errorType, attempt);
+        }
+
+        // Get error-specific max retries
+        const metadata = getErrorMetadata(errorType);
+        if (attempt > metadata.maxRetries && metadata.maxRetries > 0) {
+          console.warn(
+            `[Retry] Error type ${errorType} max retries (${metadata.maxRetries}) exceeded`
+          );
+          throw err;
+        }
+      }
+
       // Check if error is retryable
-      const shouldRetry = isRetryableError(err, config.retryableErrors);
+      const shouldRetry = isRetryableError(
+        err,
+        config.retryableErrors,
+        config.useIntelligentRetry
+      );
 
       if (!shouldRetry) {
-        console.warn(`[Retry] Non-retryable error on attempt ${attempt}/${config.maxAttempts}:`, err.message);
+        const errorTypeMsg = errorType ? ` (${errorType})` : '';
+        console.warn(
+          `[Retry] Non-retryable error${errorTypeMsg} on attempt ${attempt}/${config.maxAttempts}:`,
+          err.message
+        );
         throw err;
       }
 
       // Don't retry if this was the last attempt
       if (attempt >= config.maxAttempts) {
-        console.error(`[Retry] All ${config.maxAttempts} attempts failed`);
+        const errorTypeMsg = errorType ? ` (${errorType})` : '';
+        console.error(`[Retry] All ${config.maxAttempts} attempts failed${errorTypeMsg}`);
         break;
       }
 
@@ -185,11 +247,13 @@ export async function withRetry<T>(
         attempt,
         config.initialDelayMs,
         config.maxDelayMs,
-        config.backoffMultiplier
+        config.backoffMultiplier,
+        errorType
       );
 
+      const errorTypeMsg = errorType ? ` [${errorType}]` : '';
       console.warn(
-        `[Retry] Attempt ${attempt}/${config.maxAttempts} failed: ${err.message}. ` +
+        `[Retry]${errorTypeMsg} Attempt ${attempt}/${config.maxAttempts} failed: ${err.message}. ` +
         `Retrying in ${delayMs}ms...`
       );
 
@@ -204,13 +268,15 @@ export async function withRetry<T>(
   }
 
   // All retries exhausted - throw error with all attempts
+  const errorTypeMsg = lastErrorType ? ` (${lastErrorType})` : '';
   const errorMessage = errors.length > 0
-    ? `Failed after ${config.maxAttempts} attempts. Errors: ${errors.map((e, i) => `\n  Attempt ${i + 1}: ${e.message}`).join('')}`
-    : `Failed after ${config.maxAttempts} attempts`;
+    ? `Failed after ${config.maxAttempts} attempts${errorTypeMsg}. Errors: ${errors.map((e, i) => `\n  Attempt ${i + 1}: ${e.message}`).join('')}`
+    : `Failed after ${config.maxAttempts} attempts${errorTypeMsg}`;
 
   const finalError = new Error(errorMessage);
   (finalError as any).attempts = errors;
   (finalError as any).lastError = lastError;
+  (finalError as any).errorType = lastErrorType;
 
   throw finalError;
 }
