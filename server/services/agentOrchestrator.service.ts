@@ -46,6 +46,9 @@ import {
   estimateStepCount,
 } from "./agentProgressTracker.service";
 
+// Cost Tracking
+import { getCostTrackingService } from "./costTracking.service";
+
 // Memory & Learning Services
 import {
   getCheckpointService,
@@ -899,7 +902,12 @@ export class AgentOrchestratorService {
       // Special handling for certain tools that need state
       let result: unknown;
       if (toolName === "browser_create_session") {
-        result = await toolFunction(parameters);
+        // Pass userId and executionId for cost tracking
+        result = await toolFunction({
+          ...parameters,
+          userId: state.userId,
+          executionId: state.executionId,
+        });
 
         // Emit browser session event with debug URL
         if (result && typeof result === 'object' && 'success' in result && result.success && 'sessionId' in result) {
@@ -1296,6 +1304,7 @@ export class AgentOrchestratorService {
         ragContext,
       });
 
+      const apiCallStartTime = Date.now();
       const response = await this.claude.messages.create({
         model: CLAUDE_MODEL,
         max_tokens: MAX_TOKENS,
@@ -1303,6 +1312,45 @@ export class AgentOrchestratorService {
         messages: state.conversationHistory,
         tools: this.getClaudeTools(),
       });
+      const apiCallDuration = Date.now() - apiCallStartTime;
+
+      // ========================================
+      // COST TRACKING: Track Claude API token usage
+      // ========================================
+      try {
+        const costTrackingService = getCostTrackingService();
+
+        // Determine prompt type based on iteration
+        let promptType = 'task';
+        if (state.iterations === 0) {
+          promptType = 'task';
+        } else {
+          const lastTool = state.toolHistory[state.toolHistory.length - 1];
+          if (lastTool && !lastTool.success && lastTool.error) {
+            promptType = 'error_recovery';
+          } else {
+            promptType = 'observation';
+          }
+        }
+
+        // Extract tool names used in this response
+        const toolsUsed = response.content
+          .filter((block): block is Anthropic.ToolUseBlock => block.type === "tool_use")
+          .map(block => block.name);
+
+        await costTrackingService.trackApiCall({
+          userId: state.userId,
+          executionId: state.executionId,
+          response,
+          model: CLAUDE_MODEL,
+          promptType,
+          toolsUsed: toolsUsed.length > 0 ? toolsUsed : undefined,
+          responseTime: apiCallDuration,
+        });
+      } catch (costTrackingError) {
+        console.warn('[CostTracking] Failed to track API call:', costTrackingError);
+        // Continue execution even if cost tracking fails
+      }
 
       // Save assistant's response
       state.conversationHistory.push({

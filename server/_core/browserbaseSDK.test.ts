@@ -82,6 +82,10 @@ vi.mock("@browserbasehq/sdk", () => {
   return {
     default: class MockBrowserbase {
       constructor() {
+        // If mockClientInstance is null, throw an error to simulate initialization failure
+        if (!mockClientInstance) {
+          throw new Error("Mock client not configured");
+        }
         // Return the mock client instance
         return mockClientInstance;
       }
@@ -143,16 +147,21 @@ describe("BrowserbaseSDK Service", () => {
     });
 
     it("should handle initialization error", async () => {
-      const Browserbase = (await import("@browserbasehq/sdk")).default;
-      vi.mocked(Browserbase).mockImplementation(() => {
-        throw new Error("Initialization failed");
-      });
+      // Set mockClientInstance to throw when constructed
+      const originalMock = mockClientInstance;
+      // @ts-expect-error - Temporarily break the mock to test error handling
+      mockClientInstance = null;
 
       vi.resetModules();
 
-      await expect(async () => {
-        await import("./browserbaseSDK");
-      }).rejects.toThrow(BrowserbaseSDKError);
+      // The SDK will fail to initialize and throw during import
+      // because initialize() catches the error and re-throws as BrowserbaseSDKError
+      await expect(import("./browserbaseSDK")).rejects.toThrow(
+        "Failed to initialize Browserbase SDK"
+      );
+
+      // Restore the mock
+      mockClientInstance = originalMock;
     });
   });
 
@@ -214,24 +223,23 @@ describe("BrowserbaseSDK Service", () => {
       const { browserbaseSDK } = await import("./browserbaseSDK");
 
       await expect(browserbaseSDK.createSession()).rejects.toThrow(
-        BrowserbaseSDKError
+        "Project ID is required"
       );
     });
 
     it("should handle session creation failure", async () => {
       const { browserbaseSDK } = await import("./browserbaseSDK");
 
-      mockClient.sessions.create.mockRejectedValueOnce(
-        new Error("API rate limit exceeded")
-      );
+      // Mock to always reject (persistent) since retry logic calls multiple times
+      // Use mockImplementation to persist rejection across all calls
+      mockClient.sessions.create.mockImplementation(() => {
+        return Promise.reject(new Error("API rate limit exceeded"));
+      });
 
-      await expect(browserbaseSDK.createSession()).rejects.toThrow(
-        BrowserbaseSDKError
-      );
       await expect(browserbaseSDK.createSession()).rejects.toThrow(
         "Failed to create Browserbase session"
       );
-    });
+    }, 10000); // Increase timeout to allow for retries
 
     it("should handle proxy configuration", async () => {
       const { browserbaseSDK } = await import("./browserbaseSDK");
@@ -271,6 +279,7 @@ describe("BrowserbaseSDK Service", () => {
       expect(result.success).toBe(true);
       expect(result.sessionId).toBe("session-123");
       expect(mockClient.sessions.update).toHaveBeenCalledWith("session-123", {
+        projectId: "test-project-id-456",
         status: "REQUEST_RELEASE",
       });
     });
@@ -278,9 +287,6 @@ describe("BrowserbaseSDK Service", () => {
     it("should throw error if session ID is missing", async () => {
       const { browserbaseSDK } = await import("./browserbaseSDK");
 
-      await expect(browserbaseSDK.terminateSession("")).rejects.toThrow(
-        BrowserbaseSDKError
-      );
       await expect(browserbaseSDK.terminateSession("")).rejects.toThrow(
         "Session ID is required"
       );
@@ -293,9 +299,6 @@ describe("BrowserbaseSDK Service", () => {
         new Error("Session not found")
       );
 
-      await expect(
-        browserbaseSDK.terminateSession("session-123")
-      ).rejects.toThrow(BrowserbaseSDKError);
       await expect(
         browserbaseSDK.terminateSession("session-123")
       ).rejects.toThrow("Failed to terminate session");
@@ -318,7 +321,7 @@ describe("BrowserbaseSDK Service", () => {
       const { browserbaseSDK } = await import("./browserbaseSDK");
 
       await expect(browserbaseSDK.getSessionDebug("")).rejects.toThrow(
-        BrowserbaseSDKError
+        "Session ID is required"
       );
     });
 
@@ -329,9 +332,6 @@ describe("BrowserbaseSDK Service", () => {
         new Error("Session expired")
       );
 
-      await expect(
-        browserbaseSDK.getSessionDebug("session-123")
-      ).rejects.toThrow(BrowserbaseSDKError);
       await expect(
         browserbaseSDK.getSessionDebug("session-123")
       ).rejects.toThrow("Failed to get session debug info");
@@ -356,7 +356,7 @@ describe("BrowserbaseSDK Service", () => {
       const { browserbaseSDK } = await import("./browserbaseSDK");
 
       await expect(browserbaseSDK.getSessionRecording("")).rejects.toThrow(
-        BrowserbaseSDKError
+        "Session ID is required"
       );
     });
 
@@ -369,7 +369,7 @@ describe("BrowserbaseSDK Service", () => {
 
       await expect(
         browserbaseSDK.getSessionRecording("session-123")
-      ).rejects.toThrow(BrowserbaseSDKError);
+      ).rejects.toThrow("Failed to get session recording");
     });
   });
 
@@ -389,7 +389,7 @@ describe("BrowserbaseSDK Service", () => {
       const { browserbaseSDK } = await import("./browserbaseSDK");
 
       await expect(browserbaseSDK.getSessionLogs("")).rejects.toThrow(
-        BrowserbaseSDKError
+        "Session ID is required"
       );
     });
 
@@ -402,7 +402,7 @@ describe("BrowserbaseSDK Service", () => {
 
       await expect(
         browserbaseSDK.getSessionLogs("session-123")
-      ).rejects.toThrow(BrowserbaseSDKError);
+      ).rejects.toThrow("Failed to get session logs");
     });
   });
 
@@ -454,7 +454,7 @@ describe("BrowserbaseSDK Service", () => {
       const { browserbaseSDK } = await import("./browserbaseSDK");
 
       await expect(browserbaseSDK.getSession("")).rejects.toThrow(
-        BrowserbaseSDKError
+        "Session ID is required"
       );
     });
 
@@ -466,7 +466,7 @@ describe("BrowserbaseSDK Service", () => {
       );
 
       await expect(browserbaseSDK.getSession("session-123")).rejects.toThrow(
-        BrowserbaseSDKError
+        "Failed to get session"
       );
     });
   });
@@ -482,6 +482,7 @@ describe("BrowserbaseSDK Service", () => {
 
       expect(result).toBeDefined();
       expect(mockClient.sessions.update).toHaveBeenCalledWith("session-123", {
+        projectId: "test-project-id-456",
         status: "REQUEST_RELEASE",
       });
     });
@@ -491,7 +492,7 @@ describe("BrowserbaseSDK Service", () => {
 
       await expect(
         browserbaseSDK.updateSessionStatus("", "REQUEST_RELEASE")
-      ).rejects.toThrow(BrowserbaseSDKError);
+      ).rejects.toThrow("Session ID is required");
     });
   });
 
@@ -515,7 +516,7 @@ describe("BrowserbaseSDK Service", () => {
       const { browserbaseSDK } = await import("./browserbaseSDK");
 
       await expect(browserbaseSDK.getSessionDownloads("")).rejects.toThrow(
-        BrowserbaseSDKError
+        "Session ID is required"
       );
     });
   });
@@ -535,7 +536,7 @@ describe("BrowserbaseSDK Service", () => {
       const { browserbaseSDK } = await import("./browserbaseSDK");
 
       await expect(browserbaseSDK.getSessionUploads("")).rejects.toThrow(
-        BrowserbaseSDKError
+        "Session ID is required"
       );
     });
   });

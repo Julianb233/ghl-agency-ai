@@ -13,6 +13,7 @@
 import { Stagehand } from '@browserbasehq/stagehand';
 import type { Page, BrowserContext } from 'playwright-core';
 import { browserbaseSDK, BrowserbaseSDKError } from '../_core/browserbaseSDK';
+import { getCostTrackingService } from './costTracking.service';
 
 // ========================================
 // TYPES & INTERFACES
@@ -23,6 +24,8 @@ export interface StagehandConfig {
   cacheDir?: string;
   verbose?: 0 | 1 | 2;
   timeout?: number;
+  userId?: number;
+  executionId?: number;
 }
 
 export interface TabInfo {
@@ -46,6 +49,10 @@ export interface StagehandSession {
   activeTabId: string;
   // File handling
   downloads: Array<{ filename: string; path: string; timestamp: Date }>;
+  // Cost tracking
+  userId?: number;
+  executionId?: number;
+  screenshotCount: number;
 }
 
 export interface ActResult {
@@ -291,6 +298,9 @@ export class StagehandService {
         pages: pagesMap,
         activeTabId: primaryTabId,
         downloads: [],
+        userId: mergedConfig.userId,
+        executionId: mergedConfig.executionId,
+        screenshotCount: 0,
       };
 
       this.sessions.set(sessionId, session);
@@ -487,6 +497,9 @@ export class StagehandService {
         fullPage: options?.fullPage ?? false,
       });
 
+      // Increment screenshot count for cost tracking
+      session.screenshotCount++;
+
       console.log(`[StagehandService] Screenshot captured: ${screenshot.length} bytes`);
 
       const result: ScreenshotResult = {
@@ -602,6 +615,46 @@ export class StagehandService {
 
     try {
       console.log(`[StagehandService] Closing session: ${sessionId}`);
+
+      // ========================================
+      // COST TRACKING: Track Browserbase session cost
+      // ========================================
+      if (session.userId) {
+        try {
+          const costTrackingService = getCostTrackingService();
+          const durationMs = Date.now() - session.createdAt.getTime();
+
+          // Get debug URL from browserbase if available
+          let debugUrl: string | undefined;
+          let recordingUrl: string | undefined;
+          try {
+            const sessionInfo = await browserbaseSDK.getSession(sessionId);
+            debugUrl = sessionInfo.debuggerUrl;
+            // Note: Recording URL would be obtained separately from Browserbase API
+          } catch (e) {
+            console.warn('[CostTracking] Could not fetch session info from Browserbase:', e);
+          }
+
+          await costTrackingService.trackBrowserbaseSession({
+            userId: session.userId,
+            executionId: session.executionId,
+            sessionData: {
+              sessionId,
+              projectId: process.env.BROWSERBASE_PROJECT_ID,
+              durationMs,
+              hasRecording: false, // Placeholder - would need Browserbase API to confirm
+              screenshotCount: session.screenshotCount,
+              debugUrl,
+              recordingUrl,
+              status: 'completed',
+            },
+          });
+          console.log(`[CostTracking] Tracked session cost for session ${sessionId}`);
+        } catch (costError) {
+          console.warn('[CostTracking] Failed to track session cost:', costError);
+          // Continue with session closure even if cost tracking fails
+        }
+      }
 
       await session.stagehand.close();
       session.status = 'closed';

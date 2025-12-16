@@ -45,7 +45,7 @@ export interface ITool {
   description: string;
 
   /** Tool category for organization */
-  category: 'shell' | 'file' | 'browser' | 'database' | 'api' | 'custom';
+  category: 'shell' | 'file' | 'browser' | 'database' | 'api' | 'custom' | 'collection';
 
   /** Whether tool is currently enabled */
   enabled: boolean;

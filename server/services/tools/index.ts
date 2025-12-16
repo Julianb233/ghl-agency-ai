@@ -4,10 +4,11 @@
  * Provides a registry of tools for AI agent automation:
  * - ShellTool: Execute shell commands, manage background processes
  * - FileTool: Read, write, edit, search files
+ * - MatchTool: Multi-page comparison and pattern matching for browser automation
  *
  * Usage:
  * ```typescript
- * import { getToolRegistry, ShellTool, FileTool } from './tools';
+ * import { getToolRegistry, ShellTool, FileTool, MatchTool } from './tools';
  *
  * const registry = getToolRegistry();
  *
@@ -28,6 +29,9 @@ export * from './types';
 // Tools
 export { ShellTool } from './ShellTool';
 export { FileTool } from './FileTool';
+export { MatchTool } from './MatchTool';
+export { MapTool, getMapTool, resetMapTool } from './MapTool';
+export type { MapOptions, MapProgress, MapResult } from './MapTool';
 
 // Registry
 export { ToolRegistry, getToolRegistry, resetToolRegistry } from './ToolRegistry';

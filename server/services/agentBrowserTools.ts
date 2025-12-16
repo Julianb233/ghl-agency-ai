@@ -40,6 +40,8 @@ export const browserTools = {
    */
   browser_create_session: async (_params: {
     model?: 'anthropic' | 'openai' | 'gemini';
+    userId?: number;
+    executionId?: number;
   }): Promise<{
     success: boolean;
     sessionId?: string;
@@ -48,6 +50,8 @@ export const browserTools = {
     try {
       const session = await stagehandService.createSession({
         model: _params.model || 'anthropic',
+        userId: _params.userId,
+        executionId: _params.executionId,
       });
 
       return {
@@ -497,6 +501,210 @@ export const browserTools = {
       contact: result.data,
       error: result.error,
     };
+  },
+
+  // ========================================
+  // MATCH TOOL - MULTI-PAGE COMPARISON
+  // ========================================
+
+  /**
+   * Match pattern across multiple browser pages
+   */
+  browser_match_pattern: async (params: {
+    sessionId: string;
+    pattern: string;
+    pages?: string; // Comma-separated tab IDs
+    matchType?: 'regex' | 'exact' | 'fuzzy' | 'contains';
+    selector?: string;
+    caseSensitive?: boolean;
+    maxMatches?: number;
+  }): Promise<{
+    success: boolean;
+    results?: Array<{
+      tabId: string;
+      url: string;
+      title: string;
+      matchCount: number;
+      matches: Array<{ content: string; context?: string }>;
+    }>;
+    totalMatches?: number;
+    error?: string;
+  }> => {
+    try {
+      const { MatchTool } = await import('./tools/MatchTool');
+      const matchTool = new MatchTool();
+
+      const result = await matchTool.execute(
+        {
+          action: 'match',
+          ...params,
+          pages: params.pages?.split(',').map(p => p.trim()),
+        },
+        { userId: 0, sessionId: params.sessionId }
+      );
+
+      return {
+        success: result.success,
+        results: (result.data as any)?.results,
+        totalMatches: (result.data as any)?.totalMatches,
+        error: result.error,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Pattern matching failed',
+      };
+    }
+  },
+
+  /**
+   * Compare two browser pages
+   */
+  browser_compare_pages: async (params: {
+    sessionId: string;
+    tabId1: string;
+    tabId2: string;
+    compareType?: 'text' | 'structure' | 'visual' | 'all';
+    selector?: string;
+    threshold?: number;
+  }): Promise<{
+    success: boolean;
+    similarity?: number;
+    identical?: boolean;
+    passesThreshold?: boolean;
+    differences?: Array<{
+      type: 'added' | 'removed' | 'changed';
+      description: string;
+      oldValue?: string;
+      newValue?: string;
+    }>;
+    summary?: string;
+    error?: string;
+  }> => {
+    try {
+      const { MatchTool } = await import('./tools/MatchTool');
+      const matchTool = new MatchTool();
+
+      const result = await matchTool.execute(
+        {
+          action: 'compare',
+          ...params,
+        },
+        { userId: 0, sessionId: params.sessionId }
+      );
+
+      return {
+        success: result.success,
+        similarity: (result.data as any)?.result?.similarity,
+        identical: (result.data as any)?.result?.identical,
+        passesThreshold: (result.data as any)?.passesThreshold,
+        differences: (result.data as any)?.result?.differences,
+        summary: (result.data as any)?.result?.summary,
+        error: result.error,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Page comparison failed',
+      };
+    }
+  },
+
+  /**
+   * Find differences across multiple page snapshots
+   */
+  browser_find_differences: async (params: {
+    sessionId: string;
+    snapshots: string; // JSON string of snapshot array
+    diffType?: 'text' | 'structure' | 'visual';
+    ignoreWhitespace?: boolean;
+    ignoreCase?: boolean;
+  }): Promise<{
+    success: boolean;
+    snapshotCount?: number;
+    comparisons?: Array<{
+      from: string;
+      to: string;
+      similarity: number;
+      identical: boolean;
+      differences: unknown[];
+    }>;
+    summary?: string;
+    error?: string;
+  }> => {
+    try {
+      const { MatchTool } = await import('./tools/MatchTool');
+      const matchTool = new MatchTool();
+
+      const result = await matchTool.execute(
+        {
+          action: 'diff',
+          ...params,
+        },
+        { userId: 0, sessionId: params.sessionId }
+      );
+
+      return {
+        success: result.success,
+        snapshotCount: (result.data as any)?.snapshotCount,
+        comparisons: (result.data as any)?.comparisons,
+        summary: (result.data as any)?.summary,
+        error: result.error,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Difference detection failed',
+      };
+    }
+  },
+
+  /**
+   * Extract all pattern matches from a page
+   */
+  browser_extract_matches: async (params: {
+    sessionId: string;
+    pattern: string;
+    tabId?: string;
+    matchType?: 'regex' | 'exact' | 'fuzzy';
+    extractType?: 'text' | 'html' | 'attributes' | 'links' | 'images';
+    selector?: string;
+  }): Promise<{
+    success: boolean;
+    matches?: Array<{
+      content: string;
+      selector?: string;
+      attributes?: Record<string, string>;
+      href?: string;
+      src?: string;
+    }>;
+    totalMatches?: number;
+    error?: string;
+  }> => {
+    try {
+      const { MatchTool } = await import('./tools/MatchTool');
+      const matchTool = new MatchTool();
+
+      const result = await matchTool.execute(
+        {
+          action: 'extract',
+          ...params,
+        },
+        { userId: 0, sessionId: params.sessionId }
+      );
+
+      return {
+        success: result.success,
+        matches: (result.data as any)?.matches,
+        totalMatches: (result.data as any)?.totalMatches,
+        error: result.error,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Match extraction failed',
+      };
+    }
   },
 };
 
@@ -983,6 +1191,148 @@ export const browserToolDefinitions: Anthropic.Tool[] = [
         },
       },
       required: ['sessionId'],
+    },
+  },
+  // Match Tool - Multi-page comparison
+  {
+    name: 'browser_match_pattern',
+    description: 'Match a pattern across multiple browser tabs/pages. Supports regex, exact, fuzzy, and contains matching. Useful for finding content across multiple pages.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        sessionId: {
+          type: 'string',
+          description: 'The browser session ID',
+        },
+        pattern: {
+          type: 'string',
+          description: 'Pattern to search for (regex pattern, exact text, or fuzzy pattern)',
+        },
+        pages: {
+          type: 'string',
+          description: 'Comma-separated tab IDs to search. If not specified, searches all tabs.',
+        },
+        matchType: {
+          type: 'string',
+          description: 'Type of pattern matching',
+          enum: ['regex', 'exact', 'fuzzy', 'contains'],
+        },
+        selector: {
+          type: 'string',
+          description: 'Optional CSS selector to limit search scope',
+        },
+        caseSensitive: {
+          type: 'boolean',
+          description: 'Whether matching should be case sensitive',
+        },
+        maxMatches: {
+          type: 'number',
+          description: 'Maximum number of matches to return per page',
+        },
+      },
+      required: ['sessionId', 'pattern'],
+    },
+  },
+  {
+    name: 'browser_compare_pages',
+    description: 'Compare two browser pages to find similarities and differences. Supports text, structure, and visual comparisons. Returns similarity score and detailed differences.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        sessionId: {
+          type: 'string',
+          description: 'The browser session ID',
+        },
+        tabId1: {
+          type: 'string',
+          description: 'First tab ID to compare',
+        },
+        tabId2: {
+          type: 'string',
+          description: 'Second tab ID to compare',
+        },
+        compareType: {
+          type: 'string',
+          description: 'Type of comparison to perform',
+          enum: ['text', 'structure', 'visual', 'all'],
+        },
+        selector: {
+          type: 'string',
+          description: 'Optional CSS selector to compare only specific elements',
+        },
+        threshold: {
+          type: 'number',
+          description: 'Similarity threshold (0-1) for determining if pages are similar enough',
+        },
+      },
+      required: ['sessionId', 'tabId1', 'tabId2'],
+    },
+  },
+  {
+    name: 'browser_find_differences',
+    description: 'Find differences across multiple page snapshots. Useful for tracking changes across page versions or comparing multiple related pages.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        sessionId: {
+          type: 'string',
+          description: 'The browser session ID',
+        },
+        snapshots: {
+          type: 'string',
+          description: 'JSON array of snapshots: [{"tabId": "tab1", "label": "Before"}, {"tabId": "tab2", "label": "After"}]',
+        },
+        diffType: {
+          type: 'string',
+          description: 'Type of difference detection',
+          enum: ['text', 'structure', 'visual'],
+        },
+        ignoreWhitespace: {
+          type: 'boolean',
+          description: 'Whether to ignore whitespace differences',
+        },
+        ignoreCase: {
+          type: 'boolean',
+          description: 'Whether to ignore case differences',
+        },
+      },
+      required: ['sessionId', 'snapshots'],
+    },
+  },
+  {
+    name: 'browser_extract_matches',
+    description: 'Extract all pattern matches from a page. Supports extracting text, links, images, HTML, and element attributes. More powerful than basic extraction.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        sessionId: {
+          type: 'string',
+          description: 'The browser session ID',
+        },
+        pattern: {
+          type: 'string',
+          description: 'Pattern to match and extract',
+        },
+        tabId: {
+          type: 'string',
+          description: 'Tab ID to extract from (uses active tab if not specified)',
+        },
+        matchType: {
+          type: 'string',
+          description: 'Type of pattern matching',
+          enum: ['regex', 'exact', 'fuzzy'],
+        },
+        extractType: {
+          type: 'string',
+          description: 'Type of content to extract',
+          enum: ['text', 'html', 'attributes', 'links', 'images'],
+        },
+        selector: {
+          type: 'string',
+          description: 'Optional CSS selector to limit extraction scope',
+        },
+      },
+      required: ['sessionId', 'pattern'],
     },
   },
 ];

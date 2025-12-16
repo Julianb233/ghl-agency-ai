@@ -6,6 +6,7 @@
 import { ITool, ToolDefinition, ToolResult, ToolExecutionContext, ToolExecutionLog } from './types';
 import { ShellTool } from './ShellTool';
 import { FileTool } from './FileTool';
+import { MapTool } from './MapTool';
 
 interface ToolExecutionOptions {
   timeout?: number;
@@ -44,6 +45,7 @@ export class ToolRegistry {
   private registerDefaults(): void {
     this.register(new ShellTool());
     this.register(new FileTool());
+    this.register(new MapTool());
   }
 
   /**

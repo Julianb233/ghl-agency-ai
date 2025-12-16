@@ -24,6 +24,7 @@ import {
   setupSentryMiddleware,
   sentryErrorHandler
 } from "../lib/sentry";
+import { createRestApi } from "../api/rest";
 
 // Initialize Sentry as early as possible
 initSentry();
@@ -105,6 +106,16 @@ export async function createApp() {
     app.use(express.json({ limit: "50mb" }));
     app.use(express.urlencoded({ limit: "50mb", extended: true }));
   }
+  // Simple health check at /api/health (no auth required)
+  app.get("/api/health", (req, res) => {
+    res.json({
+      status: "healthy",
+      version: "1.0.0",
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || "development",
+    });
+  });
+
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
   // Google Auth routes
@@ -117,6 +128,11 @@ export async function createApp() {
   registerSSERoutes(app);
   // Webhook endpoints (public, token-authenticated)
   app.use("/api/webhooks", webhookEndpointsRouter);
+
+  // Mount REST API v1 routes (includes /api/v1/health, /api/v1/tasks, etc.)
+  const restApi = createRestApi();
+  app.use(restApi);
+
   // tRPC API
   app.use(
     "/api/trpc",
