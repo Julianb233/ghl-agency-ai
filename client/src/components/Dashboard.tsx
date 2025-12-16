@@ -630,7 +630,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
             {subscriptionQuery.data?.hasSubscription ? (
               <button
                 onClick={() => setShowUpgradeModal(true)}
-                className="hidden sm:flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 bg-white/50 border border-slate-200 rounded-lg hover:bg-white hover:border-emerald-300 transition-all group min-h-[44px]"
+                className="hidden sm:flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 bg-white/50 border border-slate-200 rounded-lg hover:bg-white hover:border-emerald-300 transition-all group min-h-[44px] min-w-[44px]"
               >
                 <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-500" />
                 <span className="text-xs font-bold text-slate-500 uppercase group-hover:text-emerald-600 hidden md:inline">
@@ -643,7 +643,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
             ) : (
               <button
                 onClick={() => setShowUpgradeModal(true)}
-                className="hidden sm:flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg hover:from-purple-600 hover:to-indigo-600 transition-all min-h-[44px]"
+                className="hidden sm:flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-lg hover:from-purple-600 hover:to-indigo-600 transition-all min-h-[44px] min-w-[44px]"
               >
                 <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 <span className="text-xs font-bold uppercase hidden sm:inline">Subscribe</span>
@@ -844,19 +844,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
               <div className="md:hidden flex bg-gray-100 p-1 rounded-lg mb-2 shrink-0">
                 <button
                   onClick={() => setMobileTerminalTab('CONTEXT')}
-                  className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${mobileTerminalTab === 'CONTEXT' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-500'}`}
+                  className={`flex-1 py-3 min-h-[44px] text-xs font-bold rounded-md transition-all ${mobileTerminalTab === 'CONTEXT' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-500'}`}
                 >
                   Context
                 </button>
                 <button
                   onClick={() => setMobileTerminalTab('BROWSER')}
-                  className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${mobileTerminalTab === 'BROWSER' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-500'}`}
+                  className={`flex-1 py-3 min-h-[44px] text-xs font-bold rounded-md transition-all ${mobileTerminalTab === 'BROWSER' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-500'}`}
                 >
                   Browser
                 </button>
                 <button
                   onClick={() => setMobileTerminalTab('LOGS')}
-                  className={`flex-1 py-2 text-xs font-bold rounded-md transition-all ${mobileTerminalTab === 'LOGS' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-500'}`}
+                  className={`flex-1 py-3 min-h-[44px] text-xs font-bold rounded-md transition-all ${mobileTerminalTab === 'LOGS' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-500'}`}
                 >
                   Logs & Tools
                 </button>
@@ -884,10 +884,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
                                 setEditingClient(null);
                                 setIsClientModalOpen(true);
                               }}
-                              className="p-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors"
+                              className="p-2 min-h-[44px] min-w-[44px] flex items-center justify-center bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors"
                               title="Add New Client"
+                              aria-label="Add New Client"
                             >
-                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                               </svg>
                             </button>
@@ -907,7 +908,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
                               <button
                                 key={client.id}
                                 onClick={() => setSelectedClient(client)}
-                                className={`w-full text-left p-3 rounded-lg border transition-all ${selectedClient?.id === client.id
+                                className={`w-full text-left p-3 min-h-[44px] rounded-lg border transition-all ${selectedClient?.id === client.id
                                   ? 'bg-emerald-50 border-emerald-200 text-emerald-700 font-medium shadow-sm'
                                   : 'bg-white border-slate-100 text-slate-600 hover:border-emerald-200 hover:bg-emerald-50/50'
                                   }`}
@@ -940,19 +941,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
                 <div className="shrink-0">
                   <GlassPane title="Quick Actions">
                     <div className="p-3 grid grid-cols-2 gap-2">
-                      <button className="p-2 bg-slate-50 hover:bg-emerald-50 rounded-lg text-xs font-medium text-slate-600 hover:text-emerald-600 transition flex flex-col items-center gap-1 border border-slate-100 hover:border-emerald-200">
+                      <button className="p-3 min-h-[44px] bg-slate-50 hover:bg-emerald-50 rounded-lg text-xs font-medium text-slate-600 hover:text-emerald-600 transition flex flex-col items-center justify-center gap-1 border border-slate-100 hover:border-emerald-200">
                         <span className="text-lg">🔍</span>
                         Audit Site
                       </button>
-                      <button className="p-2 bg-slate-50 hover:bg-emerald-50 rounded-lg text-xs font-medium text-slate-600 hover:text-emerald-600 transition flex flex-col items-center gap-1 border border-slate-100 hover:border-emerald-200">
+                      <button className="p-3 min-h-[44px] bg-slate-50 hover:bg-emerald-50 rounded-lg text-xs font-medium text-slate-600 hover:text-emerald-600 transition flex flex-col items-center justify-center gap-1 border border-slate-100 hover:border-emerald-200">
                         <span className="text-lg">⚡</span>
                         Speed Test
                       </button>
-                      <button className="p-2 bg-slate-50 hover:bg-emerald-50 rounded-lg text-xs font-medium text-slate-600 hover:text-emerald-600 transition flex flex-col items-center gap-1 border border-slate-100 hover:border-emerald-200">
+                      <button className="p-3 min-h-[44px] bg-slate-50 hover:bg-emerald-50 rounded-lg text-xs font-medium text-slate-600 hover:text-emerald-600 transition flex flex-col items-center justify-center gap-1 border border-slate-100 hover:border-emerald-200">
                         <span className="text-lg">📸</span>
                         Screenshot
                       </button>
-                      <button className="p-2 bg-slate-50 hover:bg-emerald-50 rounded-lg text-xs font-medium text-slate-600 hover:text-emerald-600 transition flex flex-col items-center gap-1 border border-slate-100 hover:border-emerald-200">
+                      <button className="p-3 min-h-[44px] bg-slate-50 hover:bg-emerald-50 rounded-lg text-xs font-medium text-slate-600 hover:text-emerald-600 transition flex flex-col items-center justify-center gap-1 border border-slate-100 hover:border-emerald-200">
                         <span className="text-lg">📝</span>
                         Summarize
                       </button>
@@ -990,25 +991,25 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
                 <div className="flex border-b border-gray-200 bg-gray-50">
                   <button
                     onClick={() => setRightPanelTab('tickets')}
-                    className={`flex-1 py-3 text-xs font-bold transition-colors ${rightPanelTab === 'tickets' ? 'text-emerald-600 border-b-2 border-emerald-600 bg-white' : 'text-slate-500 hover:text-slate-700'}`}
+                    className={`flex-1 py-3 min-h-[44px] text-xs font-bold transition-colors ${rightPanelTab === 'tickets' ? 'text-emerald-600 border-b-2 border-emerald-600 bg-white' : 'text-slate-500 hover:text-slate-700'}`}
                   >
                     Tickets
                   </button>
                   <button
                     onClick={() => setRightPanelTab('logs')}
-                    className={`flex-1 py-3 text-xs font-bold transition-colors ${rightPanelTab === 'logs' ? 'text-emerald-600 border-b-2 border-emerald-600 bg-white' : 'text-slate-500 hover:text-slate-700'}`}
+                    className={`flex-1 py-3 min-h-[44px] text-xs font-bold transition-colors ${rightPanelTab === 'logs' ? 'text-emerald-600 border-b-2 border-emerald-600 bg-white' : 'text-slate-500 hover:text-slate-700'}`}
                   >
                     Logs
                   </button>
                   <button
                     onClick={() => setRightPanelTab('team')}
-                    className={`flex-1 py-3 text-xs font-bold transition-colors ${rightPanelTab === 'team' ? 'text-emerald-600 border-b-2 border-emerald-600 bg-white' : 'text-slate-500 hover:text-slate-700'}`}
+                    className={`flex-1 py-3 min-h-[44px] text-xs font-bold transition-colors ${rightPanelTab === 'team' ? 'text-emerald-600 border-b-2 border-emerald-600 bg-white' : 'text-slate-500 hover:text-slate-700'}`}
                   >
                     Team
                   </button>
                   <button
                     onClick={() => setRightPanelTab('resources')}
-                    className={`flex-1 py-3 text-xs font-bold transition-colors ${rightPanelTab === 'resources' ? 'text-emerald-600 border-b-2 border-emerald-600 bg-white' : 'text-slate-500 hover:text-slate-700'}`}
+                    className={`flex-1 py-3 min-h-[44px] text-xs font-bold transition-colors ${rightPanelTab === 'resources' ? 'text-emerald-600 border-b-2 border-emerald-600 bg-white' : 'text-slate-500 hover:text-slate-700'}`}
                   >
                     Resources
                   </button>
@@ -1094,7 +1095,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
       />
 
       {/* Mobile Bottom Navigation */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50 safe-area-inset-bottom" role="navigation" aria-label="Mobile navigation">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-50" role="navigation" aria-label="Mobile navigation" style={{paddingBottom: 'env(safe-area-inset-bottom)'}}>
         <div className="flex justify-around items-center h-20 px-1">
           <button
             onClick={() => setViewMode('GLOBAL')}

@@ -88,8 +88,8 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthenticated, onBac
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="absolute top-6 left-6">
-        <button onClick={onBack} className="text-slate-500 hover:text-emerald-600 font-bold flex items-center gap-2 text-sm transition-colors">
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+        <button onClick={onBack} className="text-slate-500 hover:text-emerald-600 font-bold flex items-center gap-2 text-sm transition-colors p-2 min-h-[44px]" aria-label="Back to Home">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
           Back to Home
         </button>
       </div>
@@ -159,10 +159,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthenticated, onBac
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 p-2 min-h-[44px] min-w-[44px] flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors"
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
               {errors.password && (
@@ -175,7 +175,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthenticated, onBac
             <button
               type="submit"
               disabled={isLoading || !!errors.email || !!errors.password}
-              className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold py-3 rounded-xl shadow-lg shadow-emerald-500/20 hover:scale-[1.02] transition-transform flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              className="w-full min-h-[44px] bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold py-3 rounded-xl shadow-lg shadow-emerald-500/20 hover:scale-[1.02] transition-transform flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
               {isLoading ? (
                 <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> {isSignUp ? 'Creating Account...' : 'Authenticating...'}</>
@@ -200,7 +200,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthenticated, onBac
                 window.location.href = '/api/oauth/google';
               }}
               disabled={isGoogleLoading}
-              className="w-full bg-white/80 border border-slate-200 text-slate-700 font-bold py-3 rounded-xl shadow-sm hover:bg-white transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full min-h-[44px] bg-white/80 border border-slate-200 text-slate-700 font-bold py-3 rounded-xl shadow-sm hover:bg-white transition-colors flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {isGoogleLoading ? (
                 <>
@@ -240,14 +240,14 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onAuthenticated, onBac
                 setError('');
                 setErrors({});
               }}
-              className="text-sm text-emerald-600 hover:underline font-medium"
+              className="text-sm text-emerald-600 hover:underline font-medium p-2 min-h-[44px] inline-flex items-center"
             >
               {isSignUp ? 'Already have an account? Sign in' : "Don't have an account? Sign up"}
             </button>
             {!isSignUp && (
               <p className="text-xs text-slate-400 mt-3">
                 Protected by Enterprise Encryption. <br />
-                <a href="#" className="text-emerald-500 hover:underline">Forgot Password?</a>
+                <a href="#" className="text-emerald-500 hover:underline p-2 min-h-[44px] inline-flex items-center">Forgot Password?</a>
               </p>
             )}
           </div>

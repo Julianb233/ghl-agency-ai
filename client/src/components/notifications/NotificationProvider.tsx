@@ -39,7 +39,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
   const [settings, setSettings] = useState<NotificationSettings>(defaultSettings);
   const previousLogsRef = useRef<LogEntry[]>([]);
 
-  const logs = useAgentStore((state) => state.logs);
+  const logs = useAgentStore((state) => state.logs) || [];
 
   // Load persisted notifications and settings on mount
   useEffect(() => {

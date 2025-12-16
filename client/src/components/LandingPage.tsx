@@ -62,19 +62,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onNavigateToF
             </div>
             <div>
               <span className="text-base sm:text-xl font-bold bg-gradient-to-r from-emerald-600 via-green-500 to-teal-500 bg-clip-text text-transparent">GHL Agency AI</span>
-              <div className="hidden sm:block text-[11px] text-gray-600 font-semibold -mt-1">Buy Back Your Freedom</div>
+              <div className="hidden sm:block text-xs text-gray-600 font-semibold -mt-1">Buy Back Your Freedom</div>
             </div>
           </div>
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center gap-8 text-sm font-medium text-gray-700">
             {onNavigateToFeatures && (
-              <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToFeatures(); }} className="hover:text-emerald-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 rounded-md px-2 py-1">Features</a>
+              <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToFeatures(); }} className="hover:text-emerald-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 rounded-md px-3 py-2 min-h-[44px] inline-flex items-center">Features</a>
             )}
-            <a href="#problem" onClick={(e) => scrollToSection(e, 'problem')} className="hover:text-emerald-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 rounded-md px-2 py-1">The Problem</a>
-            <a href="#solution" onClick={(e) => scrollToSection(e, 'solution')} className="hover:text-emerald-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 rounded-md px-2 py-1">The Solution</a>
-            <a href="#proof" onClick={(e) => scrollToSection(e, 'proof')} className="hover:text-emerald-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 rounded-md px-2 py-1">Proof</a>
-            <a href="#pricing" onClick={(e) => scrollToSection(e, 'pricing')} className="hover:text-emerald-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 rounded-md px-2 py-1">Investment</a>
+            <a href="#problem" onClick={(e) => scrollToSection(e, 'problem')} className="hover:text-emerald-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 rounded-md px-3 py-2 min-h-[44px] inline-flex items-center">The Problem</a>
+            <a href="#solution" onClick={(e) => scrollToSection(e, 'solution')} className="hover:text-emerald-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 rounded-md px-3 py-2 min-h-[44px] inline-flex items-center">The Solution</a>
+            <a href="#proof" onClick={(e) => scrollToSection(e, 'proof')} className="hover:text-emerald-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 rounded-md px-3 py-2 min-h-[44px] inline-flex items-center">Proof</a>
+            <a href="#pricing" onClick={(e) => scrollToSection(e, 'pricing')} className="hover:text-emerald-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 rounded-md px-3 py-2 min-h-[44px] inline-flex items-center">Investment</a>
           </div>
 
           {/* Mobile Menu Button */}
@@ -87,31 +87,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onNavigateToF
             {isMobileMenuOpen ? <X className="w-6 h-6" aria-hidden="true" /> : <Menu className="w-6 h-6" aria-hidden="true" />}
           </button>
 
-          <div className="flex items-center gap-2 sm:gap-4">
-            {/* Mobile CTA Buttons - visible below lg breakpoint */}
-            <div className="flex lg:hidden items-center gap-2 sm:gap-4">
-              <Button variant="ghost" onClick={onLogin} className="font-semibold text-xs sm:text-sm text-gray-700 hover:text-emerald-600 px-2 sm:px-4 min-h-[44px]">
-                Log In
-              </Button>
-              <Button onClick={onLogin} className="bg-gradient-to-r from-emerald-600 via-green-500 to-teal-500 hover:from-emerald-700 hover:via-green-600 hover:to-teal-600 text-white shadow-md hover:shadow-lg rounded-full px-3 sm:px-6 text-xs sm:text-sm font-bold relative overflow-hidden group min-h-[44px]">
-                <span className="relative z-10 flex items-center gap-1 sm:gap-2">
-                  Start Free <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
-                </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-teal-600 to-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              </Button>
-            </div>
-            {/* Desktop CTA Buttons - visible at lg breakpoint and above */}
-            <div className="hidden lg:flex items-center gap-2 sm:gap-4">
-              <Button variant="ghost" onClick={onLogin} className="font-semibold text-xs sm:text-sm text-gray-700 hover:text-emerald-600 px-2 sm:px-4">
-                Log In
-              </Button>
-              <Button onClick={onLogin} className="bg-gradient-to-r from-emerald-600 via-green-500 to-teal-500 hover:from-emerald-700 hover:via-green-600 hover:to-teal-600 text-white shadow-md hover:shadow-lg rounded-full px-3 sm:px-6 text-xs sm:text-sm font-bold relative overflow-hidden group">
-                <span className="relative z-10 flex items-center gap-1 sm:gap-2">
-                  Start Free <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
-                </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-teal-600 to-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              </Button>
-            </div>
+          {/* CTA Buttons - Hidden on mobile (in hamburger menu instead) */}
+          <div className="hidden lg:flex items-center gap-2 sm:gap-4">
+            <Button variant="ghost" onClick={onLogin} className="font-semibold text-sm text-gray-700 hover:text-emerald-600 px-4 min-h-[44px] min-w-[44px]">
+              Log In
+            </Button>
+            <Button onClick={onLogin} className="bg-gradient-to-r from-emerald-600 via-green-500 to-teal-500 hover:from-emerald-700 hover:via-green-600 hover:to-teal-600 text-white shadow-md hover:shadow-lg rounded-full px-6 text-sm font-bold relative overflow-hidden group min-h-[44px]">
+              <span className="relative z-10 flex items-center gap-2">
+                Start Free <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
+              </span>
+              <div className="absolute inset-0 bg-gradient-to-r from-teal-600 to-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            </Button>
           </div>
         </div>
 
@@ -207,14 +193,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onNavigateToF
           </div>
 
           {/* Social Proof Element */}
-          <div className="text-center text-xs sm:text-sm text-gray-600 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-500 px-4">
+          <div className="text-center text-sm text-gray-600 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-500 px-4">
             <div className="flex items-center justify-center gap-1 sm:gap-2 mb-2">
               {[...Array(5)].map((_, i) => (
                 <span key={i} className="text-yellow-400 text-base sm:text-lg">★</span>
               ))}
               <span className="font-bold text-gray-900 ml-1 sm:ml-2">5.0</span>
             </div>
-            <p className="font-medium">
+            <p className="font-medium text-sm">
               <span className="font-bold text-emerald-600">487 agency owners</span> have reclaimed their time and sanity
             </p>
           </div>
@@ -237,7 +223,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onNavigateToF
       {/* Trusted By Social Proof Bar */}
       <section className="py-8 sm:py-12 bg-gray-50 border-b border-gray-200">
         <div className="container mx-auto px-4 sm:px-6">
-          <p className="text-center text-xs sm:text-sm text-gray-500 font-medium mb-6 uppercase tracking-wider">Trusted by 487+ agencies worldwide</p>
+          <p className="text-center text-sm text-gray-500 font-medium mb-6 uppercase tracking-wider">Trusted by 487+ agencies worldwide</p>
           <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-12 opacity-60 grayscale hover:opacity-100 hover:grayscale-0 transition-all duration-500">
             {/* Logo-style company representations */}
             <div className="flex items-center gap-2 text-gray-600">
