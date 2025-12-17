@@ -223,6 +223,80 @@ const deepLocatorActionSchema = z.object({
   }).optional(),
 });
 
+// ========================================
+// DEEP LOCATOR ACTION HANDLERS
+// ========================================
+
+type DeepLocatorInput = z.infer<typeof deepLocatorActionSchema>;
+type ActionResult = any;
+
+interface ActionHandler {
+  requiresValue: boolean;
+  execute: (locator: any, input: DeepLocatorInput) => Promise<ActionResult>;
+}
+
+/**
+ * Handler map for deepLocator actions
+ * Each handler specifies whether it requires a value and how to execute
+ */
+const deepLocatorActionHandlers: Record<DeepLocatorInput["action"], ActionHandler> = {
+  click: {
+    requiresValue: false,
+    execute: async (locator) => {
+      await locator.click();
+      return null;
+    },
+  },
+  fill: {
+    requiresValue: true,
+    execute: async (locator, input) => {
+      await locator.fill(input.value!);
+      return null;
+    },
+  },
+  type: {
+    requiresValue: true,
+    execute: async (locator, input) => {
+      await locator.type(input.value!, { delay: input.options?.delay || 0 });
+      return null;
+    },
+  },
+  hover: {
+    requiresValue: false,
+    execute: async (locator) => {
+      await locator.hover();
+      return null;
+    },
+  },
+  highlight: {
+    requiresValue: false,
+    execute: async (locator, input) => {
+      await locator.highlight({ durationMs: input.options?.durationMs || 2000 });
+      return null;
+    },
+  },
+  getText: {
+    requiresValue: false,
+    execute: async (locator) => locator.textContent(),
+  },
+  getHtml: {
+    requiresValue: false,
+    execute: async (locator) => locator.innerHtml(),
+  },
+  isVisible: {
+    requiresValue: false,
+    execute: async (locator) => locator.isVisible(),
+  },
+  isChecked: {
+    requiresValue: false,
+    execute: async (locator) => locator.isChecked(),
+  },
+  inputValue: {
+    requiresValue: false,
+    execute: async (locator) => locator.inputValue(),
+  },
+};
+
 // Deep locator selection schema
 const deepLocatorSelectSchema = z.object({
   sessionId: z.string().min(1),
@@ -2115,67 +2189,19 @@ export const browserRouter = router({
         // Get the deep locator
         const locator = (page as any).deepLocator(input.selector);
 
-        let result: any = null;
+        // Get the handler for this action
+        const handler = deepLocatorActionHandlers[input.action];
 
-        switch (input.action) {
-          case "click":
-            await locator.click();
-            break;
-
-          case "fill":
-            if (!input.value) {
-              throw new TRPCError({
-                code: "BAD_REQUEST",
-                message: "Value is required for fill action",
-              });
-            }
-            await locator.fill(input.value);
-            break;
-
-          case "type":
-            if (!input.value) {
-              throw new TRPCError({
-                code: "BAD_REQUEST",
-                message: "Value is required for type action",
-              });
-            }
-            await locator.type(input.value, { delay: input.options?.delay || 0 });
-            break;
-
-          case "hover":
-            await locator.hover();
-            break;
-
-          case "highlight":
-            await locator.highlight({ durationMs: input.options?.durationMs || 2000 });
-            break;
-
-          case "getText":
-            result = await locator.textContent();
-            break;
-
-          case "getHtml":
-            result = await locator.innerHtml();
-            break;
-
-          case "isVisible":
-            result = await locator.isVisible();
-            break;
-
-          case "isChecked":
-            result = await locator.isChecked();
-            break;
-
-          case "inputValue":
-            result = await locator.inputValue();
-            break;
-
-          default:
-            throw new TRPCError({
-              code: "BAD_REQUEST",
-              message: `Unknown action: ${input.action}`,
-            });
+        // Validate required value
+        if (handler.requiresValue && !input.value) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `Value is required for ${input.action} action`,
+          });
         }
+
+        // Execute the action
+        const result = await handler.execute(locator, input);
 
         // Track operation
         await sessionMetricsService.trackOperation(input.sessionId, "deepLocatorAction", {
