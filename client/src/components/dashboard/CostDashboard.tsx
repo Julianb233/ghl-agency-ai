@@ -228,8 +228,8 @@ function BudgetSettingsDialog({ budget, onSave }: BudgetSettingsDialogProps) {
           <Button variant="outline" onClick={() => setOpen(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={setBudgetMutation.isLoading}>
-            {setBudgetMutation.isLoading ? "Saving..." : "Save Budget"}
+          <Button onClick={handleSave} disabled={setBudgetMutation.isPending}>
+            {setBudgetMutation.isPending ? "Saving..." : "Save Budget"}
           </Button>
         </DialogFooter>
       </DialogContent>

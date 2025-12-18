@@ -1,6 +1,6 @@
 # Notification System
 
-A comprehensive notification system for the GHL Agency AI project with toast notifications, notification center, sound alerts, and SSE integration.
+A comprehensive notification system for the Bottleneck Bots project with toast notifications, notification center, sound alerts, and SSE integration.
 
 ## Features
 

@@ -669,7 +669,7 @@ export const costsRouter = router({
       // Get trends from daily summaries
       const trends = await database
         .select({
-          period: sql`DATE_TRUNC('${sql.raw(dateTrunc)}', ${dailyCostSummaries.date})`.as("period"),
+          period: sql<Date>`DATE_TRUNC('${sql.raw(dateTrunc)}', ${dailyCostSummaries.date})`.as("period"),
           totalCost: sum(dailyCostSummaries.totalCostUsd),
           apiCost: sum(dailyCostSummaries.apiCostUsd),
           geminiCost: sum(dailyCostSummaries.geminiCostUsd),

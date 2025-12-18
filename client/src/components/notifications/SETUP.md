@@ -1,6 +1,6 @@
 # Notification System - Quick Setup Guide
 
-Follow these steps to integrate the notification system into your GHL Agency AI application.
+Follow these steps to integrate the notification system into your Bottleneck Bots application.
 
 ## Step 1: Verify Installation
 
@@ -166,7 +166,7 @@ function App() {
     <NotificationProvider>
       <div className="flex h-screen flex-col">
         <header className="flex items-center justify-between border-b px-6 py-4">
-          <h1>GHL Agency AI</h1>
+          <h1>Bottleneck Bots</h1>
           <div className="flex items-center gap-4">
             <NotificationCenter />
           </div>

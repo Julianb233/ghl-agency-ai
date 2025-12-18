@@ -1,6 +1,6 @@
 # Browser Automation Components
 
-Production-ready React components for the GHL Agency AI browser automation system.
+Production-ready React components for the Bottleneck Bots browser automation system.
 
 ## Components
 
@@ -435,4 +435,4 @@ test('renders session manager', () => {
 
 ## License
 
-Copyright 2025 GHL Agency AI. All rights reserved.
+Copyright 2025 Bottleneck Bots. All rights reserved.

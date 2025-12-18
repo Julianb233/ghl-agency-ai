@@ -1,5 +1,5 @@
 ===================================================================
-  GHL Agency AI has been deployed successfully!
+  Bottleneck Bots has been deployed successfully!
 ===================================================================
 
 DEPLOYMENT INFORMATION:

@@ -1,6 +1,6 @@
 apiVersion: v2
-name: ghl-agency-ai
-description: A Helm chart for GHL Agency AI - White-label SaaS platform for AI-powered GoHighLevel automation
+name: bottleneck-bots
+description: A Helm chart for Bottleneck Bots - White-label SaaS platform for AI-powered GoHighLevel automation
 type: application
 version: 0.1.0
 appVersion: "1.0.0"
@@ -12,7 +12,7 @@ keywords:
   - automation
   - saas
 maintainers:
-  - name: GHL Agency AI Team
+  - name: Bottleneck Bots Team
 home: https://github.com/ghl-agency-ai
 sources:
   - https://github.com/ghl-agency-ai

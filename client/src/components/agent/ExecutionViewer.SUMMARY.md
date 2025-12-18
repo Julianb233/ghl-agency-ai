@@ -2,7 +2,7 @@
 
 ## Overview
 
-The ExecutionViewer component is a production-ready, real-time execution viewer for monitoring agent task executions in the GHL Agency AI project. It provides a rich, interactive interface for tracking agent progress with Server-Sent Events (SSE) integration.
+The ExecutionViewer component is a production-ready, real-time execution viewer for monitoring agent task executions in the Bottleneck Bots project. It provides a rich, interactive interface for tracking agent progress with Server-Sent Events (SSE) integration.
 
 ## Files Created
 
@@ -288,4 +288,4 @@ For issues or questions:
 
 ## License
 
-Part of the GHL Agency AI project.
+Part of the Bottleneck Bots project.

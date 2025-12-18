@@ -1,4 +1,4 @@
-# GHL Agency AI - User Guide
+# Bottleneck Bots - User Guide
 
 **Version**: 1.0
 **Last Updated**: December 2025
@@ -26,7 +26,7 @@
 #### Creating Your Account
 
 1. **Navigate to the Platform**
-   - Visit your GHL Agency AI instance URL
+   - Visit your Bottleneck Bots instance URL
    - Click "Sign Up" or "Get Started"
 
 2. **Authentication**

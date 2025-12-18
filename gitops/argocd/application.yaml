@@ -1,11 +1,11 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: ghl-agency-ai-production
+  name: bottleneck-bots-production
   namespace: argocd
   labels:
-    app.kubernetes.io/name: ghl-agency-ai
-    app.kubernetes.io/part-of: ghl-agency-ai
+    app.kubernetes.io/name: bottleneck-bots
+    app.kubernetes.io/part-of: bottleneck-bots
     environment: production
   finalizers:
     - resources-finalizer.argocd.argoproj.io
@@ -15,7 +15,7 @@ spec:
   source:
     repoURL: https://github.com/ghl-agency-ai/ghl-agency-ai.git
     targetRevision: main
-    path: helm/ghl-agency-ai
+    path: helm/bottleneck-bots
     helm:
       valueFiles:
         - ../../gitops/overlays/production/values.yaml
@@ -25,7 +25,7 @@ spec:
 
   destination:
     server: https://kubernetes.default.svc
-    namespace: ghl-agency-ai-production
+    namespace: bottleneck-bots-production
 
   syncPolicy:
     automated:

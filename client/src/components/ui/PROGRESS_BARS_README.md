@@ -1,6 +1,6 @@
 # ProgressBars Component
 
-A comprehensive, accessible progress bar component suite for the GHL Agency AI project. Built with React 19, TypeScript, Radix UI, and Tailwind CSS.
+A comprehensive, accessible progress bar component suite for the Bottleneck Bots project. Built with React 19, TypeScript, Radix UI, and Tailwind CSS.
 
 ## Features
 

@@ -292,11 +292,21 @@ class SDKServer {
     }
 
     const sessionUserId = session.openId;
+    const sessionAppId = session.appId;
     const signedInAt = new Date();
+
+    console.log("[Auth] Authenticating request:", {
+      sessionUserId,
+      sessionAppId,
+      sessionName: session.name,
+    });
+
     let user = await db.getUserByOpenId(sessionUserId);
+    console.log("[Auth] getUserByOpenId result:", user ? "found" : "not found");
 
     if (!user) {
       user = await db.getUserByGoogleId(sessionUserId);
+      console.log("[Auth] getUserByGoogleId result:", user ? "found" : "not found");
     }
 
     // Check for email-based auth (session ID starts with "email_")
@@ -308,7 +318,11 @@ class SDKServer {
     }
 
     // If user not in DB, sync from OAuth server automatically (only for Manus users)
-    if (!user && !sessionUserId.startsWith("google_")) { // Assuming google IDs might be distinguished or we just skip this for google
+    // Skip Manus OAuth sync for Google users (appId === "google-oauth") and when OAuth server is not configured
+    const isGoogleUser = session.appId === "google-oauth";
+    const isManusOAuthConfigured = ENV.oAuthServerUrl && ENV.oAuthServerUrl.length > 0;
+
+    if (!user && !isGoogleUser && isManusOAuthConfigured) {
       try {
         const userInfo = await this.getUserInfoWithJwt(sessionCookie ?? "");
         await db.upsertUser({
@@ -326,6 +340,10 @@ class SDKServer {
     }
 
     if (!user) {
+      if (isGoogleUser) {
+        console.error("[Auth] Google user not found in database. GoogleId:", sessionUserId);
+        throw ForbiddenError("Google user not found. Please try logging in again.");
+      }
       throw ForbiddenError("User not found");
     }
 

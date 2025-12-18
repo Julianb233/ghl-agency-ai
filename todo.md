@@ -1,8 +1,8 @@
-# GHL Agency AI - Master Project TODO
+# Bottleneck Bots - Master Project TODO
 
 **Last Updated:** 2025-12-16
 **Specification Source:** `/docs/specifications/MERGING_TODO.md`
-**Goal:** Merge Manus Replica + Claude-Flow + GHL Agency AI into unified production platform
+**Goal:** Merge Manus Replica + Claude-Flow + Bottleneck Bots into unified production platform
 
 ---
 
@@ -11,7 +11,7 @@
 Merge three systems:
 1. **Manus Replica** - System prompt + agent loop
 2. **Claude-Flow** - Enterprise orchestration with 100+ MCP tools
-3. **GHL Agency AI** - Production SaaS with browser automation
+3. **Bottleneck Bots** - Production SaaS with browser automation
 
 ---
 

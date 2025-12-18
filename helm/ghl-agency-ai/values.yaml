@@ -1,4 +1,4 @@
-# Default values for ghl-agency-ai
+# Default values for bottleneck-bots
 # This is a YAML-formatted file.
 
 # -- Number of replicas
@@ -6,7 +6,7 @@ replicaCount: 2
 
 image:
   # -- Container image repository
-  repository: ghcr.io/ghl-agency-ai/ghl-agency-ai
+  repository: ghcr.io/ghl-agency-ai/bottleneck-bots
   # -- Image pull policy
   pullPolicy: IfNotPresent
   # -- Overrides the image tag whose default is the chart appVersion
