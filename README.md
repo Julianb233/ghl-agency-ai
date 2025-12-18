@@ -1,4 +1,4 @@
-# GHL Agent AI - Browser Automation SaaS Platform
+# Bottleneck Bot - Browser Automation SaaS Platform
 
 **AI-Powered GoHighLevel Automation Platform** - Automate workflows, funnels, campaigns, and client management using intelligent browser agents powered by Browserbase and Stagehand.
 
@@ -6,7 +6,7 @@
 
 ## 📋 Overview
 
-GHL Agent AI is a white-label SaaS platform that enables agencies to automate GoHighLevel operations through AI-powered browser automation. The system uses natural language commands to execute complex multi-step workflows, eliminating the need for manual GHL configuration.
+Bottleneck Bot is a white-label SaaS platform that enables agencies to automate GoHighLevel operations through AI-powered browser automation. The system uses natural language commands to execute complex multi-step workflows, eliminating the need for manual GHL configuration.
 
 **Key Features:**
 - **AI Agent Orchestration** - Natural language task execution with Google Gemini
@@ -50,7 +50,7 @@ GHL Agent AI is a white-label SaaS platform that enables agencies to automate Go
 ## 📁 Project Structure
 
 ```
-ghl-agency-ai/
+bottleneck-bot/
 ├── client/                    # Frontend React application
 │   ├── src/
 │   │   ├── components/        # UI components
@@ -76,10 +76,10 @@ ghl-agency-ai/
 │   └── 5-payment-to-onboarding.json
 │
 ├── docs/                      # Comprehensive documentation
-│   ├── GHL-Agent-Architecture-Report.md
+│   ├── Architecture-Report.md
 │   ├── Authentication-Architecture.md
 │   ├── Browserbase-Integration-Guide.md
-│   ├── GHL-Task-Priority-List.md
+│   ├── Task-Priority-List.md
 │   ├── AI-Agent-Training-Methodology.md
 │   └── GHL-Complete-Functions-Reference.md
 │
@@ -102,8 +102,8 @@ ghl-agency-ai/
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/Julianb233/ghl-agency-ai.git
-   cd ghl-agency-ai
+   git clone https://github.com/Julianb233/bottleneck-bot.git
+   cd bottleneck-bot
    ```
 
 2. **Install dependencies:**
@@ -152,6 +152,9 @@ GEMINI_API_KEY=your-gemini-api-key
 BROWSERBASE_API_KEY=your-browserbase-api-key
 BROWSERBASE_PROJECT_ID=your-project-id
 
+# GoHighLevel
+GHL_SECRET_KEY=your-ghl-secret-key
+
 # 1Password Connect
 ONEPASSWORD_CONNECT_URL=http://localhost:8080
 ONEPASSWORD_VAULT_ID=your-vault-id
@@ -176,10 +179,10 @@ N8N_WEBHOOK_URL=https://your-n8n-instance.app.n8n.cloud
 
 Comprehensive documentation is available in the `/docs` directory:
 
-1. **[System Architecture](./docs/GHL-Agent-Architecture-Report.md)** - Complete system design and service integrations
+1. **[System Architecture](./docs/Architecture-Report.md)** - Complete system design and service integrations
 2. **[Authentication Guide](./docs/Authentication-Architecture.md)** - 1Password, Gmail 2FA, and session management
 3. **[Browserbase Integration](./docs/Browserbase-Integration-Guide.md)** - Cloud browser setup and configuration
-4. **[GHL Task Priority List](./docs/GHL-Task-Priority-List.md)** - 50+ automation tasks ranked by frequency
+4. **[Task Priority List](./docs/Task-Priority-List.md)** - 50+ automation tasks ranked by frequency
 5. **[AI Agent Training](./docs/AI-Agent-Training-Methodology.md)** - Training methodology and knowledge storage
 6. **[GHL Functions Reference](./docs/GHL-Complete-Functions-Reference.md)** - 48 documented GHL functions with automation sequences
 
@@ -221,8 +224,6 @@ Five production-ready n8n workflows are included in `/n8n-workflows/`:
 - Google Gemini API: $50-200/month
 - 1Password: $20-60/month
 - n8n: $20-80/month (self-hosted) or $50-250/month (cloud)
-
-See [Cost Analysis](./docs/GHL-Agency-AI-Cost-Analysis-Updated.xlsx) for detailed ROI calculations.
 
 ---
 
@@ -331,9 +332,9 @@ This project is proprietary software. All rights reserved.
 ## 🆘 Support
 
 For technical support or questions:
-- **Email:** support@ghl-agent-ai.com
-- **Documentation:** https://docs.ghl-agent-ai.com
-- **GitHub Issues:** https://github.com/Julianb233/ghl-agency-ai/issues
+- **Email:** support@bottleneckbot.com
+- **Documentation:** https://docs.bottleneckbot.com
+- **GitHub Issues:** https://github.com/Julianb233/bottleneck-bot/issues
 
 ---
 
@@ -347,4 +348,4 @@ For technical support or questions:
 
 ---
 
-**Built with ❤️ by the GHL Agent AI Team**
+**Built with ❤️ by AI Acrobatics**

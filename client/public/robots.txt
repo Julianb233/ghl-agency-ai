@@ -3,7 +3,7 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://www.ghlagencyai.com/sitemap.xml
+Sitemap: https://www.bottleneckbot.com/sitemap.xml
 
 # Disallow API routes
 Disallow: /api/

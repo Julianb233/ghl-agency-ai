@@ -269,11 +269,11 @@ Merge three systems:
 - [x] Health check endpoints (`server/api/routers/health.ts` - 9 endpoints)
 - [ ] Uptime monitoring
 
-### 8.2 Agent Metrics ✅ MOSTLY COMPLETE
+### 8.2 Agent Metrics ✅ COMPLETE
 - [x] Track execution times (in execution history)
 - [x] Monitor tool usage (`tools.getToolMetrics` endpoint)
 - [x] Measure success rates (health router metrics)
-- [ ] Cost tracking
+- [x] Cost tracking (Claude, Gemini, Browserbase, S3 - with budget alerts)
 
 ---
 
@@ -402,8 +402,13 @@ Merge three systems:
 
 ### Remaining Work (Optional Enhancements)
 - [x] Vercel Analytics integration (Phase 8.1) - @vercel/analytics + @vercel/speed-insights
-- [ ] Cost tracking for agent executions (Phase 8.2)
-- [ ] Video tutorials for onboarding (Phase 11)
+- [x] Cost tracking for agent executions (Phase 8.2) - Full tracking for Claude, Gemini, Browserbase, S3
+  - `drizzle/schema-costs.ts` - Gemini + Storage tables, enhanced daily summaries
+  - `server/services/costTracking.service.ts` - Multi-provider tracking methods
+  - `server/api/routers/costs.ts` - 12 tRPC endpoints
+  - `client/src/components/dashboard/CostDashboard.tsx` - Analytics UI
+  - `drizzle/migrations/0011_enhanced_cost_tracking.sql` - Database migration
+- [ ] Video tutorials for onboarding (Phase 11) - Scripts ready in `docs/VIDEO_TUTORIALS.md`
 
 ---
 
