@@ -10,6 +10,7 @@
     "build",
     "dist",
     "**/*.test.ts",
+    "**/*.example.ts",
     "server/templates/**/*"
   ],
   "compilerOptions": {

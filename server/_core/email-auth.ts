@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import * as db from "../db";
 import { sdk } from "./sdk";
 import { getSessionCookieOptions } from "./cookies";
-import { COOKIE_NAME } from "@shared/const";
+import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 
 const router = Router();
 
@@ -119,7 +119,7 @@ router.post("/signup", async (req, res) => {
 
     // Set session cookie
     const cookieOptions = getSessionCookieOptions(req);
-    res.cookie(COOKIE_NAME, sessionToken, cookieOptions);
+    res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
 
     console.log("[Auth] Email signup successful for:", email);
 
@@ -156,10 +156,10 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ error: "Invalid email or password" });
     }
 
-    // Check if user has a password (might have signed up with Google)
+    // Check if user has a password set
     if (!user.password) {
       return res.status(401).json({
-        error: "This account uses Google Sign-In. Please use Google to log in."
+        error: "This account has no password set. Please use the password reset feature to set one."
       });
     }
 
@@ -176,10 +176,7 @@ router.post("/login", async (req, res) => {
     }
 
     // Update last signed in
-    await db.upsertUser({
-      email: user.email!,
-      lastSignedIn: new Date(),
-    });
+    await db.updateUserLastSignIn(user.id);
 
     // Create session token
     const sessionToken = await sdk.createSessionToken(
@@ -189,7 +186,7 @@ router.post("/login", async (req, res) => {
 
     // Set session cookie
     const cookieOptions = getSessionCookieOptions(req);
-    res.cookie(COOKIE_NAME, sessionToken, cookieOptions);
+    res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
 
     console.log("[Auth] Email login successful for:", email);
 

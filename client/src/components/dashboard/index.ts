@@ -11,3 +11,4 @@ export { QuickActions } from './QuickActions';
 export { PriorityWidget } from './PriorityWidget';
 export { PerformanceSummary } from './PerformanceSummary';
 export { CostDashboard } from './CostDashboard';
+export { VoiceCallsCard } from './VoiceCallsCard';

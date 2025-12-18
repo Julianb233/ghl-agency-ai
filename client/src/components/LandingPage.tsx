@@ -3,7 +3,6 @@ import { Button } from './ui/button';
 import { ArrowRight, CheckCircle2, Zap, Globe, Mail, Phone, BarChart3, Shield, Users, Clock, DollarSign, TrendingUp, Target, Sparkles, Crown, Rocket, Brain, Play, Menu, X } from 'lucide-react';
 import { SkipLink } from './SkipLink';
 import { ExitIntentPopup } from './ExitIntentPopup';
-import { CookieConsent } from './CookieConsent';
 import { CountdownTimer } from './CountdownTimer';
 import { TrustBadges, TrustBadgesInline } from './TrustBadges';
 import { LiveChat } from './LiveChat';
@@ -1231,8 +1230,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onNavigateToF
         }
       `}</style>
 
-      {/* Cookie Consent Banner */}
-      <CookieConsent />
 
       {/* Live Chat Widget */}
       <LiveChat />

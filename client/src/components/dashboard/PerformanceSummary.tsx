@@ -41,6 +41,14 @@ export function PerformanceSummary({ period = '7d' }: PerformanceSummaryProps) {
     }
   );
 
+  // Fetch performance trends for real trend calculations
+  const { data: trendsData } = trpc.analytics.getPerformanceTrends.useQuery(
+    { period: apiPeriod },
+    {
+      refetchInterval: 60000, // Refresh every 60 seconds
+    }
+  );
+
   const stats = data && 'successRate' in data ? data : null;
 
   // Calculate health score based on multiple metrics
@@ -110,13 +118,36 @@ export function PerformanceSummary({ period = '7d' }: PerformanceSummaryProps) {
 
   const statusConfig = getStatusConfig();
 
+  // Calculate real trend data by comparing first half vs second half of period
+  const calculateTrend = (metricName: 'executionCount' | 'successRate' | 'avgDuration'): number => {
+    if (!trendsData?.data || trendsData.data.length < 2) return 0;
+
+    const data = trendsData.data;
+    const midPoint = Math.floor(data.length / 2);
+
+    // Split into two periods
+    const firstHalf = data.slice(0, midPoint);
+    const secondHalf = data.slice(midPoint);
+
+    if (firstHalf.length === 0 || secondHalf.length === 0) return 0;
+
+    // Calculate averages for each half
+    const firstAvg = firstHalf.reduce((sum: number, d: Record<string, number>) => sum + (d[metricName] || 0), 0) / firstHalf.length;
+    const secondAvg = secondHalf.reduce((sum: number, d: Record<string, number>) => sum + (d[metricName] || 0), 0) / secondHalf.length;
+
+    if (firstAvg === 0) return 0;
+
+    const change = ((secondAvg - firstAvg) / firstAvg) * 100;
+    return Math.round(change * 10) / 10;
+  };
+
   const metrics = [
     {
       label: 'Success Rate',
       value: stats?.successRate || 0,
       unit: '%',
       icon: <CheckCircle2 className="w-4 h-4" />,
-      trend: 0, // TODO: Calculate trend from historical data
+      trend: calculateTrend('successRate'),
       target: 95,
     },
     {
@@ -124,7 +155,7 @@ export function PerformanceSummary({ period = '7d' }: PerformanceSummaryProps) {
       value: stats?.averageDuration ? (stats.averageDuration / 1000).toFixed(1) : '0',
       unit: 's',
       icon: <Clock className="w-4 h-4" />,
-      trend: 0, // TODO: Calculate trend from historical data
+      trend: calculateTrend('avgDuration'),
       target: null, // Lower is better
       invertTrend: true,
     },
@@ -133,7 +164,7 @@ export function PerformanceSummary({ period = '7d' }: PerformanceSummaryProps) {
       value: stats ? Math.round(stats.totalExecutions / 7) : 0,
       unit: '',
       icon: <Zap className="w-4 h-4" />,
-      trend: 0, // TODO: Calculate trend from historical data
+      trend: calculateTrend('executionCount'),
       target: null,
     },
   ];

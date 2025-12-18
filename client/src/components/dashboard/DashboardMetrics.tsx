@@ -99,12 +99,21 @@ export function DashboardMetrics({ period = '30d', className }: DashboardMetrics
   // Map period to API format
   const apiPeriod = period === '7d' ? 'week' : period === '30d' ? 'month' : 'quarter';
 
-  // Fetch execution stats
+  // Fetch execution stats for current period
   const statsQuery = trpc.analytics.getExecutionStats.useQuery(
     { period: apiPeriod },
     {
       refetchInterval: 30000, // Refetch every 30 seconds
       refetchOnWindowFocus: true,
+    }
+  );
+
+  // Fetch performance trends to calculate real trends
+  const trendsQuery = trpc.analytics.getPerformanceTrends.useQuery(
+    { period: apiPeriod },
+    {
+      refetchInterval: 60000, // Refetch every 60 seconds
+      refetchOnWindowFocus: false,
     }
   );
 
@@ -114,6 +123,7 @@ export function DashboardMetrics({ period = '30d', className }: DashboardMetrics
   });
 
   const statsData = statsQuery.data && 'successCount' in statsQuery.data ? statsQuery.data : null;
+  const trendsData = trendsQuery.data;
   const subscription = subscriptionQuery.data;
   const isLoading = statsQuery.isLoading;
 
@@ -125,10 +135,26 @@ export function DashboardMetrics({ period = '30d', className }: DashboardMetrics
     : 0;
   const activeAgents = subscription?.limits?.maxAgents || 0;
 
-  // Mock trend data - in a real app, you'd compare with previous period
-  const calculateTrend = (current: number, baseline: number = 0) => {
-    if (baseline === 0) return null;
-    const change = ((current - baseline) / baseline) * 100;
+  // Calculate real trend data by comparing first half vs second half of period
+  const calculateTrend = (metricName: 'executionCount' | 'successRate' | 'avgDuration') => {
+    if (!trendsData?.data || trendsData.data.length < 2) return null;
+
+    const data = trendsData.data;
+    const midPoint = Math.floor(data.length / 2);
+
+    // Split into two periods
+    const firstHalf = data.slice(0, midPoint);
+    const secondHalf = data.slice(midPoint);
+
+    if (firstHalf.length === 0 || secondHalf.length === 0) return null;
+
+    // Calculate averages for each half
+    const firstAvg = firstHalf.reduce((sum: number, d: Record<string, number>) => sum + (d[metricName] || 0), 0) / firstHalf.length;
+    const secondAvg = secondHalf.reduce((sum: number, d: Record<string, number>) => sum + (d[metricName] || 0), 0) / secondHalf.length;
+
+    if (firstAvg === 0) return null;
+
+    const change = ((secondAvg - firstAvg) / firstAvg) * 100;
     return {
       value: Math.round(change * 10) / 10,
       isPositive: change >= 0,
@@ -143,7 +169,7 @@ export function DashboardMetrics({ period = '30d', className }: DashboardMetrics
         icon={<CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-500" />}
         description={`${period} period`}
         loading={isLoading}
-        trend={calculateTrend(tasksCompleted, tasksCompleted * 0.85) || undefined}
+        trend={calculateTrend('executionCount') || undefined}
         className="hover:shadow-md transition-shadow"
       />
 
@@ -157,14 +183,7 @@ export function DashboardMetrics({ period = '30d', className }: DashboardMetrics
             : 'No executions yet'
         }
         loading={isLoading}
-        trend={
-          successRate > 0
-            ? {
-                value: Math.round((successRate - 90) * 10) / 10,
-                isPositive: successRate >= 90,
-              }
-            : undefined
-        }
+        trend={calculateTrend('successRate') || undefined}
         className="hover:shadow-md transition-shadow"
       />
 
@@ -175,12 +194,15 @@ export function DashboardMetrics({ period = '30d', className }: DashboardMetrics
         description="Per execution"
         loading={isLoading}
         trend={
-          averageTime > 0
-            ? {
-                value: -12.5,
-                isPositive: true, // Lower is better for time
-              }
-            : undefined
+          (() => {
+            const trend = calculateTrend('avgDuration');
+            if (!trend) return undefined;
+            // Invert the trend since lower duration is better
+            return {
+              value: trend.value,
+              isPositive: !trend.isPositive,
+            };
+          })()
         }
         className="hover:shadow-md transition-shadow"
       />
