@@ -5,7 +5,7 @@ import { createServer } from "http";
 import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
-import { registerGoogleAuthRoutes } from "./google-auth.ts";
+import { registerGoogleAuthRoutes } from "./google-auth";
 import { emailAuthRouter } from "./email-auth";
 import { onboardingRouter } from "./onboarding";
 import { registerSSERoutes } from "./sse-routes";
@@ -116,7 +116,7 @@ export async function createApp() {
     });
   });
 
-  // OAuth callback under /api/oauth/callback
+  // OAuth callback under /api/oauth/callback (for integrations, not user auth)
   registerOAuthRoutes(app);
   // Google Auth routes
   registerGoogleAuthRoutes(app);
