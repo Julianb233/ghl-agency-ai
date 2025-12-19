@@ -337,6 +337,24 @@ export async function updateUserPassword(userId: number, hashedPassword: string)
   }
 }
 
+export async function updateUserLastSignIn(userId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot update last sign in: database not available");
+    return;
+  }
+
+  try {
+    const now = new Date();
+    await db.update(users)
+      .set({ lastSignedIn: now, updatedAt: now })
+      .where(eq(users.id, userId));
+  } catch (error) {
+    console.error("[Database] Failed to update last sign in:", error);
+    throw error;
+  }
+}
+
 // Export pool for raw SQL queries (used by MCP database tools)
 export async function getPool(): Promise<pg.Pool | null> {
   if (!_pool) {
