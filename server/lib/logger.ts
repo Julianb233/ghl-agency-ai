@@ -5,32 +5,38 @@
 
 import pino from 'pino';
 
-// Determine log level from environment
-const LOG_LEVEL = process.env.LOG_LEVEL || (process.env.NODE_ENV === 'production' ? 'info' : 'debug');
+// Determine log level from environment - normalize NODE_ENV by trimming whitespace
+const NODE_ENV = (process.env.NODE_ENV || '').trim();
+const IS_DEVELOPMENT = NODE_ENV === 'development';
+const IS_PRODUCTION = NODE_ENV === 'production' || process.env.VERCEL === '1';
+const LOG_LEVEL = process.env.LOG_LEVEL || (IS_PRODUCTION ? 'info' : 'debug');
 
-// Create base logger with appropriate transport
-export const logger = pino({
+// Build pino options - completely exclude transport in production to avoid pino-pretty resolution
+const pinoOptions: pino.LoggerOptions = {
   level: LOG_LEVEL,
-  transport: process.env.NODE_ENV === 'development'
-    ? {
-        target: 'pino-pretty',
-        options: {
-          colorize: true,
-          translateTime: 'HH:MM:ss',
-          ignore: 'pid,hostname',
-        }
-      }
-    : undefined,
   formatters: {
     level: (label) => {
       return { level: label };
     },
   },
-  // Add timestamp in production
-  timestamp: process.env.NODE_ENV === 'production'
-    ? pino.stdTimeFunctions.isoTime
-    : false,
-});
+  timestamp: IS_PRODUCTION ? pino.stdTimeFunctions.isoTime : false,
+};
+
+// Only add transport config in development (local) mode
+// Completely skip it in production/Vercel to avoid transport resolution issues
+if (IS_DEVELOPMENT && !process.env.VERCEL) {
+  pinoOptions.transport = {
+    target: 'pino-pretty',
+    options: {
+      colorize: true,
+      translateTime: 'HH:MM:ss',
+      ignore: 'pid,hostname',
+    }
+  };
+}
+
+// Create base logger
+export const logger = pino(pinoOptions);
 
 // Create child loggers for each service
 export const serviceLoggers = {
