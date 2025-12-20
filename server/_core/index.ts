@@ -5,12 +5,14 @@ import { createServer } from "http";
 import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
+import { registerGoogleAuthRoutes } from "./google-auth";
 import { emailAuthRouter } from "./email-auth";
 import { onboardingRouter } from "./onboarding";
 import { registerSSERoutes } from "./sse-routes";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
-import { serveStatic, setupVite } from "./vite";
+// Only import serveStatic statically - setupVite is loaded dynamically for development only
+import { serveStatic } from "./vite";
 import { webhookEndpointsRouter } from "../api/webhookEndpoints";
 import { schedulerRunnerService } from "../services/schedulerRunner.service";
 import { memoryCleanupScheduler } from "../services/memory";
@@ -117,6 +119,8 @@ export async function createApp() {
 
   // OAuth callback under /api/oauth/callback (for integrations, not user auth)
   registerOAuthRoutes(app);
+  // Google OAuth routes for user authentication
+  registerGoogleAuthRoutes(app);
   // Email/Password Auth routes
   app.use("/api/auth", emailAuthRouter);
   // Onboarding routes
@@ -139,7 +143,12 @@ export async function createApp() {
     })
   );
   // development mode uses Vite, production mode uses static files
-  if (process.env.NODE_ENV === "development") {
+  // Normalize NODE_ENV by trimming whitespace (isVercel already defined above)
+  const nodeEnv = (process.env.NODE_ENV || '').trim();
+
+  if (nodeEnv === "development" && !isVercel) {
+    // Dynamically import setupVite to avoid bundling vite/rollup in production
+    const { setupVite } = await import("./vite");
     const server = createServer(app);
     await setupVite(app, server);
   } else {
