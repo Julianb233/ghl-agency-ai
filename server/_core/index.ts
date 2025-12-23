@@ -6,6 +6,7 @@ import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { registerGoogleAuthRoutes } from "./google-auth";
+import oauthIntegrationRoutes from "../api/routes/oauth";
 import { emailAuthRouter } from "./email-auth";
 import { onboardingRouter } from "./onboarding";
 import { registerSSERoutes } from "./sse-routes";
@@ -119,10 +120,12 @@ export async function createApp() {
     app.use(express.urlencoded({ limit: "50mb", extended: true }));
   }
 
-  // OAuth callback under /api/oauth/callback (for integrations, not user auth)
+  // OAuth callback under /api/oauth/callback (for user auth via WorkOS/Google)
   registerOAuthRoutes(app);
   // Google OAuth routes for user authentication
   registerGoogleAuthRoutes(app);
+  // Integration OAuth routes (Gmail, Outlook, etc.) under /api/oauth/{provider}/callback
+  app.use("/api/oauth", oauthIntegrationRoutes);
   // Email/Password Auth routes
   app.use("/api/auth", emailAuthRouter);
   // Onboarding routes
