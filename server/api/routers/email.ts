@@ -68,7 +68,7 @@ export const emailRouter = router({
       const codeVerifier = oauthStateService.generateCodeVerifier();
 
       // Store state for validation
-      oauthStateService.set(state, {
+      await oauthStateService.set(state, {
         userId: userId.toString(),
         provider: input.provider,
         codeVerifier,
@@ -105,7 +105,7 @@ export const emailRouter = router({
       }
 
       // Validate state
-      const stateData = oauthStateService.consume(input.state);
+      const stateData = await oauthStateService.consume(input.state);
       if (!stateData) {
         throw new TRPCError({
           code: "BAD_REQUEST",

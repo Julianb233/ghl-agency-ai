@@ -39,18 +39,37 @@ const router = express.Router();
 // ========================================
 
 /**
- * PLACEHOLDER: Set encryption key in environment variables
- * Add to .env: ENCRYPTION_KEY=<32-byte-hex-string>
+ * Encryption key for OAuth tokens
+ * REQUIRED: Must be a 64-character hex string (32 bytes)
  * Generate with: openssl rand -hex 32
  */
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || "PLACEHOLDER_ENCRYPTION_KEY_REPLACE_ME_32_BYTES_HEX";
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
 const ALGORITHM = "aes-256-gcm";
 const IV_LENGTH = 16;
+
+// Validate encryption key at startup
+if (!ENCRYPTION_KEY) {
+  console.error("[OAuth] CRITICAL: ENCRYPTION_KEY environment variable is not set!");
+  console.error("[OAuth] Generate one with: openssl rand -hex 32");
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("ENCRYPTION_KEY must be set in production");
+  }
+} else if (ENCRYPTION_KEY.length !== 64 || !/^[0-9a-fA-F]+$/.test(ENCRYPTION_KEY)) {
+  console.error("[OAuth] CRITICAL: ENCRYPTION_KEY must be a 64-character hex string!");
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("ENCRYPTION_KEY must be a 64-character hex string");
+  }
+}
 
 /**
  * Encrypt sensitive data (tokens)
  */
 function encrypt(text: string): string {
+  if (!ENCRYPTION_KEY) {
+    console.error("[OAuth] Cannot encrypt - ENCRYPTION_KEY not set");
+    throw new Error("ENCRYPTION_KEY is required for token encryption");
+  }
+
   try {
     const iv = crypto.randomBytes(IV_LENGTH);
     const cipher = crypto.createCipheriv(
@@ -94,7 +113,7 @@ const OAUTH_CONFIGS = {
     userInfoUrl: "https://www.googleapis.com/oauth2/v2/userinfo",
     clientId: process.env.GMAIL_CLIENT_ID || process.env.GOOGLE_CLIENT_ID || "PLACEHOLDER_GMAIL_CLIENT_ID",
     clientSecret: process.env.GMAIL_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET || "PLACEHOLDER_GMAIL_CLIENT_SECRET",
-    redirectUri: process.env.GMAIL_REDIRECT_URI || "http://localhost:3000/api/auth/oauth/gmail/callback",
+    redirectUri: process.env.GMAIL_REDIRECT_URI || "http://localhost:3000/api/oauth/gmail/callback",
   },
   outlook: {
     tokenUrl: "https://login.microsoftonline.com/common/oauth2/v2.0/token",
@@ -102,7 +121,7 @@ const OAUTH_CONFIGS = {
     userInfoUrl: "https://graph.microsoft.com/v1.0/me",
     clientId: process.env.OUTLOOK_CLIENT_ID || "PLACEHOLDER_OUTLOOK_CLIENT_ID",
     clientSecret: process.env.OUTLOOK_CLIENT_SECRET || "PLACEHOLDER_OUTLOOK_CLIENT_SECRET",
-    redirectUri: process.env.OUTLOOK_REDIRECT_URI || "http://localhost:3000/api/auth/oauth/outlook/callback",
+    redirectUri: process.env.OUTLOOK_REDIRECT_URI || "http://localhost:3000/api/oauth/outlook/callback",
   },
   facebook: {
     tokenUrl: "https://graph.facebook.com/v18.0/oauth/access_token",
@@ -110,7 +129,7 @@ const OAUTH_CONFIGS = {
     userInfoUrl: "https://graph.facebook.com/v18.0/me",
     clientId: process.env.FACEBOOK_CLIENT_ID || "PLACEHOLDER_FACEBOOK_CLIENT_ID",
     clientSecret: process.env.FACEBOOK_CLIENT_SECRET || "PLACEHOLDER_FACEBOOK_CLIENT_SECRET",
-    redirectUri: process.env.FACEBOOK_REDIRECT_URI || "http://localhost:3000/api/auth/oauth/facebook/callback",
+    redirectUri: process.env.FACEBOOK_REDIRECT_URI || "http://localhost:3000/api/oauth/facebook/callback",
   },
   instagram: {
     tokenUrl: "https://api.instagram.com/oauth/access_token",
@@ -118,7 +137,7 @@ const OAUTH_CONFIGS = {
     userInfoUrl: "https://graph.instagram.com/me",
     clientId: process.env.INSTAGRAM_CLIENT_ID || "PLACEHOLDER_INSTAGRAM_CLIENT_ID",
     clientSecret: process.env.INSTAGRAM_CLIENT_SECRET || "PLACEHOLDER_INSTAGRAM_CLIENT_SECRET",
-    redirectUri: process.env.INSTAGRAM_REDIRECT_URI || "http://localhost:3000/api/auth/oauth/instagram/callback",
+    redirectUri: process.env.INSTAGRAM_REDIRECT_URI || "http://localhost:3000/api/oauth/instagram/callback",
   },
   linkedin: {
     tokenUrl: "https://www.linkedin.com/oauth/v2/accessToken",
@@ -126,7 +145,7 @@ const OAUTH_CONFIGS = {
     userInfoUrl: "https://api.linkedin.com/v2/me",
     clientId: process.env.LINKEDIN_CLIENT_ID || "PLACEHOLDER_LINKEDIN_CLIENT_ID",
     clientSecret: process.env.LINKEDIN_CLIENT_SECRET || "PLACEHOLDER_LINKEDIN_CLIENT_SECRET",
-    redirectUri: process.env.LINKEDIN_REDIRECT_URI || "http://localhost:3000/api/auth/oauth/linkedin/callback",
+    redirectUri: process.env.LINKEDIN_REDIRECT_URI || "http://localhost:3000/api/oauth/linkedin/callback",
   },
 } as const;
 
@@ -181,7 +200,7 @@ async function handleOAuthCallback(
 
   try {
     // Step 1: Validate and consume state (CSRF protection)
-    const stateData = oauthStateService.consume(state);
+    const stateData = await oauthStateService.consume(state);
 
     if (!stateData) {
       console.error(`[OAuth] ${provider} invalid or expired state:`, {
@@ -402,8 +421,8 @@ router.get("/linkedin/callback", async (req, res) => {
 /**
  * Health check endpoint for OAuth service
  */
-router.get("/health", (req, res) => {
-  const stats = oauthStateService.getStats();
+router.get("/health", async (req, res) => {
+  const stats = await oauthStateService.getStats();
 
   res.json({
     status: "ok",
