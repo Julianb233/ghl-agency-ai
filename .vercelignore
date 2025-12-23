@@ -1,3 +1,9 @@
 # Don't ignore dist folder - it's needed for production
 !dist
 
+# Ignore local .env to use Vercel env vars
+.env
+.env.local
+.env.development
+.env.production
+
