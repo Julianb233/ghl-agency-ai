@@ -1,0 +1,124 @@
+{
+  "monitors": [
+    {
+      "name": "GHL Agency AI - Server Liveness",
+      "description": "Critical: Server availability check using liveness probe",
+      "url": "https://ghlagencyai.com/api/trpc/health.liveness",
+      "method": "GET",
+      "interval": 60,
+      "timeout": 10,
+      "regions": ["US East", "US West"],
+      "expected_status_codes": [200],
+      "expected_response_contains": "ok",
+      "alert_after_minutes": 2,
+      "severity": "critical"
+    },
+    {
+      "name": "GHL Agency AI - Service Readiness",
+      "description": "Critical: Service readiness check (circuit breaker validation)",
+      "url": "https://ghlagencyai.com/api/trpc/health.readiness",
+      "method": "GET",
+      "interval": 60,
+      "timeout": 10,
+      "regions": ["US East", "US West"],
+      "expected_status_codes": [200],
+      "expected_response_contains": "ready\":true",
+      "alert_after_minutes": 2,
+      "severity": "critical"
+    },
+    {
+      "name": "GHL Agency AI - Web Dashboard",
+      "description": "High: Frontend web application availability",
+      "url": "https://ghlagencyai.com/",
+      "method": "GET",
+      "interval": 120,
+      "timeout": 15,
+      "regions": ["US East", "US West", "Europe"],
+      "expected_status_codes": [200],
+      "alert_after_minutes": 5,
+      "severity": "high"
+    },
+    {
+      "name": "GHL Agency AI - Metrics Endpoint",
+      "description": "Medium: System metrics and circuit breaker status",
+      "url": "https://ghlagencyai.com/api/trpc/health.getMetrics",
+      "method": "GET",
+      "interval": 300,
+      "timeout": 10,
+      "regions": ["US East"],
+      "expected_status_codes": [200],
+      "alert_after_minutes": 10,
+      "severity": "medium"
+    }
+  ],
+  "alert_policies": [
+    {
+      "name": "Critical Downtime Alert",
+      "condition": "Any critical monitor down for 2+ minutes",
+      "notifications": [
+        {
+          "type": "slack",
+          "channel": "#alerts",
+          "mention": "@channel"
+        },
+        {
+          "type": "email",
+          "recipients": ["engineering@ghlagencyai.com"]
+        }
+      ],
+      "repeat_interval_minutes": 15
+    },
+    {
+      "name": "High Priority Alert",
+      "condition": "Any high priority monitor down for 5+ minutes",
+      "notifications": [
+        {
+          "type": "slack",
+          "channel": "#alerts"
+        },
+        {
+          "type": "email",
+          "recipients": ["engineering@ghlagencyai.com"]
+        }
+      ],
+      "repeat_interval_minutes": 30
+    }
+  ],
+  "status_page": {
+    "name": "GHL Agency AI Status",
+    "subdomain": "ghlagencyai-status",
+    "custom_domain": "status.ghlagencyai.com",
+    "components": [
+      {
+        "name": "API Services",
+        "description": "Core API health and readiness",
+        "monitors": ["Server Liveness", "Service Readiness"]
+      },
+      {
+        "name": "Web Dashboard",
+        "description": "User-facing web application",
+        "monitors": ["Web Dashboard"]
+      },
+      {
+        "name": "AI Processing",
+        "description": "AI model integration and processing",
+        "monitors": ["Metrics Endpoint"]
+      }
+    ]
+  },
+  "sla_targets": {
+    "api_availability": "99.9%",
+    "response_time_p95": "2000ms",
+    "mean_time_to_detection": "120 seconds",
+    "mean_time_to_resolution": "900 seconds"
+  },
+  "monitored_services": [
+    "vapi (Voice AI)",
+    "apify (Web scraping)",
+    "browserbase (Cloud browser)",
+    "openai (AI model)",
+    "anthropic (AI model)",
+    "gmail (Email integration)",
+    "outlook (Email integration)"
+  ]
+}
