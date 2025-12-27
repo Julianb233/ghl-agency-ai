@@ -28,7 +28,7 @@ import { TRPCError } from "@trpc/server";
 import { CreditService } from "../../services/credit.service";
 import { getDb } from "../../db";
 import { credit_packages } from "../../../drizzle/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 export const stripeWebhookRouter = Router();
 
@@ -60,9 +60,6 @@ interface ProcessedStripeEvent {
 /**
  * Check if Stripe event has already been processed
  * Prevents duplicate credit awards from webhook retries
- *
- * Note: This function is a placeholder until the stripe_processed_events table is created
- * via database migration (drizzle/migrations/add-stripe-idempotency.sql)
  */
 async function checkProcessedEvent(eventId: string): Promise<ProcessedStripeEvent | null> {
   const db = await getDb();
@@ -72,28 +69,24 @@ async function checkProcessedEvent(eventId: string): Promise<ProcessedStripeEven
   }
 
   try {
-    // TODO: After applying migration, implement this query:
-    // const result = await db.query.stripe_processed_events.findFirst({
-    //   where: (table) => eq(table.stripe_event_id, eventId),
-    // });
-    // return result || null;
+    const result = await db.execute(sql`
+      SELECT * FROM stripe_processed_events
+      WHERE stripe_event_id = ${eventId}
+      LIMIT 1
+    `);
 
-    // For now, return null (no duplicate prevention yet)
-    // This will be fully implemented after migration
-    console.log(`[Stripe Webhook] Idempotency check skipped for event ${eventId} (table not yet created)`);
+    if (result.rows && result.rows.length > 0) {
+      return result.rows[0] as unknown as ProcessedStripeEvent;
+    }
     return null;
   } catch (error) {
-    // Table might not exist yet - log and continue
-    console.warn("[Stripe Webhook] Could not check processed events (table may not exist):", error);
+    console.warn("[Stripe Webhook] Could not check processed events:", error);
     return null;
   }
 }
 
 /**
  * Mark Stripe event as processed
- *
- * Note: This function is a placeholder until the stripe_processed_events table is created
- * via database migration (drizzle/migrations/add-stripe-idempotency.sql)
  */
 async function markEventProcessed(
   eventId: string,
@@ -108,12 +101,13 @@ async function markEventProcessed(
   }
 
   try {
-    // TODO: After applying migration, implement this query:
-    // INSERT INTO stripe_processed_events
-    // (stripe_event_id, event_type, status, error_message, processed_at, created_at)
-    // VALUES ($1, $2, $3, $4, NOW(), NOW())
-    // ON CONFLICT (stripe_event_id)
-    // DO UPDATE SET status = $3, error_message = $4, processed_at = NOW()
+    await db.execute(sql`
+      INSERT INTO stripe_processed_events
+      (stripe_event_id, event_type, status, error_message, processed_at, created_at, updated_at)
+      VALUES (${eventId}, ${eventType}, ${status}, ${errorMessage || null}, NOW(), NOW(), NOW())
+      ON CONFLICT (stripe_event_id)
+      DO UPDATE SET status = ${status}, error_message = ${errorMessage || null}, processed_at = NOW(), updated_at = NOW()
+    `);
 
     console.log(
       `[Stripe Webhook] Marked event ${eventId} as ${status}${errorMessage ? `: ${errorMessage}` : ""}`

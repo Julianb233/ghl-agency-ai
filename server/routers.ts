@@ -7,7 +7,7 @@ import { voiceRouter } from "./api/routers/voice";
 import { seoRouter } from "./api/routers/seo";
 import { adsRouter } from "./api/routers/ads";
 import { marketplaceRouter } from "./api/routers/marketplace";
-import { stripeWebhookRouter } from "./api/routers/stripe-webhook";
+// Stripe webhook moved to Express route for signature verification - see server/api/webhooks/stripe.ts
 import { tasksRouter } from "./api/routers/tasks";
 import { templatesRouter } from "./api/routers/templates";
 import { workflowsRouter } from "./api/routers/workflows";
@@ -41,6 +41,7 @@ import { subAccountsRouter } from "./api/routers/subAccounts";
 import { agentPermissionsRouter } from "./api/routers/agentPermissions";
 import { agentMemoryRouter } from "./api/routers/agentMemory";
 import { costsRouter } from "./api/routers/costs";
+import { blogRouter } from "./api/routers/blog";
 import { publicProcedure, router } from "./_core/trpc";
 
 export const appRouter = router({
@@ -64,7 +65,7 @@ export const appRouter = router({
   seo: seoRouter,
   ads: adsRouter,
   marketplace: marketplaceRouter,
-  stripeWebhook: stripeWebhookRouter,
+  // stripeWebhook removed - now handled by Express route at /api/webhooks/stripe
   tasks: tasksRouter,
   templates: templatesRouter,
   workflows: workflowsRouter,
@@ -132,6 +133,9 @@ export const appRouter = router({
 
   // Agent Memory (Browser Agent Training & Learning)
   agentMemory: agentMemoryRouter,
+
+  // Blog (Notion CMS)
+  blog: blogRouter,
 });
 
 export type AppRouter = typeof appRouter;

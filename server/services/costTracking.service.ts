@@ -190,6 +190,15 @@ export interface BudgetStatus {
   shouldAlert: boolean;
 }
 
+export interface BudgetCheckResult {
+  allowed: boolean;
+  reason?: string;
+  budgetType?: "daily" | "weekly" | "monthly";
+  currentSpend?: number;
+  limit?: number;
+  percentUsed?: number;
+}
+
 // ========================================
 // COST TRACKING SERVICE
 // ========================================
@@ -907,8 +916,163 @@ export class CostTrackingService {
       })
       .where(eq(costBudgets.userId, userId));
 
-    // TODO: Implement alert notifications when threshold is reached
-    // This would integrate with the alerts system (schema-alerts.ts)
+    // Send alert notifications if at threshold
+    await this.sendBudgetAlertIfNeeded(userId);
+  }
+
+  /**
+   * Check if user can execute based on budget limits
+   * Called BEFORE task execution to block over-budget users
+   */
+  async checkBudgetBeforeExecution(userId: number): Promise<BudgetCheckResult> {
+    const budgetStatus = await this.getBudgetStatus(userId);
+
+    // No budget configured = allowed
+    if (!budgetStatus.hasBudget) {
+      return { allowed: true };
+    }
+
+    // Check daily budget
+    if (budgetStatus.dailyLimit !== undefined && budgetStatus.dailySpend >= budgetStatus.dailyLimit) {
+      return {
+        allowed: false,
+        reason: `Daily budget limit reached ($${budgetStatus.dailySpend.toFixed(2)} of $${budgetStatus.dailyLimit.toFixed(2)})`,
+        budgetType: "daily",
+        currentSpend: budgetStatus.dailySpend,
+        limit: budgetStatus.dailyLimit,
+        percentUsed: (budgetStatus.dailySpend / budgetStatus.dailyLimit) * 100,
+      };
+    }
+
+    // Check weekly budget
+    if (budgetStatus.weeklyLimit !== undefined && budgetStatus.weeklySpend >= budgetStatus.weeklyLimit) {
+      return {
+        allowed: false,
+        reason: `Weekly budget limit reached ($${budgetStatus.weeklySpend.toFixed(2)} of $${budgetStatus.weeklyLimit.toFixed(2)})`,
+        budgetType: "weekly",
+        currentSpend: budgetStatus.weeklySpend,
+        limit: budgetStatus.weeklyLimit,
+        percentUsed: (budgetStatus.weeklySpend / budgetStatus.weeklyLimit) * 100,
+      };
+    }
+
+    // Check monthly budget
+    if (budgetStatus.monthlyLimit !== undefined && budgetStatus.monthlySpend >= budgetStatus.monthlyLimit) {
+      return {
+        allowed: false,
+        reason: `Monthly budget limit reached ($${budgetStatus.monthlySpend.toFixed(2)} of $${budgetStatus.monthlyLimit.toFixed(2)})`,
+        budgetType: "monthly",
+        currentSpend: budgetStatus.monthlySpend,
+        limit: budgetStatus.monthlyLimit,
+        percentUsed: (budgetStatus.monthlySpend / budgetStatus.monthlyLimit) * 100,
+      };
+    }
+
+    // All checks passed
+    return { allowed: true };
+  }
+
+  /**
+   * Send budget threshold alert notification if needed
+   */
+  async sendBudgetAlertIfNeeded(userId: number): Promise<void> {
+    const db = await getDb();
+    if (!db) return;
+
+    const budgetStatus = await this.getBudgetStatus(userId);
+
+    if (!budgetStatus.hasBudget || !budgetStatus.shouldAlert) {
+      return;
+    }
+
+    // Import alert tables
+    const { inAppNotifications } = await import("../../drizzle/schema-alerts");
+
+    // Check which budget is at threshold
+    let alertTitle = "";
+    let alertMessage = "";
+    let alertType: "warning" | "error" = "warning";
+
+    if (budgetStatus.dailyLimit !== undefined) {
+      const dailyPercent = (budgetStatus.dailySpend / budgetStatus.dailyLimit) * 100;
+      if (dailyPercent >= 100) {
+        alertTitle = "Daily Budget Exceeded";
+        alertMessage = `You've exceeded your daily budget of $${budgetStatus.dailyLimit.toFixed(2)}. Current spend: $${budgetStatus.dailySpend.toFixed(2)} (${dailyPercent.toFixed(0)}%). New executions will be blocked.`;
+        alertType = "error";
+      } else if (dailyPercent >= 80) {
+        alertTitle = "Daily Budget Warning";
+        alertMessage = `You've used ${dailyPercent.toFixed(0)}% of your daily budget ($${budgetStatus.dailySpend.toFixed(2)} of $${budgetStatus.dailyLimit.toFixed(2)}). Consider adjusting usage.`;
+      }
+    }
+
+    if (!alertTitle && budgetStatus.weeklyLimit !== undefined) {
+      const weeklyPercent = (budgetStatus.weeklySpend / budgetStatus.weeklyLimit) * 100;
+      if (weeklyPercent >= 100) {
+        alertTitle = "Weekly Budget Exceeded";
+        alertMessage = `You've exceeded your weekly budget of $${budgetStatus.weeklyLimit.toFixed(2)}. Current spend: $${budgetStatus.weeklySpend.toFixed(2)} (${weeklyPercent.toFixed(0)}%). New executions will be blocked.`;
+        alertType = "error";
+      } else if (weeklyPercent >= 80) {
+        alertTitle = "Weekly Budget Warning";
+        alertMessage = `You've used ${weeklyPercent.toFixed(0)}% of your weekly budget ($${budgetStatus.weeklySpend.toFixed(2)} of $${budgetStatus.weeklyLimit.toFixed(2)}). Consider adjusting usage.`;
+      }
+    }
+
+    if (!alertTitle && budgetStatus.monthlyLimit !== undefined) {
+      const monthlyPercent = (budgetStatus.monthlySpend / budgetStatus.monthlyLimit) * 100;
+      if (monthlyPercent >= 100) {
+        alertTitle = "Monthly Budget Exceeded";
+        alertMessage = `You've exceeded your monthly budget of $${budgetStatus.monthlyLimit.toFixed(2)}. Current spend: $${budgetStatus.monthlySpend.toFixed(2)} (${monthlyPercent.toFixed(0)}%). New executions will be blocked.`;
+        alertType = "error";
+      } else if (monthlyPercent >= 80) {
+        alertTitle = "Monthly Budget Warning";
+        alertMessage = `You've used ${monthlyPercent.toFixed(0)}% of your monthly budget ($${budgetStatus.monthlySpend.toFixed(2)} of $${budgetStatus.monthlyLimit.toFixed(2)}). Consider adjusting usage.`;
+      }
+    }
+
+    if (!alertTitle) {
+      return; // No alert needed
+    }
+
+    // Check if we already sent a similar alert recently (within 1 hour)
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    const recentAlerts = await db
+      .select()
+      .from(inAppNotifications)
+      .where(
+        and(
+          eq(inAppNotifications.userId, userId),
+          eq(inAppNotifications.title, alertTitle),
+          gte(inAppNotifications.createdAt, oneHourAgo)
+        )
+      )
+      .limit(1);
+
+    if (recentAlerts.length > 0) {
+      return; // Already sent this alert type recently
+    }
+
+    // Create in-app notification
+    await db.insert(inAppNotifications).values({
+      userId,
+      title: alertTitle,
+      message: alertMessage,
+      type: alertType,
+      priority: alertType === "error" ? 10 : 7,
+      metadata: {
+        budgetStatus: {
+          dailySpend: budgetStatus.dailySpend,
+          dailyLimit: budgetStatus.dailyLimit,
+          weeklySpend: budgetStatus.weeklySpend,
+          weeklyLimit: budgetStatus.weeklyLimit,
+          monthlySpend: budgetStatus.monthlySpend,
+          monthlyLimit: budgetStatus.monthlyLimit,
+        },
+      },
+      actionUrl: "/settings/billing",
+      actionLabel: "Manage Budget",
+    });
+
+    console.log(`[CostTracking] Sent budget alert to user ${userId}: ${alertTitle}`);
   }
 
   /**

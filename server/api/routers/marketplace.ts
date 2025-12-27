@@ -1,9 +1,10 @@
 import { z } from "zod";
-import { publicProcedure, router } from "../../_core/trpc";
+import { publicProcedure, protectedProcedure, router } from "../../_core/trpc";
 import { getDb } from "../../db";
 import { credit_packages } from "../../../drizzle/schema";
 import { eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
+import { getSubscriptionService } from "../../services/subscription.service";
 
 /**
  * Marketplace Router
@@ -240,33 +241,75 @@ export const marketplaceRouter = router({
     /**
      * Get user's subscription status
      */
-    getSubscription: publicProcedure.query(async () => {
-        // TODO: Query Stripe for active subscriptions
-        // TODO: Return subscription details and features
+    getSubscription: protectedProcedure.query(async ({ ctx }) => {
+        const userId = ctx.user?.id;
+        if (!userId) {
+            throw new TRPCError({
+                code: "UNAUTHORIZED",
+                message: "User not authenticated",
+            });
+        }
+
+        const subscriptionService = getSubscriptionService();
+        const subscription = await subscriptionService.getUserSubscription(userId);
+
+        if (!subscription) {
+            return {
+                hasSubscription: false,
+                plan: null,
+                features: [],
+                nextBillingDate: null,
+            };
+        }
+
         return {
-            hasSubscription: false,
-            plan: null,
-            features: [],
-            nextBillingDate: null,
+            hasSubscription: subscription.subscription.status === "active",
+            plan: {
+                name: subscription.tier.name,
+                slug: subscription.tier.slug,
+                priceMonthly: subscription.tier.monthlyPriceCents / 100, // Convert cents to dollars
+            },
+            features: subscription.tier.features || [],
+            nextBillingDate: subscription.subscription.currentPeriodEnd,
+            usage: subscription.usage,
+            limits: subscription.limits,
         };
     }),
 
     /**
      * Cancel subscription
      */
-    cancelSubscription: publicProcedure
+    cancelSubscription: protectedProcedure
         .input(
             z.object({
-                subscriptionId: z.string(),
+                cancelImmediately: z.boolean().default(false),
                 reason: z.string().optional(),
             })
         )
-        .mutation(async ({ input }) => {
-            // TODO: Cancel subscription in Stripe
-            // TODO: Update user's feature access
-            return {
-                success: false,
-                message: "Subscription management not yet implemented",
-            };
+        .mutation(async ({ input, ctx }) => {
+            const userId = ctx.user?.id;
+            if (!userId) {
+                throw new TRPCError({
+                    code: "UNAUTHORIZED",
+                    message: "User not authenticated",
+                });
+            }
+
+            try {
+                const subscriptionService = getSubscriptionService();
+                await subscriptionService.cancelStripeSubscription(userId, input.cancelImmediately);
+
+                return {
+                    success: true,
+                    message: input.cancelImmediately
+                        ? "Subscription cancelled immediately"
+                        : "Subscription will cancel at end of billing period",
+                };
+            } catch (error: any) {
+                throw new TRPCError({
+                    code: "INTERNAL_SERVER_ERROR",
+                    message: `Failed to cancel subscription: ${error.message}`,
+                });
+            }
         }),
 });

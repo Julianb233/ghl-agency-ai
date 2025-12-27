@@ -6,6 +6,7 @@ import { eq, and, desc, or } from "drizzle-orm";
 import { taskExecutions, agencyTasks } from "../../../drizzle/schema-webhooks";
 import { getAgentOrchestrator } from "../../services/agentOrchestrator.service";
 import { getSubscriptionService } from "../../services/subscription.service";
+import { getCostTrackingService } from "../../services/costTracking.service";
 
 /**
  * Agent tRPC Router
@@ -87,6 +88,24 @@ export const agentRouter = router({
               suggestedAction: limitCheck.suggestedAction,
               currentUsage: limitCheck.currentUsage,
               limit: limitCheck.limit,
+            },
+          });
+        }
+
+        // Check budget limits before executing
+        const costTrackingService = getCostTrackingService();
+        const budgetCheck = await costTrackingService.checkBudgetBeforeExecution(userId);
+
+        if (!budgetCheck.allowed) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: budgetCheck.reason || "Budget limit reached",
+            cause: {
+              budgetType: budgetCheck.budgetType,
+              currentSpend: budgetCheck.currentSpend,
+              limit: budgetCheck.limit,
+              percentUsed: budgetCheck.percentUsed,
+              suggestedAction: "Increase your budget limit in Settings > Billing or wait for the next period",
             },
           });
         }

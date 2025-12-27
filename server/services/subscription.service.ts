@@ -628,6 +628,255 @@ class SubscriptionService {
 
     return purchase;
   }
+
+  // ========================================
+  // STRIPE INTEGRATION
+  // ========================================
+
+  /**
+   * Create or get Stripe customer for user
+   */
+  async getOrCreateStripeCustomer(userId: number): Promise<string> {
+    const db = await getDb();
+    if (!db) throw new Error("Database not initialized");
+
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    if (!stripeSecretKey) throw new Error("STRIPE_SECRET_KEY not configured");
+
+    const Stripe = (await import("stripe")).default;
+    const stripe = new Stripe(stripeSecretKey, {
+      apiVersion: "2024-12-18.acacia" as any,
+    });
+
+    // Check if user already has a Stripe customer ID
+    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    if (!user) throw new Error(`User not found: ${userId}`);
+
+    // Check subscription for existing Stripe customer ID
+    const [subscription] = await db
+      .select()
+      .from(userSubscriptions)
+      .where(eq(userSubscriptions.userId, userId))
+      .limit(1);
+
+    if (subscription?.stripeCustomerId) {
+      return subscription.stripeCustomerId;
+    }
+
+    // Create new Stripe customer
+    const customer = await stripe.customers.create({
+      email: user.email,
+      name: user.name || undefined,
+      metadata: {
+        userId: String(userId),
+      },
+    });
+
+    // Update subscription with Stripe customer ID
+    if (subscription) {
+      await db
+        .update(userSubscriptions)
+        .set({
+          stripeCustomerId: customer.id,
+          updatedAt: new Date(),
+        })
+        .where(eq(userSubscriptions.userId, userId));
+    }
+
+    console.log(`[SubscriptionService] Created Stripe customer ${customer.id} for user ${userId}`);
+    return customer.id;
+  }
+
+  /**
+   * Create Stripe subscription for user
+   */
+  async createStripeSubscription(
+    userId: number,
+    tierSlug: string
+  ): Promise<{ subscriptionId: string; clientSecret?: string }> {
+    const db = await getDb();
+    if (!db) throw new Error("Database not initialized");
+
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    if (!stripeSecretKey) throw new Error("STRIPE_SECRET_KEY not configured");
+
+    const Stripe = (await import("stripe")).default;
+    const stripe = new Stripe(stripeSecretKey, {
+      apiVersion: "2024-12-18.acacia" as any,
+    });
+
+    // Get tier
+    const [tier] = await db
+      .select()
+      .from(subscriptionTiers)
+      .where(eq(subscriptionTiers.slug, tierSlug))
+      .limit(1);
+
+    if (!tier) throw new Error(`Tier not found: ${tierSlug}`);
+    if (!tier.stripePriceId) throw new Error(`Tier ${tierSlug} has no Stripe price ID configured`);
+
+    // Get or create Stripe customer
+    const customerId = await this.getOrCreateStripeCustomer(userId);
+
+    // Create Stripe subscription
+    const subscription = await stripe.subscriptions.create({
+      customer: customerId,
+      items: [{ price: tier.stripePriceId }],
+      payment_behavior: "default_incomplete",
+      payment_settings: { save_default_payment_method: "on_subscription" },
+      expand: ["latest_invoice.payment_intent"],
+      metadata: {
+        userId: String(userId),
+        tierSlug,
+      },
+    });
+
+    // Get client secret for payment confirmation
+    const invoice = subscription.latest_invoice as Stripe.Invoice;
+    const paymentIntent = invoice?.payment_intent as Stripe.PaymentIntent;
+    const clientSecret = paymentIntent?.client_secret || undefined;
+
+    // Update our subscription record
+    await db
+      .update(userSubscriptions)
+      .set({
+        stripeSubscriptionId: subscription.id,
+        stripeCustomerId: customerId,
+        status: subscription.status === "active" ? "active" : "pending",
+        updatedAt: new Date(),
+      })
+      .where(eq(userSubscriptions.userId, userId));
+
+    console.log(`[SubscriptionService] Created Stripe subscription ${subscription.id} for user ${userId}`);
+
+    return {
+      subscriptionId: subscription.id,
+      clientSecret,
+    };
+  }
+
+  /**
+   * Sync subscription status from Stripe
+   * Called by webhook on subscription events
+   */
+  async syncSubscriptionFromStripe(stripeSubscriptionId: string): Promise<void> {
+    const db = await getDb();
+    if (!db) throw new Error("Database not initialized");
+
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    if (!stripeSecretKey) throw new Error("STRIPE_SECRET_KEY not configured");
+
+    const Stripe = (await import("stripe")).default;
+    const stripe = new Stripe(stripeSecretKey, {
+      apiVersion: "2024-12-18.acacia" as any,
+    });
+
+    // Fetch subscription from Stripe
+    const stripeSubscription = await stripe.subscriptions.retrieve(stripeSubscriptionId);
+
+    // Find our subscription record
+    const [subscription] = await db
+      .select()
+      .from(userSubscriptions)
+      .where(eq(userSubscriptions.stripeSubscriptionId, stripeSubscriptionId))
+      .limit(1);
+
+    if (!subscription) {
+      console.warn(`[SubscriptionService] No local subscription found for Stripe subscription ${stripeSubscriptionId}`);
+      return;
+    }
+
+    // Map Stripe status to our status
+    let status: "active" | "cancelled" | "pending" | "expired" | "past_due";
+    switch (stripeSubscription.status) {
+      case "active":
+        status = "active";
+        break;
+      case "past_due":
+        status = "past_due";
+        break;
+      case "canceled":
+        status = "cancelled";
+        break;
+      case "unpaid":
+      case "incomplete":
+      case "incomplete_expired":
+        status = "expired";
+        break;
+      default:
+        status = "pending";
+    }
+
+    // Update our subscription
+    await db
+      .update(userSubscriptions)
+      .set({
+        status,
+        currentPeriodStart: new Date(stripeSubscription.current_period_start * 1000),
+        currentPeriodEnd: new Date(stripeSubscription.current_period_end * 1000),
+        cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end,
+        updatedAt: new Date(),
+      })
+      .where(eq(userSubscriptions.id, subscription.id));
+
+    console.log(`[SubscriptionService] Synced subscription ${subscription.id} status to ${status}`);
+  }
+
+  /**
+   * Cancel Stripe subscription
+   */
+  async cancelStripeSubscription(userId: number, cancelImmediately = false): Promise<void> {
+    const db = await getDb();
+    if (!db) throw new Error("Database not initialized");
+
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+    if (!stripeSecretKey) throw new Error("STRIPE_SECRET_KEY not configured");
+
+    const Stripe = (await import("stripe")).default;
+    const stripe = new Stripe(stripeSecretKey, {
+      apiVersion: "2024-12-18.acacia" as any,
+    });
+
+    // Get subscription
+    const [subscription] = await db
+      .select()
+      .from(userSubscriptions)
+      .where(eq(userSubscriptions.userId, userId))
+      .limit(1);
+
+    if (!subscription?.stripeSubscriptionId) {
+      throw new Error("No active Stripe subscription found");
+    }
+
+    if (cancelImmediately) {
+      // Cancel immediately
+      await stripe.subscriptions.cancel(subscription.stripeSubscriptionId);
+
+      await db
+        .update(userSubscriptions)
+        .set({
+          status: "cancelled",
+          cancelledAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(userSubscriptions.id, subscription.id));
+    } else {
+      // Cancel at period end
+      await stripe.subscriptions.update(subscription.stripeSubscriptionId, {
+        cancel_at_period_end: true,
+      });
+
+      await db
+        .update(userSubscriptions)
+        .set({
+          cancelAtPeriodEnd: true,
+          updatedAt: new Date(),
+        })
+        .where(eq(userSubscriptions.id, subscription.id));
+    }
+
+    console.log(`[SubscriptionService] Cancelled subscription for user ${userId} (immediate: ${cancelImmediately})`);
+  }
 }
 
 // Export singleton

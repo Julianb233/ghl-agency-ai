@@ -15,6 +15,7 @@ import { createContext } from "./context";
 // Only import serveStatic statically - setupVite is loaded dynamically for development only
 import { serveStatic } from "./vite";
 import { webhookEndpointsRouter } from "../api/webhookEndpoints";
+import stripeWebhookRouter from "../api/webhooks/stripe";
 import { schedulerRunnerService } from "../services/schedulerRunner.service";
 import { memoryCleanupScheduler } from "../services/memory";
 import { getDb } from "../db";
@@ -102,6 +103,10 @@ export async function createApp() {
       },
     })
   );
+
+  // Stripe webhook route MUST come BEFORE body parsers
+  // Stripe needs raw body for signature verification
+  app.use("/api/webhooks/stripe", stripeWebhookRouter);
 
   // On Vercel, the body is already parsed and attached to req.body
   // We need to skip express.json() parsing to avoid "Bad Request" errors
