@@ -20,7 +20,7 @@
  * - Cleanup: await contextIsolation.cleanupContext(contextId)
  */
 
-import crypto from "crypto";
+import * as crypto from "crypto";
 import { getDb } from "../db";
 import { eq, and, lt } from "drizzle-orm";
 import { browserContexts, securityAuditLog } from "../../drizzle/schema-security";

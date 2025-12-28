@@ -14,7 +14,7 @@
 
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
-import { db } from "../db";
+import { getDb } from "../db";
 import {
   users,
   passwordResetTokens,
@@ -23,7 +23,7 @@ import {
   type UserRegistration,
   type EmailPasswordCredentials,
 } from "../../drizzle/schema";
-import { eq, and, gt } from "drizzle-orm";
+import { eq, and, gt, isNull } from "drizzle-orm";
 
 // ========================================
 // Configuration
@@ -43,6 +43,9 @@ const MAX_LOGIN_ATTEMPTS_PER_HOUR = 5;
  * Automatically hashes the password and creates an email verification token
  */
 export async function registerUser(data: UserRegistration) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not initialized");
+
   // Hash the password
   const hashedPassword = await bcrypt.hash(data.password, BCRYPT_ROUNDS);
 
@@ -79,6 +82,9 @@ export async function loginWithEmailPassword(
   ipAddress: string,
   userAgent?: string
 ): Promise<{ success: true; user: typeof users.$inferSelect } | { success: false; reason: string }> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not initialized");
+
   const email = credentials.email.toLowerCase().trim();
 
   // Check rate limiting
@@ -140,6 +146,9 @@ export async function loginWithEmailPassword(
  * Returns the unhashed token to send via email
  */
 export async function createPasswordResetToken(email: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not initialized");
+
   const [user] = await db
     .select()
     .from(users)
@@ -172,11 +181,14 @@ export async function createPasswordResetToken(email: string) {
  * Reset password using a valid token
  */
 export async function resetPassword(token: string, newPassword: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not initialized");
+
   // Find valid token
   const [resetToken] = await db
     .select()
     .from(passwordResetTokens)
-    .where(and(gt(passwordResetTokens.expiresAt, new Date()), eq(passwordResetTokens.usedAt, null)))
+    .where(and(gt(passwordResetTokens.expiresAt, new Date()), isNull(passwordResetTokens.usedAt)))
     .limit(100); // Get all unexpired tokens
 
   if (!resetToken) {
@@ -209,6 +221,9 @@ export async function resetPassword(token: string, newPassword: string) {
  * Create an email verification token
  */
 async function createEmailVerificationToken(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not initialized");
+
   const token = crypto.randomBytes(32).toString("hex");
   const hashedToken = await bcrypt.hash(token, BCRYPT_ROUNDS);
 
@@ -228,10 +243,13 @@ async function createEmailVerificationToken(userId: number) {
  * Verify email using token
  */
 export async function verifyEmail(token: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not initialized");
+
   const [verificationToken] = await db
     .select()
     .from(emailVerificationTokens)
-    .where(and(gt(emailVerificationTokens.expiresAt, new Date()), eq(emailVerificationTokens.verifiedAt, null)))
+    .where(and(gt(emailVerificationTokens.expiresAt, new Date()), isNull(emailVerificationTokens.verifiedAt)))
     .limit(100);
 
   if (!verificationToken) {
@@ -266,6 +284,9 @@ async function trackLoginAttempt(
   failureReason: string | null,
   userAgent?: string
 ) {
+  const db = await getDb();
+  if (!db) return; // Silently fail for tracking
+
   await db.insert(loginAttempts).values({
     email: email.toLowerCase().trim(),
     ipAddress,
@@ -279,6 +300,9 @@ async function trackLoginAttempt(
  * Check recent login attempts for rate limiting
  */
 async function checkLoginAttempts(email: string, ipAddress: string): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0; // If DB unavailable, allow login attempts
+
   const oneHourAgo = new Date();
   oneHourAgo.setHours(oneHourAgo.getHours() - 1);
 

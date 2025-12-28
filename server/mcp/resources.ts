@@ -257,7 +257,7 @@ export class TemplateResourceProvider implements ResourceProvider {
   async listResources(context?: MCPContext): Promise<MCPResource[]> {
     const resources: MCPResource[] = [];
 
-    for (const [name, template] of this.templates.entries()) {
+    for (const [name, template] of Array.from(this.templates.entries())) {
       resources.push({
         uri: `template:///${name}`,
         name,

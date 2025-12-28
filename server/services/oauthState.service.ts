@@ -23,7 +23,7 @@
  * 3. Deploy to Vercel
  */
 
-import crypto from "crypto";
+import * as crypto from "crypto";
 import { redisService } from "./redis.service";
 import { serviceLoggers } from "../lib/logger";
 

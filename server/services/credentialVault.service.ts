@@ -16,7 +16,7 @@
  * - Delete: await credentialVault.deleteCredential(userId, credentialId)
  */
 
-import crypto from "crypto";
+import * as crypto from "crypto";
 import { getDb } from "../db";
 import { eq, and } from "drizzle-orm";
 import { credentials, securityAuditLog } from "../../drizzle/schema-security";

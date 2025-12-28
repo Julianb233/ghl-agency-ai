@@ -19,7 +19,7 @@ import { google } from "googleapis";
 import { OAuth2Client } from "google-auth-library";
 import { Client } from "@microsoft/microsoft-graph-client";
 import { TRPCError } from "@trpc/server";
-import crypto from "crypto";
+import * as crypto from "crypto";
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import { withRetry, DEFAULT_RETRY_OPTIONS } from '../lib/retry';

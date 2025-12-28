@@ -23,6 +23,7 @@ import {
   type UserAgentAddOn,
 } from "../../drizzle/schema-subscriptions";
 import { users } from "../../drizzle/schema";
+import type Stripe from "stripe";
 
 // ========================================
 // TYPES
@@ -732,8 +733,8 @@ class SubscriptionService {
     });
 
     // Get client secret for payment confirmation
-    const invoice = subscription.latest_invoice as Stripe.Invoice;
-    const paymentIntent = invoice?.payment_intent as Stripe.PaymentIntent;
+    const invoice = subscription.latest_invoice as Stripe.Invoice | undefined;
+    const paymentIntent = (invoice as any)?.payment_intent as Stripe.PaymentIntent | undefined;
     const clientSecret = paymentIntent?.client_secret || undefined;
 
     // Update our subscription record
@@ -772,7 +773,7 @@ class SubscriptionService {
     });
 
     // Fetch subscription from Stripe
-    const stripeSubscription = await stripe.subscriptions.retrieve(stripeSubscriptionId);
+    const stripeSubscription = await stripe.subscriptions.retrieve(stripeSubscriptionId) as Stripe.Subscription;
 
     // Find our subscription record
     const [subscription] = await db
@@ -812,9 +813,9 @@ class SubscriptionService {
       .update(userSubscriptions)
       .set({
         status,
-        currentPeriodStart: new Date(stripeSubscription.current_period_start * 1000),
-        currentPeriodEnd: new Date(stripeSubscription.current_period_end * 1000),
-        cancelAtPeriodEnd: stripeSubscription.cancel_at_period_end,
+        currentPeriodStart: new Date(((stripeSubscription as any).current_period_start as number) * 1000),
+        currentPeriodEnd: new Date(((stripeSubscription as any).current_period_end as number) * 1000),
+        cancelAtPeriodEnd: (stripeSubscription as any).cancel_at_period_end,
         updatedAt: new Date(),
       })
       .where(eq(userSubscriptions.id, subscription.id));

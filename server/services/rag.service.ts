@@ -13,7 +13,7 @@ import {
   type DocumentationChunk,
 } from "../../drizzle/schema-rag";
 import { generateEmbedding, generateEmbeddings, chunkText } from "../rag/embeddings";
-import crypto from "crypto";
+import * as crypto from "crypto";
 import { serviceLoggers } from "../lib/logger";
 
 const logger = serviceLoggers.rag;

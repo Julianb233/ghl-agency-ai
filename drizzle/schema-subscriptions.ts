@@ -43,6 +43,9 @@ export const subscriptionTiers = pgTable("subscription_tiers", {
   monthlyPriceCents: integer("monthlyPriceCents").notNull(),
   setupFeeCents: integer("setupFeeCents").default(0).notNull(),
 
+  // Stripe integration
+  stripePriceId: varchar("stripePriceId", { length: 255 }), // Stripe Price ID for subscription
+
   // Payment frequency discounts (percentage off monthly price)
   weeklyPremiumPercent: integer("weeklyPremiumPercent").default(15).notNull(), // +15% for weekly
   sixMonthDiscountPercent: integer("sixMonthDiscountPercent").default(5).notNull(), // -5% for 6-month

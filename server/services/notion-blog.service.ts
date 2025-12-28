@@ -23,7 +23,7 @@ import type {
   BlogFilters,
   NotionDatabaseConfig,
   DEFAULT_NOTION_PROPERTIES,
-} from "@shared/types/blog";
+} from "../../shared/types/blog";
 
 // Notion client singleton
 let notionClient: Client | null = null;
@@ -126,7 +126,7 @@ export class NotionBlogService {
     }
 
     try {
-      const response = await notion.databases.query({
+      const response = await (notion.databases as any).query({
         database_id: this.databaseId,
         filter:
           filterConditions.length > 1
@@ -200,7 +200,7 @@ export class NotionBlogService {
     }
 
     try {
-      const response = await notion.databases.query({
+      const response = await (notion.databases as any).query({
         database_id: this.databaseId,
         filter: {
           and: [
@@ -401,8 +401,8 @@ export class NotionBlogService {
         const person = authorProp.people[0];
         author = {
           id: person.id,
-          name: person.name || "Anonymous",
-          avatar: person.avatar_url || undefined,
+          name: (person as any).name || "Anonymous",
+          avatar: (person as any).avatar_url || undefined,
         };
       }
 

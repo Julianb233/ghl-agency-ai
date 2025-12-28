@@ -291,8 +291,8 @@ export const mcpRouter = router({
         }
 
         const resources = await registry.listResources({
-          sessionId: ctx.session?.user?.id,
-          userId: ctx.session?.user?.id,
+          sessionId: ctx.user?.id,
+          userId: ctx.user?.id,
         });
 
         return {
@@ -326,8 +326,8 @@ export const mcpRouter = router({
           }
 
           const content = await registry.readResource(input.uri, {
-            sessionId: ctx.session?.user?.id,
-            userId: ctx.session?.user?.id,
+            sessionId: ctx.user?.id,
+            userId: ctx.user?.id,
           });
 
           return content;
@@ -358,8 +358,8 @@ export const mcpRouter = router({
           }
 
           const exists = await registry.hasResource(input.uri, {
-            sessionId: ctx.session?.user?.id,
-            userId: ctx.session?.user?.id,
+            sessionId: ctx.user?.id,
+            userId: ctx.user?.id,
           });
 
           return { exists };
@@ -425,8 +425,8 @@ export const mcpRouter = router({
             input.name,
             input.arguments || {},
             {
-              sessionId: ctx.session?.user?.id,
-              userId: ctx.session?.user?.id,
+              sessionId: ctx.user?.id,
+              userId: ctx.user?.id,
             }
           );
 

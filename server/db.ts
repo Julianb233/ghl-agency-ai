@@ -84,7 +84,10 @@ export async function upsertUser(user: InsertUser): Promise<void> {
   }
 
   try {
-    const values: InsertUser = {};
+    // Email is required for InsertUser, use empty string as fallback
+    const values: InsertUser = {
+      email: user.email ?? "",
+    };
     if (user.openId) values.openId = user.openId;
     if (user.googleId) values.googleId = user.googleId;
 
@@ -96,8 +99,9 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     const assignNullable = (field: TextField) => {
       const value = user[field];
       if (value === undefined) return;
-      const normalized = value ?? null;
-      values[field] = normalized;
+      // For email specifically, ensure it's never null
+      const normalized = field === "email" ? (value || "") : (value ?? null);
+      values[field] = normalized as any;
       updateSet[field] = normalized;
     };
 
