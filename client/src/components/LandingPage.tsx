@@ -9,6 +9,7 @@ import { CountdownTimer } from './CountdownTimer';
 import { TrustBadges, TrustBadgesInline } from './TrustBadges';
 import { LiveChat } from './LiveChat';
 import { useConversionTracking } from '@/hooks/useConversionTracking';
+import { MobileMenu, MobileMenuItem, MobileMenuDivider } from './ui/MobileMenu';
 
 // Web 3.0 Components
 import { BlobBackground } from './ui/BlobBackground';
@@ -158,27 +159,50 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onNavigateToF
           </div>
         </div>
 
-        {/* Mobile Navigation Menu */}
-        {isMobileMenuOpen && (
-          <div className="lg:hidden absolute top-full left-0 right-0 bg-white border-b border-gray-200 shadow-lg z-50">
-            <nav className="flex flex-col p-4 gap-4">
-              {onNavigateToFeatures && (
-                <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToFeatures(); setIsMobileMenuOpen(false); }} className="text-sm font-medium text-gray-700 hover:text-emerald-600 py-3 px-4 min-h-[44px] flex items-center rounded-md hover:bg-gray-50 transition-colors">Features</a>
-              )}
-              <a href="/pricing" className="text-sm font-medium text-gray-700 hover:text-emerald-600 py-3 px-4 min-h-[44px] flex items-center rounded-md hover:bg-gray-50 transition-colors">Pricing</a>
-              <a href="/use-cases" className="text-sm font-medium text-gray-700 hover:text-emerald-600 py-3 px-4 min-h-[44px] flex items-center rounded-md hover:bg-gray-50 transition-colors">Use Cases</a>
-              <a href="/docs" className="text-sm font-medium text-gray-700 hover:text-emerald-600 py-3 px-4 min-h-[44px] flex items-center rounded-md hover:bg-gray-50 transition-colors">Docs</a>
-              <a href="/about" className="text-sm font-medium text-gray-700 hover:text-emerald-600 py-3 px-4 min-h-[44px] flex items-center rounded-md hover:bg-gray-50 transition-colors">About</a>
-              <hr className="border-gray-200" />
-              <Button variant="ghost" onClick={() => handleCTAClick('mobile_menu_login')} className="font-semibold text-sm text-gray-700 hover:text-emerald-600 justify-start">
+        {/* Enhanced Mobile Navigation Menu */}
+        <MobileMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)}>
+          <nav className="flex flex-col gap-2">
+            {onNavigateToFeatures && (
+              <MobileMenuItem
+                onClick={(e) => {
+                  e.preventDefault();
+                  onNavigateToFeatures();
+                  setIsMobileMenuOpen(false);
+                }}
+              >
+                Features
+              </MobileMenuItem>
+            )}
+            <MobileMenuItem href="/pricing">Pricing</MobileMenuItem>
+            <MobileMenuItem href="/use-cases">Use Cases</MobileMenuItem>
+            <MobileMenuItem href="/docs">Docs</MobileMenuItem>
+            <MobileMenuItem href="/about">About</MobileMenuItem>
+
+            <MobileMenuDivider />
+
+            <div className="space-y-2 pt-2">
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  handleCTAClick('mobile_menu_login');
+                  setIsMobileMenuOpen(false);
+                }}
+                className="w-full font-semibold text-sm text-gray-700 hover:text-emerald-600 min-h-[44px]"
+              >
                 Log In
               </Button>
-              <Button onClick={() => handleCTAClick('mobile_menu_start_free')} className="bg-gradient-to-r from-emerald-600 via-green-500 to-teal-500 hover:from-emerald-700 hover:via-green-600 hover:to-teal-600 text-white rounded-full font-bold">
+              <Button
+                onClick={() => {
+                  handleCTAClick('mobile_menu_start_free');
+                  setIsMobileMenuOpen(false);
+                }}
+                className="w-full bg-gradient-to-r from-emerald-600 via-green-500 to-teal-500 hover:from-emerald-700 hover:via-green-600 hover:to-teal-600 text-white rounded-full font-bold min-h-[44px]"
+              >
                 Start Free <ArrowRight className="w-4 h-4 ml-2" aria-hidden="true" />
               </Button>
-            </nav>
-          </div>
-        )}
+            </div>
+          </nav>
+        </MobileMenu>
       </nav>
 
       {/* Hero Section - Direct Response Style with Web 3.0 Effects */}
