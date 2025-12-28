@@ -42,6 +42,7 @@ import { agentPermissionsRouter } from "./api/routers/agentPermissions";
 import { agentMemoryRouter } from "./api/routers/agentMemory";
 import { costsRouter } from "./api/routers/costs";
 import { blogRouter } from "./api/routers/blog";
+import { securityRouter } from "./api/routers/security";
 import { publicProcedure, router } from "./_core/trpc";
 
 export const appRouter = router({
@@ -93,6 +94,9 @@ export const appRouter = router({
   // Settings & Configuration
   apiKeys: apiKeysRouter,
   settings: settingsRouter,
+
+  // Security & Credentials
+  security: securityRouter,
 
   // Webhooks & Communication
   webhooks: webhooksRouter,

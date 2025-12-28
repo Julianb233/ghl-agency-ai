@@ -29,6 +29,12 @@ export const credentials = pgTable("credentials", {
   /** Credential type */
   type: varchar("type", { length: 50 }).notNull(), // 'password', 'api_key', 'oauth_token', 'ssh_key'
 
+  /** Domain for auto-fill (e.g., "app.gohighlevel.com", "gmail.com") */
+  domain: varchar("domain", { length: 500 }),
+
+  /** Username for login credentials */
+  username: varchar("username", { length: 255 }),
+
   /** Encrypted credential data (username, password, token, etc.) */
   encryptedData: text("encryptedData").notNull(),
 

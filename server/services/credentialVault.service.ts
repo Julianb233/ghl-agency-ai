@@ -46,6 +46,8 @@ export interface StoreCredentialParams {
   name: string;
   service: string;
   type: CredentialType;
+  domain?: string;
+  username?: string;
   data: CredentialData;
   metadata?: Record<string, unknown>;
 }
@@ -55,6 +57,8 @@ export interface RetrievedCredential {
   name: string;
   service: string;
   type: CredentialType;
+  domain?: string | null;
+  username?: string | null;
   data: CredentialData;
   metadata?: Record<string, unknown>;
   lastUsedAt?: Date | null;
@@ -66,6 +70,8 @@ export interface CredentialListItem {
   name: string;
   service: string;
   type: CredentialType;
+  domain?: string | null;
+  username?: string | null;
   metadata?: Record<string, unknown>;
   lastUsedAt?: Date | null;
   useCount: number;
@@ -212,6 +218,8 @@ export class CredentialVaultService {
           name: params.name,
           service: params.service,
           type: params.type,
+          domain: params.domain || null,
+          username: params.username || null,
           encryptedData: encrypted,
           iv,
           authTag,
@@ -334,6 +342,8 @@ export class CredentialVaultService {
         name: credential.name,
         service: credential.service,
         type: credential.type as CredentialType,
+        domain: credential.domain,
+        username: credential.username,
         data,
         metadata: credential.metadata as Record<string, unknown> | undefined,
         lastUsedAt: credential.lastUsedAt,
@@ -384,6 +394,8 @@ export class CredentialVaultService {
           name: credentials.name,
           service: credentials.service,
           type: credentials.type,
+          domain: credentials.domain,
+          username: credentials.username,
           metadata: credentials.metadata,
           lastUsedAt: credentials.lastUsedAt,
           useCount: credentials.useCount,
@@ -402,6 +414,8 @@ export class CredentialVaultService {
         name: cred.name,
         service: cred.service,
         type: cred.type as CredentialType,
+        domain: cred.domain,
+        username: cred.username,
         metadata: cred.metadata as Record<string, unknown> | undefined,
         lastUsedAt: cred.lastUsedAt,
         useCount: cred.useCount,
@@ -410,6 +424,183 @@ export class CredentialVaultService {
     } catch (error) {
       throw new Error(
         `Failed to list credentials: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    }
+  }
+
+  /**
+   * Find credentials for a specific domain (for browser auto-fill)
+   */
+  async findByDomain(
+    userId: number,
+    domain: string
+  ): Promise<CredentialListItem[]> {
+    const db = await getDb();
+    if (!db) {
+      throw new Error("Database not initialized");
+    }
+
+    try {
+      // Normalize domain (remove protocol, www, etc.)
+      const normalizedDomain = domain
+        .replace(/^https?:\/\//, "")
+        .replace(/^www\./, "")
+        .split("/")[0]
+        .toLowerCase();
+
+      const results = await db
+        .select({
+          id: credentials.id,
+          name: credentials.name,
+          service: credentials.service,
+          type: credentials.type,
+          domain: credentials.domain,
+          username: credentials.username,
+          metadata: credentials.metadata,
+          lastUsedAt: credentials.lastUsedAt,
+          useCount: credentials.useCount,
+          createdAt: credentials.createdAt,
+        })
+        .from(credentials)
+        .where(
+          and(
+            eq(credentials.userId, userId),
+            eq(credentials.isActive, true),
+            eq(credentials.type, "password")
+          )
+        )
+        .orderBy(credentials.lastUsedAt);
+
+      // Filter by domain match (exact or subdomain)
+      const filtered = results.filter((cred) => {
+        if (!cred.domain) return false;
+        const credDomain = cred.domain
+          .replace(/^https?:\/\//, "")
+          .replace(/^www\./, "")
+          .split("/")[0]
+          .toLowerCase();
+        return (
+          credDomain === normalizedDomain ||
+          normalizedDomain.endsWith("." + credDomain) ||
+          credDomain.endsWith("." + normalizedDomain)
+        );
+      });
+
+      console.log(
+        `[CredentialVault] Found ${filtered.length} credentials for domain ${domain}`
+      );
+
+      return filtered.map((cred) => ({
+        id: cred.id,
+        name: cred.name,
+        service: cred.service,
+        type: cred.type as CredentialType,
+        domain: cred.domain,
+        username: cred.username,
+        metadata: cred.metadata as Record<string, unknown> | undefined,
+        lastUsedAt: cred.lastUsedAt,
+        useCount: cred.useCount,
+        createdAt: cred.createdAt,
+      }));
+    } catch (error) {
+      throw new Error(
+        `Failed to find credentials for domain: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    }
+  }
+
+  /**
+   * Update credential data (re-encrypt with new data)
+   */
+  async updateCredential(
+    userId: number,
+    credentialId: number,
+    params: Partial<StoreCredentialParams>
+  ): Promise<void> {
+    const db = await getDb();
+    if (!db) {
+      throw new Error("Database not initialized");
+    }
+
+    try {
+      // Verify ownership
+      const [credential] = await db
+        .select()
+        .from(credentials)
+        .where(
+          and(
+            eq(credentials.id, credentialId),
+            eq(credentials.userId, userId),
+            eq(credentials.isActive, true)
+          )
+        )
+        .limit(1);
+
+      if (!credential) {
+        throw new Error("Credential not found or access denied");
+      }
+
+      const updateData: Record<string, unknown> = {
+        updatedAt: new Date(),
+      };
+
+      // Update simple fields
+      if (params.name !== undefined) updateData.name = params.name;
+      if (params.service !== undefined) updateData.service = params.service;
+      if (params.type !== undefined) updateData.type = params.type;
+      if (params.domain !== undefined) updateData.domain = params.domain;
+      if (params.username !== undefined) updateData.username = params.username;
+      if (params.metadata !== undefined) updateData.metadata = params.metadata;
+
+      // Re-encrypt data if provided
+      if (params.data) {
+        const plaintext = JSON.stringify(params.data);
+        const { encrypted, iv, authTag } = encryptData(plaintext);
+        updateData.encryptedData = encrypted;
+        updateData.iv = iv;
+        updateData.authTag = authTag;
+      }
+
+      await db
+        .update(credentials)
+        .set(updateData)
+        .where(eq(credentials.id, credentialId));
+
+      // Audit log
+      await this.auditLog(db, {
+        userId,
+        action: "credential_update",
+        resourceType: "credential",
+        resourceId: credentialId,
+        details: {
+          fieldsUpdated: Object.keys(updateData).filter(
+            (k) => k !== "updatedAt" && k !== "encryptedData" && k !== "iv" && k !== "authTag"
+          ),
+        },
+        success: true,
+      });
+
+      console.log(
+        `[CredentialVault] Updated credential ${credentialId} for user ${userId}`
+      );
+    } catch (error) {
+      // Audit log failure
+      await this.auditLog(db, {
+        userId,
+        action: "credential_update",
+        resourceType: "credential",
+        resourceId: credentialId,
+        details: {},
+        success: false,
+        errorMessage: error instanceof Error ? error.message : "Unknown error",
+      });
+
+      throw new Error(
+        `Failed to update credential: ${
           error instanceof Error ? error.message : "Unknown error"
         }`
       );

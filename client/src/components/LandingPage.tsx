@@ -110,17 +110,14 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onNavigateToF
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center gap-8 text-sm font-medium text-gray-700">
+          <div className="hidden lg:flex items-center gap-6 text-sm font-medium text-gray-700">
             {onNavigateToFeatures && (
               <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToFeatures(); }} className="hover:text-emerald-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 rounded-md px-2 py-1">Features</a>
             )}
-            <a href="#problem" onClick={(e) => scrollToSection(e, 'problem')} className="hover:text-emerald-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 rounded-md px-2 py-1">The Problem</a>
-            <a href="#solution" onClick={(e) => scrollToSection(e, 'solution')} className="hover:text-emerald-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 rounded-md px-2 py-1">The Solution</a>
-            <a href="#proof" onClick={(e) => scrollToSection(e, 'proof')} className="hover:text-emerald-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 rounded-md px-2 py-1">Proof</a>
-            <a href="#pricing" onClick={(e) => scrollToSection(e, 'pricing')} className="hover:text-emerald-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 rounded-md px-2 py-1">Investment</a>
-            {onNavigateToBlog && (
-              <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToBlog(); }} className="hover:text-emerald-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 rounded-md px-2 py-1">Blog</a>
-            )}
+            <a href="/pricing" className="hover:text-emerald-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 rounded-md px-2 py-1">Pricing</a>
+            <a href="/use-cases" className="hover:text-emerald-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 rounded-md px-2 py-1">Use Cases</a>
+            <a href="/docs" className="hover:text-emerald-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 rounded-md px-2 py-1">Docs</a>
+            <a href="/about" className="hover:text-emerald-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 rounded-md px-2 py-1">About</a>
           </div>
 
           {/* Mobile Menu Button */}
@@ -168,13 +165,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onNavigateToF
               {onNavigateToFeatures && (
                 <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToFeatures(); setIsMobileMenuOpen(false); }} className="text-sm font-medium text-gray-700 hover:text-emerald-600 py-3 px-4 min-h-[44px] flex items-center rounded-md hover:bg-gray-50 transition-colors">Features</a>
               )}
-              <a href="#problem" onClick={(e) => scrollToSection(e, 'problem')} className="text-sm font-medium text-gray-700 hover:text-emerald-600 py-3 px-4 min-h-[44px] flex items-center rounded-md hover:bg-gray-50 transition-colors">The Problem</a>
-              <a href="#solution" onClick={(e) => scrollToSection(e, 'solution')} className="text-sm font-medium text-gray-700 hover:text-emerald-600 py-3 px-4 min-h-[44px] flex items-center rounded-md hover:bg-gray-50 transition-colors">The Solution</a>
-              <a href="#proof" onClick={(e) => scrollToSection(e, 'proof')} className="text-sm font-medium text-gray-700 hover:text-emerald-600 py-3 px-4 min-h-[44px] flex items-center rounded-md hover:bg-gray-50 transition-colors">Proof</a>
-              <a href="#pricing" onClick={(e) => scrollToSection(e, 'pricing')} className="text-sm font-medium text-gray-700 hover:text-emerald-600 py-3 px-4 min-h-[44px] flex items-center rounded-md hover:bg-gray-50 transition-colors">Investment</a>
-              {onNavigateToBlog && (
-                <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToBlog(); setIsMobileMenuOpen(false); }} className="text-sm font-medium text-gray-700 hover:text-emerald-600 py-3 px-4 min-h-[44px] flex items-center rounded-md hover:bg-gray-50 transition-colors">Blog</a>
-              )}
+              <a href="/pricing" className="text-sm font-medium text-gray-700 hover:text-emerald-600 py-3 px-4 min-h-[44px] flex items-center rounded-md hover:bg-gray-50 transition-colors">Pricing</a>
+              <a href="/use-cases" className="text-sm font-medium text-gray-700 hover:text-emerald-600 py-3 px-4 min-h-[44px] flex items-center rounded-md hover:bg-gray-50 transition-colors">Use Cases</a>
+              <a href="/docs" className="text-sm font-medium text-gray-700 hover:text-emerald-600 py-3 px-4 min-h-[44px] flex items-center rounded-md hover:bg-gray-50 transition-colors">Docs</a>
+              <a href="/about" className="text-sm font-medium text-gray-700 hover:text-emerald-600 py-3 px-4 min-h-[44px] flex items-center rounded-md hover:bg-gray-50 transition-colors">About</a>
               <hr className="border-gray-200" />
               <Button variant="ghost" onClick={() => handleCTAClick('mobile_menu_login')} className="font-semibold text-sm text-gray-700 hover:text-emerald-600 justify-start">
                 Log In
@@ -1237,16 +1231,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onNavigateToF
             <div>
               <h3 className="font-bold text-gray-900 text-sm sm:text-base mb-3 sm:mb-4">Product</h3>
               <ul className="space-y-2 text-xs sm:text-sm">
-                <li><a href="#features" className="hover:text-emerald-600 transition-colors">Features</a></li>
-                <li><a href="#pricing" className="hover:text-emerald-600 transition-colors">Pricing</a></li>
-                <li><a href="#" className="hover:text-emerald-600 transition-colors">Integrations</a></li>
-                <li><a href="#" className="hover:text-emerald-600 transition-colors">Changelog</a></li>
+                <li><a href="/features" className="hover:text-emerald-600 transition-colors">Features</a></li>
+                <li><a href="/pricing" className="hover:text-emerald-600 transition-colors">Pricing</a></li>
+                <li><a href="/use-cases" className="hover:text-emerald-600 transition-colors">Use Cases</a></li>
+                <li><a href="/docs" className="hover:text-emerald-600 transition-colors">Documentation</a></li>
               </ul>
             </div>
             <div>
               <h3 className="font-bold text-gray-900 text-sm sm:text-base mb-3 sm:mb-4">Company</h3>
               <ul className="space-y-2 text-xs sm:text-sm">
-                <li><a href="#" className="hover:text-emerald-600 transition-colors">About</a></li>
+                <li><a href="/about" className="hover:text-emerald-600 transition-colors">About</a></li>
                 <li><a href="#" className="hover:text-emerald-600 transition-colors">Blog</a></li>
                 <li><a href="#" className="hover:text-emerald-600 transition-colors">Careers</a></li>
                 <li><a href="#" className="hover:text-emerald-600 transition-colors">Contact</a></li>
@@ -1255,7 +1249,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onNavigateToF
             <div>
               <h3 className="font-bold text-gray-900 text-sm sm:text-base mb-3 sm:mb-4">Resources</h3>
               <ul className="space-y-2 text-xs sm:text-sm">
-                <li><a href="#" className="hover:text-emerald-600 transition-colors">Documentation</a></li>
+                <li><a href="/docs" className="hover:text-emerald-600 transition-colors">Documentation</a></li>
                 <li><a href="#" className="hover:text-emerald-600 transition-colors">Help Center</a></li>
                 <li><a href="#" className="hover:text-emerald-600 transition-colors">Community</a></li>
                 <li><a href="#" className="hover:text-emerald-600 transition-colors">Status</a></li>
@@ -1264,8 +1258,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onNavigateToF
             <div>
               <h3 className="font-bold text-gray-900 text-sm sm:text-base mb-3 sm:mb-4">Legal</h3>
               <ul className="space-y-2 text-xs sm:text-sm">
-                <li><a href="#" className="hover:text-emerald-600 transition-colors">Privacy</a></li>
-                <li><a href="#" className="hover:text-emerald-600 transition-colors">Terms</a></li>
+                <li><a href="/privacy" className="hover:text-emerald-600 transition-colors">Privacy</a></li>
+                <li><a href="/terms" className="hover:text-emerald-600 transition-colors">Terms</a></li>
                 <li><a href="#" className="hover:text-emerald-600 transition-colors">Security</a></li>
                 <li><a href="#" className="hover:text-emerald-600 transition-colors">Compliance</a></li>
               </ul>

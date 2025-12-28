@@ -86,6 +86,22 @@ export const FeaturesPage: React.FC<FeaturesPageProps> = ({ onGetStarted, onNavi
       ]
     },
     {
+      icon: Lock,
+      title: "Credential Vault",
+      description: "Securely store API keys, OAuth tokens, and login credentials. Browser agents auto-fill credentials for seamless automation.",
+      color: "from-cyan-500 to-teal-500",
+      bgColor: "bg-cyan-50",
+      borderColor: "border-cyan-200",
+      textColor: "text-cyan-700",
+      comingSoon: false,
+      benefits: [
+        "AES-256-GCM encryption",
+        "Domain-based auto-fill",
+        "Zero-knowledge architecture",
+        "Audit logging & access control"
+      ]
+    },
+    {
       icon: Activity,
       title: "Real-Time Dashboard",
       description: "Monitor all activities with live updates. Complete visibility into agent operations, campaign performance, and system health.",
@@ -396,16 +412,16 @@ export const FeaturesPage: React.FC<FeaturesPageProps> = ({ onGetStarted, onNavi
             <div>
               <h3 className="font-bold text-white text-sm sm:text-base mb-3 sm:mb-4">Product</h3>
               <ul className="space-y-2 text-xs sm:text-sm">
-                <li><a href="#features" className="hover:text-emerald-400 transition-colors">Features</a></li>
-                <li><a href="/#pricing" className="hover:text-emerald-400 transition-colors">Pricing</a></li>
-                <li><a href="#" className="hover:text-emerald-400 transition-colors">Integrations</a></li>
-                <li><a href="#" className="hover:text-emerald-400 transition-colors">Changelog</a></li>
+                <li><a href="/features" className="hover:text-emerald-400 transition-colors">Features</a></li>
+                <li><a href="/pricing" className="hover:text-emerald-400 transition-colors">Pricing</a></li>
+                <li><a href="/use-cases" className="hover:text-emerald-400 transition-colors">Use Cases</a></li>
+                <li><a href="/docs" className="hover:text-emerald-400 transition-colors">Documentation</a></li>
               </ul>
             </div>
             <div>
               <h3 className="font-bold text-white text-sm sm:text-base mb-3 sm:mb-4">Company</h3>
               <ul className="space-y-2 text-xs sm:text-sm">
-                <li><a href="#" className="hover:text-emerald-400 transition-colors">About</a></li>
+                <li><a href="/about" className="hover:text-emerald-400 transition-colors">About</a></li>
                 <li><a href="#" className="hover:text-emerald-400 transition-colors">Blog</a></li>
                 <li><a href="#" className="hover:text-emerald-400 transition-colors">Careers</a></li>
                 <li><a href="#" className="hover:text-emerald-400 transition-colors">Contact</a></li>
@@ -414,7 +430,7 @@ export const FeaturesPage: React.FC<FeaturesPageProps> = ({ onGetStarted, onNavi
             <div>
               <h3 className="font-bold text-white text-sm sm:text-base mb-3 sm:mb-4">Resources</h3>
               <ul className="space-y-2 text-xs sm:text-sm">
-                <li><a href="#" className="hover:text-emerald-400 transition-colors">Documentation</a></li>
+                <li><a href="/docs" className="hover:text-emerald-400 transition-colors">Documentation</a></li>
                 <li><a href="#" className="hover:text-emerald-400 transition-colors">Help Center</a></li>
                 <li><a href="#" className="hover:text-emerald-400 transition-colors">Community</a></li>
                 <li><a href="#" className="hover:text-emerald-400 transition-colors">Status</a></li>
@@ -423,8 +439,8 @@ export const FeaturesPage: React.FC<FeaturesPageProps> = ({ onGetStarted, onNavi
             <div>
               <h3 className="font-bold text-white text-sm sm:text-base mb-3 sm:mb-4">Legal</h3>
               <ul className="space-y-2 text-xs sm:text-sm">
-                <li><a href="#" className="hover:text-emerald-400 transition-colors">Privacy</a></li>
-                <li><a href="#" className="hover:text-emerald-400 transition-colors">Terms</a></li>
+                <li><a href="/privacy" className="hover:text-emerald-400 transition-colors">Privacy</a></li>
+                <li><a href="/terms" className="hover:text-emerald-400 transition-colors">Terms</a></li>
                 <li><a href="#" className="hover:text-emerald-400 transition-colors">Security</a></li>
                 <li><a href="#" className="hover:text-emerald-400 transition-colors">Compliance</a></li>
               </ul>

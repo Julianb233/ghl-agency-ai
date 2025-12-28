@@ -12,6 +12,10 @@ const FeaturesPage = lazy(() => import('./FeaturesPage').then(m => ({ default: m
 const PrivacyPolicy = lazy(() => import('@/pages/PrivacyPolicy').then(m => ({ default: m.PrivacyPolicy })));
 const TermsOfService = lazy(() => import('@/pages/TermsOfService').then(m => ({ default: m.TermsOfService })));
 const AlexRamozyPage = lazy(() => import('./AlexRamozyPage').then(m => ({ default: m.AlexRamozyPage })));
+const Pricing = lazy(() => import('@/pages/Pricing'));
+const UseCases = lazy(() => import('@/pages/UseCases'));
+const About = lazy(() => import('@/pages/About'));
+const Docs = lazy(() => import('@/pages/Docs'));
 
 // Loading spinner component
 const LoadingSpinner = () => (
@@ -96,6 +100,10 @@ export function AppRouter() {
         <Route path="/alex-ramozy">
           <AlexRamozyPage onDemoClick={() => setLocation('/login')} />
         </Route>
+        <Route path="/pricing" component={Pricing} />
+        <Route path="/use-cases" component={UseCases} />
+        <Route path="/about" component={About} />
+        <Route path="/docs" component={Docs} />
 
         {/* Protected routes */}
         <Route path="/onboarding">

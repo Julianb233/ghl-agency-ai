@@ -25,6 +25,8 @@ const storeCredentialSchema = z.object({
   name: z.string().min(1).max(200),
   service: z.string().min(1).max(100),
   type: z.enum(["password", "api_key", "oauth_token", "ssh_key"]),
+  domain: z.string().max(500).optional(),
+  username: z.string().max(255).optional(),
   data: z.object({
     username: z.string().optional(),
     password: z.string().optional(),
@@ -34,6 +36,28 @@ const storeCredentialSchema = z.object({
     privateKey: z.string().optional(),
   }),
   metadata: z.record(z.string(), z.unknown()).optional(),
+});
+
+const updateCredentialSchema = z.object({
+  credentialId: z.number().int().positive(),
+  name: z.string().min(1).max(200).optional(),
+  service: z.string().min(1).max(100).optional(),
+  type: z.enum(["password", "api_key", "oauth_token", "ssh_key"]).optional(),
+  domain: z.string().max(500).optional(),
+  username: z.string().max(255).optional(),
+  data: z.object({
+    username: z.string().optional(),
+    password: z.string().optional(),
+    apiKey: z.string().optional(),
+    accessToken: z.string().optional(),
+    refreshToken: z.string().optional(),
+    privateKey: z.string().optional(),
+  }).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
+});
+
+const findByDomainSchema = z.object({
+  domain: z.string().min(1).max(500),
 });
 
 const getCredentialSchema = z.object({
@@ -190,6 +214,65 @@ export const securityRouter = router({
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: `Failed to list credentials: ${
+            error instanceof Error ? error.message : "Unknown error"
+          }`,
+        });
+      }
+    }),
+
+  /**
+   * Update an existing credential
+   */
+  updateCredential: protectedProcedure
+    .input(updateCredentialSchema)
+    .mutation(async ({ input, ctx }) => {
+      const userId = ctx.user.id;
+
+      try {
+        const credentialVault = getCredentialVault();
+        await credentialVault.updateCredential(userId, input.credentialId, {
+          name: input.name,
+          service: input.service,
+          type: input.type,
+          domain: input.domain,
+          username: input.username,
+          data: input.data,
+          metadata: input.metadata,
+        });
+
+        return {
+          success: true,
+        };
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to update credential: ${
+            error instanceof Error ? error.message : "Unknown error"
+          }`,
+        });
+      }
+    }),
+
+  /**
+   * Find credentials by domain (for browser auto-fill)
+   */
+  findByDomain: protectedProcedure
+    .input(findByDomainSchema)
+    .query(async ({ input, ctx }) => {
+      const userId = ctx.user.id;
+
+      try {
+        const credentialVault = getCredentialVault();
+        const credentials = await credentialVault.findByDomain(
+          userId,
+          input.domain
+        );
+
+        return credentials;
+      } catch (error) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Failed to find credentials by domain: ${
             error instanceof Error ? error.message : "Unknown error"
           }`,
         });

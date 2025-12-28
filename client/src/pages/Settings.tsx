@@ -66,7 +66,9 @@ import {
   Moon,
   Sun,
   Bell,
+  Lock,
 } from 'lucide-react';
+import { CredentialsTab } from '@/components/settings/CredentialsTab';
 import { toast } from 'sonner';
 import { FeatureTip } from '@/components/tour/FeatureTip';
 import { TourPrompt } from '@/components/tour';
@@ -501,6 +503,10 @@ export const Settings: React.FC = () => {
               <Key className="w-4 h-4" />
               API Keys
             </TabsTrigger>
+            <TabsTrigger value="credentials" className="gap-2">
+              <Lock className="w-4 h-4" />
+              Credentials
+            </TabsTrigger>
             <TabsTrigger value="oauth" className="gap-2">
               <Link2 className="w-4 h-4" />
               OAuth Integrations
@@ -592,6 +598,11 @@ export const Settings: React.FC = () => {
                 </Table>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Credentials Tab */}
+          <TabsContent value="credentials">
+            <CredentialsTab />
           </TabsContent>
 
           {/* OAuth Integrations Tab */}
