@@ -192,7 +192,8 @@
       "undici": "^7.0.0",
       "esbuild": "^0.25.1",
       "path-to-regexp@>=4.0.0 <6.3.0": "^6.3.0",
-      "@browserbasehq/stagehand>zod": "^4.2.0"
+      "@browserbasehq/stagehand>zod": "^4.2.0",
+      "@langchain/core": "^0.3.80"
     }
   }
 }
