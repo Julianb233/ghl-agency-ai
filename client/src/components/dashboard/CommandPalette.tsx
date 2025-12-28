@@ -298,18 +298,25 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             exit={{ opacity: 0, scale: 0.95, y: -20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             className="fixed left-1/2 top-[15%] -translate-x-1/2 w-full max-w-xl z-50"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="command-palette-title"
           >
             <div className="bg-slate-900 border border-slate-700/50 rounded-xl shadow-2xl overflow-hidden">
               {/* Search Input */}
-              <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-800/50">
-                <Search className="w-5 h-5 text-slate-400" />
+              <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-700/50">
+                <Search className="w-5 h-5 text-slate-400" aria-hidden="true" />
+                <label htmlFor="command-search" className="sr-only">Search commands</label>
                 <input
+                  id="command-search"
                   ref={inputRef}
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Search commands..."
                   className="flex-1 bg-transparent text-white placeholder-slate-500 outline-none text-sm"
+                  aria-autocomplete="list"
+                  aria-controls="command-results"
                 />
                 <kbd className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 text-xs">
                   ESC
@@ -317,7 +324,13 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
               </div>
 
               {/* Results */}
-              <div ref={listRef} className="max-h-80 overflow-y-auto p-2">
+              <div
+                id="command-results"
+                ref={listRef}
+                className="max-h-80 overflow-y-auto p-2"
+                role="listbox"
+                aria-label="Command results"
+              >
                 {filteredCommands.length === 0 ? (
                   <div className="py-8 text-center text-slate-500">
                     <Search className="w-8 h-8 mx-auto mb-2 opacity-50" />
@@ -352,6 +365,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                                   'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
                                   isSelected ? 'bg-slate-800' : 'hover:bg-slate-800/50'
                                 )}
+                                role="option"
+                                aria-selected={isSelected}
                               >
                                 <div className={cn(
                                   'w-8 h-8 rounded-lg flex items-center justify-center',
@@ -391,7 +406,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
               </div>
 
               {/* Footer */}
-              <div className="px-4 py-2 border-t border-slate-800/50 flex items-center justify-between text-xs text-slate-500">
+              <div className="px-4 py-2 border-t border-slate-700/50 flex items-center justify-between text-xs text-slate-500">
                 <div className="flex items-center gap-4">
                   <span className="flex items-center gap-1">
                     <kbd className="px-1 py-0.5 rounded bg-slate-800">↑</kbd>

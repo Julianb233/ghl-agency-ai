@@ -137,7 +137,7 @@ export const AgentHub: React.FC<AgentHubProps> = ({
   return (
     <div className={cn('space-y-6', className)}>
       {/* Tab Navigation */}
-      <div className="flex items-center gap-2 border-b border-slate-800/50 pb-4">
+      <div className="flex items-center gap-2 border-b border-slate-700/50 pb-4">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -156,7 +156,10 @@ export const AgentHub: React.FC<AgentHubProps> = ({
               <Icon className="w-4 h-4" />
               <span className="text-sm font-medium">{tab.label}</span>
               {tab.badge !== undefined && tab.badge > 0 && (
-                <span className="flex items-center justify-center w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-semibold">
+                <span
+                  className="flex items-center justify-center w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-semibold"
+                  aria-label={`${tab.badge} active`}
+                >
                   {tab.badge}
                 </span>
               )}
@@ -211,7 +214,7 @@ export const AgentHub: React.FC<AgentHubProps> = ({
                             onLaunchTask?.(task.template || task.id);
                           }}
                           className="p-2 rounded-lg hover:bg-slate-700/50 transition-colors"
-                          title="Run again"
+                          aria-label={`Run ${task.name} again`}
                         >
                           <Repeat className="w-4 h-4 text-slate-400" />
                         </button>
@@ -232,8 +235,10 @@ export const AgentHub: React.FC<AgentHubProps> = ({
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                   {/* Search */}
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" aria-hidden="true" />
+                    <label htmlFor="template-search" className="sr-only">Search templates</label>
                     <input
+                      id="template-search"
                       type="text"
                       placeholder="Search templates..."
                       value={searchQuery}
@@ -242,7 +247,7 @@ export const AgentHub: React.FC<AgentHubProps> = ({
                     />
                   </div>
                   {/* Category Filter */}
-                  <div className="flex items-center gap-1 overflow-x-auto pb-1">
+                  <div className="flex items-center gap-2 overflow-x-auto pb-1">
                     {['seo', 'outreach', 'research', 'content'].map((cat) => (
                       <button
                         key={cat}
@@ -382,13 +387,13 @@ export const AgentHub: React.FC<AgentHubProps> = ({
                         <button
                           onClick={() => onViewTask?.(task.id)}
                           className="p-2 rounded-lg hover:bg-slate-700/50 transition-colors text-slate-400 hover:text-white"
-                          title="View details"
+                          aria-label={`View details for ${task.name}`}
                         >
                           <Eye className="w-4 h-4" />
                         </button>
                         <button
                           className="p-2 rounded-lg hover:bg-slate-700/50 transition-colors text-slate-400 hover:text-white"
-                          title="More options"
+                          aria-label={`More options for ${task.name}`}
                         >
                           <MoreVertical className="w-4 h-4" />
                         </button>
@@ -413,15 +418,20 @@ export const AgentHub: React.FC<AgentHubProps> = ({
             {/* Search and Filter */}
             <div className="flex items-center gap-4">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" aria-hidden="true" />
+                <label htmlFor="history-search" className="sr-only">Search execution history</label>
                 <input
+                  id="history-search"
                   type="text"
                   placeholder="Search execution history..."
                   className="w-full pl-9 pr-4 py-2 rounded-lg bg-slate-800/50 border border-slate-700/50 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500/50"
                 />
               </div>
-              <button className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800/50 border border-slate-700/50 text-sm text-slate-400 hover:text-white transition-colors">
-                <Filter className="w-4 h-4" />
+              <button
+                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800/50 border border-slate-700/50 text-sm text-slate-400 hover:text-white transition-colors"
+                aria-label="Open filter options"
+              >
+                <Filter className="w-4 h-4" aria-hidden="true" />
                 Filter
               </button>
             </div>

@@ -57,9 +57,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
       animate={{ width: collapsed ? 64 : 240 }}
       transition={{ type: 'spring', damping: 25, stiffness: 300 }}
       className="h-full bg-slate-900/50 border-r border-slate-800/50 flex flex-col"
+      aria-label="Main navigation"
     >
       {/* Navigation Items */}
-      <nav className="flex-1 py-4 overflow-y-auto overflow-x-hidden">
+      <nav role="navigation" aria-label="Primary" className="flex-1 py-4 overflow-y-auto overflow-x-hidden">
         {items.map((section, sectionIndex) => (
           <div key={section.section} className={cn(sectionIndex > 0 && 'mt-6')}>
             {/* Section Label */}
@@ -93,6 +94,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       !active && 'text-slate-400',
                       collapsed && 'justify-center'
                     )}
+                    aria-label={item.label}
+                    aria-current={active ? 'page' : undefined}
                     title={collapsed ? item.label : undefined}
                   >
                     <Icon
@@ -139,12 +142,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <button
           onClick={onToggleCollapse}
           className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/50 transition-colors"
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-expanded={!collapsed}
         >
           {collapsed ? (
-            <ChevronRight className="w-4 h-4" />
+            <ChevronRight className="w-4 h-4" aria-hidden="true" />
           ) : (
             <>
-              <ChevronLeft className="w-4 h-4" />
+              <ChevronLeft className="w-4 h-4" aria-hidden="true" />
               <span className="text-xs">Collapse</span>
             </>
           )}

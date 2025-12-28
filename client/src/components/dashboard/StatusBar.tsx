@@ -97,7 +97,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({ className }) => {
           >
             <div className="p-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
               {/* Active Agents */}
-              <div className="bg-slate-800/30 rounded-lg p-4">
+              <div className="bg-slate-800/30 rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <Bot className="w-4 h-4 text-emerald-400" />
                   <span className="text-sm font-medium text-slate-300">Active Agents</span>
@@ -124,7 +124,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({ className }) => {
               </div>
 
               {/* Queue Status */}
-              <div className="bg-slate-800/30 rounded-lg p-4">
+              <div className="bg-slate-800/30 rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <Clock className="w-4 h-4 text-blue-400" />
                   <span className="text-sm font-medium text-slate-300">Task Queue</span>
@@ -152,7 +152,7 @@ export const StatusBar: React.FC<StatusBarProps> = ({ className }) => {
               </div>
 
               {/* Today's Progress */}
-              <div className="bg-slate-800/30 rounded-lg p-4">
+              <div className="bg-slate-800/30 rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <Zap className="w-4 h-4 text-purple-400" />
                   <span className="text-sm font-medium text-slate-300">Completed Today</span>

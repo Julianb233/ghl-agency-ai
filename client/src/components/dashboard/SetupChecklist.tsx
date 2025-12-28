@@ -206,13 +206,21 @@ export const SetupChecklist: React.FC<SetupChecklistProps> = ({
           <button
             onClick={() => setDismissed(true)}
             className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700/50 transition-colors"
+            aria-label="Dismiss setup checklist"
           >
-            <X className="w-4 h-4" />
+            <X className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
 
         {/* Progress Bar */}
-        <div className="mt-4 h-2 bg-slate-700/50 rounded-full overflow-hidden">
+        <div
+          className="mt-4 h-2 bg-slate-700/50 rounded-full overflow-hidden"
+          role="progressbar"
+          aria-valuenow={progress}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={`Setup progress: ${completedCount} of ${items.length} completed`}
+        >
           <motion.div
             className="h-full bg-gradient-to-r from-emerald-500 to-cyan-500"
             initial={{ width: 0 }}
@@ -249,6 +257,9 @@ export const SetupChecklist: React.FC<SetupChecklistProps> = ({
                     ? 'bg-emerald-500 border-emerald-500'
                     : 'border-slate-600 hover:border-emerald-500'
                 )}
+                aria-label={`Mark ${item.label} as ${item.completed ? 'incomplete' : 'complete'}`}
+                aria-checked={item.completed}
+                role="checkbox"
               >
                 {item.completed && (
                   <motion.div

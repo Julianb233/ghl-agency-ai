@@ -7,6 +7,7 @@ const Login = lazy(() => import('@/pages/Login'));
 const Signup = lazy(() => import('@/pages/Signup'));
 const OnboardingFlow = lazy(() => import('./OnboardingFlow'));
 const Dashboard = lazy(() => import('./Dashboard').then(m => ({ default: m.Dashboard })));
+const AgentsPage = lazy(() => import('@/pages/AgentsPage').then(m => ({ default: m.AgentsPage })));
 const LandingPage = lazy(() => import('./LandingPage').then(m => ({ default: m.LandingPage })));
 const FeaturesPage = lazy(() => import('./FeaturesPage').then(m => ({ default: m.FeaturesPage })));
 const PrivacyPolicy = lazy(() => import('@/pages/PrivacyPolicy').then(m => ({ default: m.PrivacyPolicy })));
@@ -26,6 +27,41 @@ const LoadingSpinner = () => (
     </div>
   </div>
 );
+
+// Coming Soon placeholder component
+const ComingSoon: React.FC<{ title: string }> = ({ title }) => (
+  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-secondary/20 to-accent/10">
+    <div className="text-center">
+      <h1 className="text-4xl font-bold mb-4">{title}</h1>
+      <p className="text-muted-foreground">Coming Soon</p>
+    </div>
+  </div>
+);
+
+// Dashboard router component to handle nested routes
+const DashboardRouter: React.FC<{ userTier: string; credits: number }> = ({ userTier, credits }) => {
+  const [location] = useLocation();
+
+  // Route based on the full location path
+  if (location === '/dashboard/agents') {
+    return <AgentsPage />;
+  }
+
+  if (location === '/dashboard/swarms') {
+    return <ComingSoon title="Swarm Management" />;
+  }
+
+  if (location === '/dashboard/workflows') {
+    return <ComingSoon title="Workflow Builder" />;
+  }
+
+  if (location === '/dashboard/settings') {
+    return <ComingSoon title="Settings" />;
+  }
+
+  // Default dashboard home
+  return <Dashboard userTier={userTier} credits={credits} />;
+};
 
 export function AppRouter() {
   const [location, setLocation] = useLocation();
@@ -62,7 +98,8 @@ export function AppRouter() {
   } else {
     // If user is not authenticated and trying to access protected routes
     const protectedRoutes = ['/dashboard', '/onboarding'];
-    if (protectedRoutes.some(route => location.startsWith(route))) {
+    const isDashboardRoute = location === '/dashboard' || location.startsWith('/dashboard/');
+    if (protectedRoutes.some(route => location.startsWith(route)) || isDashboardRoute) {
       setLocation('/login');
     }
   }
@@ -113,10 +150,23 @@ export function AppRouter() {
             <div>Redirecting...</div>
           )}
         </Route>
+
+        {/* Dashboard routes - handle all /dashboard/* paths */}
+        <Route path="/dashboard/:rest*">
+          {user ? (
+            <main id="main-content">
+              <DashboardRouter userTier="WHITELABEL" credits={1000} />
+            </main>
+          ) : (
+            <div>Redirecting...</div>
+          )}
+        </Route>
+
+        {/* Dashboard home route */}
         <Route path="/dashboard">
           {user ? (
             <main id="main-content">
-              <Dashboard userTier="WHITELABEL" credits={1000} />
+              <DashboardRouter userTier="WHITELABEL" credits={1000} />
             </main>
           ) : (
             <div>Redirecting...</div>

@@ -117,16 +117,26 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-slate-950 text-white flex flex-col">
+      {/* Skip to main content link for keyboard navigation */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-emerald-500 focus:text-white focus:rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-400"
+      >
+        Skip to main content
+      </a>
+
       {/* Top Header Bar */}
-      <header className="h-14 border-b border-slate-800/50 bg-slate-950/80 backdrop-blur-md flex items-center px-4 gap-4 sticky top-0 z-50">
+      <header role="banner" className="h-14 border-b border-slate-800/50 bg-slate-950/80 backdrop-blur-md flex items-center px-4 gap-4 sticky top-0 z-50">
         {/* Logo / Menu Toggle */}
         <div className="flex items-center gap-3">
           {isMobile && (
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 rounded-lg hover:bg-slate-800/50 transition-colors"
+              aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+              aria-expanded={mobileMenuOpen}
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
@@ -157,20 +167,29 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ children }) => {
         {/* Right side actions */}
         <div className="flex items-center gap-2">
           {/* Activity Indicator */}
-          <button className="relative p-2 rounded-lg hover:bg-slate-800/50 transition-colors">
+          <button
+            className="relative p-2 rounded-lg hover:bg-slate-800/50 transition-colors"
+            aria-label="View activity (active)"
+          >
             <Activity className="w-5 h-5 text-slate-400" />
-            <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true" />
           </button>
 
           {/* Notifications */}
-          <button className="relative p-2 rounded-lg hover:bg-slate-800/50 transition-colors">
+          <button
+            className="relative p-2 rounded-lg hover:bg-slate-800/50 transition-colors"
+            aria-label="View notifications"
+          >
             <Bell className="w-5 h-5 text-slate-400" />
           </button>
 
           {/* User Menu */}
-          <button className="p-1 rounded-lg hover:bg-slate-800/50 transition-colors">
+          <button
+            className="p-1 rounded-lg hover:bg-slate-800/50 transition-colors"
+            aria-label="Open user menu"
+          >
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-              <User className="w-4 h-4 text-white" />
+              <User className="w-4 h-4 text-white" aria-hidden="true" />
             </div>
           </button>
         </div>
@@ -198,6 +217,7 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ children }) => {
                 exit={{ opacity: 0 }}
                 className="fixed inset-0 bg-black/50 z-40"
                 onClick={() => setMobileMenuOpen(false)}
+                aria-hidden="true"
               />
               <motion.div
                 initial={{ x: -280 }}
@@ -219,7 +239,7 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ children }) => {
         </AnimatePresence>
 
         {/* Main Content Area */}
-        <main className="flex-1 overflow-auto">
+        <main id="main-content" role="main" className="flex-1 overflow-auto">
           <div className="p-6">
             {/* Page Header */}
             <div className="mb-6">
