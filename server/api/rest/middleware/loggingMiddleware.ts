@@ -146,11 +146,15 @@ export function performanceMonitor(
 ): void {
   req.startTime = Date.now();
 
-  // Add timing header on response
-  res.on("finish", () => {
-    const duration = Date.now() - (req.startTime || Date.now());
-    res.setHeader("X-Response-Time", `${duration}ms`);
-  });
+  // Add timing header before response is sent
+  const originalEnd = res.end.bind(res);
+  res.end = function (...args: any[]) {
+    if (!res.headersSent) {
+      const duration = Date.now() - (req.startTime || Date.now());
+      res.setHeader("X-Response-Time", `${duration}ms`);
+    }
+    return originalEnd(...args);
+  } as typeof res.end;
 
   next();
 }
