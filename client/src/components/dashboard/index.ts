@@ -9,6 +9,7 @@ export { Sidebar, type NavItem, type NavItemConfig } from './Sidebar';
 export { StatusBar } from './StatusBar';
 export { CommandPalette } from './CommandPalette';
 export { SetupChecklist } from './SetupChecklist';
+export { FeatureSpotlight, useFeatureSpotlight } from './FeatureSpotlight';
 
 // Dashboard Widgets
 export { DashboardMetrics } from './DashboardMetrics';

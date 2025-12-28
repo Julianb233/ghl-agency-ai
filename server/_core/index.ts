@@ -18,6 +18,7 @@ import { webhookEndpointsRouter } from "../api/webhookEndpoints";
 import stripeWebhookRouter from "../api/webhooks/stripe";
 import { schedulerRunnerService } from "../services/schedulerRunner.service";
 import { memoryCleanupScheduler } from "../services/memory";
+import { socketIOService } from "../services/socketio.service";
 import { getDb } from "../db";
 import { scheduledBrowserTasks } from "../../drizzle/schema-scheduled-tasks";
 import { eq } from "drizzle-orm";
@@ -267,6 +268,10 @@ async function initializeMemoryCleanup() {
 async function startServer() {
   const app = await createApp();
   const server = createServer(app);
+
+  // Initialize Socket.IO for real-time agent communication
+  socketIOService.initialize(server);
+  console.log("[Server] Socket.IO initialized for real-time communication");
 
   const preferredPort = parseInt(process.env.PORT || "3000");
   const port = await findAvailablePort(preferredPort);

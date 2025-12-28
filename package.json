@@ -131,6 +131,7 @@
     "recharts": "^2.15.4",
     "rrweb": "2.0.0-alpha.4",
     "rrweb-player": "1.0.0-alpha.4",
+    "socket.io": "^4.8.3",
     "socket.io-client": "^4.8.1",
     "sonner": "^2.0.7",
     "streamdown": "^1.6.10",

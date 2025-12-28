@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import confetti from 'canvas-confetti';
+import { trpc } from '@/lib/trpc';
 
 interface ChecklistItem {
   id: string;
@@ -78,18 +79,62 @@ export const SetupChecklist: React.FC<SetupChecklistProps> = ({
     },
   ]);
 
-  // Load completion state from localStorage
+  // Fetch onboarding status from backend
+  const { data: onboardingStatus } = trpc.onboarding.getStatus.useQuery(undefined, {
+    retry: 2,
+  });
+
+  // Fetch user profile to check for GHL connection
+  const { data: profile } = trpc.onboarding.getProfile.useQuery(undefined, {
+    retry: 2,
+  });
+
+  // Fetch agent executions to check if first agent was run
+  const { data: executions } = trpc.agent.listExecutions.useQuery(
+    { limit: 1, offset: 0 },
+    { retry: 2 }
+  );
+
+  // Load completion state from localStorage AND sync with backend data
   useEffect(() => {
     const saved = localStorage.getItem('setup-checklist');
     if (saved) {
       const { dismissed: savedDismissed, completedItems } = JSON.parse(saved);
       setDismissed(savedDismissed);
-      setItems(prev => prev.map(item => ({
-        ...item,
-        completed: completedItems?.includes(item.id) || false,
-      })));
+
+      // Merge localStorage with real backend state
+      setItems(prev => prev.map(item => {
+        // Check localStorage first
+        let completed = completedItems?.includes(item.id) || false;
+
+        // Override with real backend data
+        if (item.id === 'ghl' && profile?.data?.goals) {
+          // GHL connected if profile has goals (from onboarding)
+          completed = true;
+        }
+        if (item.id === 'first-task' && executions && executions.length > 0) {
+          // First agent run if any executions exist
+          completed = true;
+        }
+
+        return { ...item, completed };
+      }));
+    } else {
+      // Initialize from backend data only
+      setItems(prev => prev.map(item => {
+        let completed = false;
+
+        if (item.id === 'ghl' && profile?.data?.goals) {
+          completed = true;
+        }
+        if (item.id === 'first-task' && executions && executions.length > 0) {
+          completed = true;
+        }
+
+        return { ...item, completed };
+      }));
     }
-  }, []);
+  }, [profile, executions]);
 
   // Save completion state
   useEffect(() => {

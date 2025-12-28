@@ -6,6 +6,7 @@ import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { Activity, Calendar, Settings, Users, Plus, Zap, FileText, ArrowUpRight, TrendingUp } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { SubscriptionUsageCard, UpgradeModal, ExecutionPacksModal } from '@/components/subscription';
+import { SetupChecklist } from '@/components/dashboard';
 
 export default function DashboardHome() {
   const [, setLocation] = useLocation();
@@ -30,6 +31,12 @@ export default function DashboardHome() {
           Welcome to your Bottleneck Bot Dashboard
         </p>
       </div>
+
+      {/* Setup Checklist - Shows for new users */}
+      <SetupChecklist
+        onNavigate={setLocation}
+        className="max-w-2xl"
+      />
 
       {/* Subscription Overview */}
       <div className="grid gap-4 md:grid-cols-3">

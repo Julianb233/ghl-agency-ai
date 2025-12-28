@@ -8,7 +8,8 @@ import {
   PauseCircle,
   PlayCircle,
   ChevronUp,
-  Zap
+  Zap,
+  Loader2
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { trpc } from '@/lib/trpc';
@@ -21,12 +22,44 @@ export const StatusBar: React.FC<StatusBarProps> = ({ className }) => {
   const [expanded, setExpanded] = React.useState(false);
   const [isConnected, setIsConnected] = React.useState(true);
 
-  // Fetch active agent count (mock for now, will connect to real data)
-  const activeAgents = 3;
-  const queuedTasks = 12;
-  const completedToday = 47;
+  // Fetch agent statistics with polling
+  const { data: agentStats, isLoading: statsLoading } = trpc.agent.getStats.useQuery(undefined, {
+    refetchInterval: 30000, // Refresh every 30 seconds
+    retry: 2,
+  });
 
-  // Simulated connection check
+  // Fetch recent executions to count running/queued
+  const { data: executions, isLoading: executionsLoading } = trpc.agent.listExecutions.useQuery(
+    { limit: 50, offset: 0 },
+    {
+      refetchInterval: 15000, // Refresh every 15 seconds
+      retry: 2,
+    }
+  );
+
+  // Calculate real-time stats from data
+  const activeAgents = React.useMemo(() => {
+    if (!executions) return 0;
+    return executions.filter(e => e.status === 'running' || e.status === 'started').length;
+  }, [executions]);
+
+  const queuedTasks = React.useMemo(() => {
+    if (!executions) return 0;
+    return executions.filter(e => e.status === 'started').length;
+  }, [executions]);
+
+  const completedToday = React.useMemo(() => {
+    if (!executions) return 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return executions.filter(e => {
+      if (e.status !== 'success' || !e.completedAt) return false;
+      const completedDate = new Date(e.completedAt);
+      return completedDate >= today;
+    }).length;
+  }, [executions]);
+
+  // Connection check - browser online status + API health
   React.useEffect(() => {
     const checkConnection = () => {
       setIsConnected(navigator.onLine);
@@ -41,6 +74,9 @@ export const StatusBar: React.FC<StatusBarProps> = ({ className }) => {
       window.removeEventListener('offline', checkConnection);
     };
   }, []);
+
+  // Loading state
+  const isLoading = statsLoading || executionsLoading;
 
   return (
     <motion.footer
@@ -67,11 +103,17 @@ export const StatusBar: React.FC<StatusBarProps> = ({ className }) => {
                   <span className="text-sm font-medium text-slate-300">Active Agents</span>
                 </div>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold text-white">{activeAgents}</span>
-                  <span className="text-xs text-slate-500">running now</span>
+                  {isLoading ? (
+                    <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+                  ) : (
+                    <>
+                      <span className="text-2xl font-bold text-white">{activeAgents}</span>
+                      <span className="text-xs text-slate-500">running now</span>
+                    </>
+                  )}
                 </div>
                 <div className="mt-2 flex gap-1">
-                  {[...Array(activeAgents)].map((_, i) => (
+                  {!isLoading && [...Array(Math.min(activeAgents, 10))].map((_, i) => (
                     <div
                       key={i}
                       className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"
@@ -88,16 +130,24 @@ export const StatusBar: React.FC<StatusBarProps> = ({ className }) => {
                   <span className="text-sm font-medium text-slate-300">Task Queue</span>
                 </div>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold text-white">{queuedTasks}</span>
-                  <span className="text-xs text-slate-500">pending</span>
+                  {isLoading ? (
+                    <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+                  ) : (
+                    <>
+                      <span className="text-2xl font-bold text-white">{queuedTasks}</span>
+                      <span className="text-xs text-slate-500">pending</span>
+                    </>
+                  )}
                 </div>
                 <div className="mt-2 h-1 bg-slate-700 rounded-full overflow-hidden">
-                  <motion.div
-                    className="h-full bg-gradient-to-r from-blue-500 to-cyan-500"
-                    initial={{ width: 0 }}
-                    animate={{ width: '60%' }}
-                    transition={{ duration: 1, ease: 'easeOut' }}
-                  />
+                  {!isLoading && (
+                    <motion.div
+                      className="h-full bg-gradient-to-r from-blue-500 to-cyan-500"
+                      initial={{ width: 0 }}
+                      animate={{ width: queuedTasks > 0 ? `${Math.min((queuedTasks / 20) * 100, 100)}%` : '0%' }}
+                      transition={{ duration: 1, ease: 'easeOut' }}
+                    />
+                  )}
                 </div>
               </div>
 
@@ -108,10 +158,20 @@ export const StatusBar: React.FC<StatusBarProps> = ({ className }) => {
                   <span className="text-sm font-medium text-slate-300">Completed Today</span>
                 </div>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-2xl font-bold text-white">{completedToday}</span>
-                  <span className="text-xs text-slate-500">tasks</span>
+                  {isLoading ? (
+                    <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+                  ) : (
+                    <>
+                      <span className="text-2xl font-bold text-white">{completedToday}</span>
+                      <span className="text-xs text-slate-500">tasks</span>
+                    </>
+                  )}
                 </div>
-                <div className="mt-2 text-xs text-emerald-400">+23% vs yesterday</div>
+                {!isLoading && agentStats && (
+                  <div className="mt-2 text-xs text-emerald-400">
+                    {agentStats.successRate.toFixed(0)}% success rate
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>
