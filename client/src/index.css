@@ -736,4 +736,220 @@
     -webkit-line-clamp: 3;
     overflow: hidden;
   }
+
+  /* ============================================
+   * WEB 3.0 ENHANCEMENT UTILITIES
+   * Subtle & Professional effects
+   * ============================================ */
+
+  /* 3D Transform Utilities */
+  .perspective-500 {
+    perspective: 500px;
+  }
+
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+
+  .perspective-1500 {
+    perspective: 1500px;
+  }
+
+  .perspective-2000 {
+    perspective: 2000px;
+  }
+
+  .transform-style-3d {
+    transform-style: preserve-3d;
+  }
+
+  .backface-hidden {
+    backface-visibility: hidden;
+  }
+
+  /* Enhanced Glassmorphism for Landing Page */
+  .glass-nav {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .glass-card {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(16px) saturate(150%);
+    -webkit-backdrop-filter: blur(16px) saturate(150%);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+  }
+
+  .dark .glass-nav {
+    background: rgba(0, 0, 0, 0.7);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .dark .glass-card {
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  /* Gradient Mesh Background */
+  .gradient-mesh {
+    background-color: #f8fafc;
+    background-image:
+      radial-gradient(at 40% 20%, oklch(0.92 0.08 160 / 0.8) 0px, transparent 50%),
+      radial-gradient(at 80% 0%, oklch(0.9 0.06 180 / 0.6) 0px, transparent 50%),
+      radial-gradient(at 0% 50%, oklch(0.88 0.08 200 / 0.5) 0px, transparent 50%),
+      radial-gradient(at 80% 50%, oklch(0.94 0.04 140 / 0.4) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, oklch(0.9 0.06 170 / 0.5) 0px, transparent 50%),
+      radial-gradient(at 80% 100%, oklch(0.92 0.05 150 / 0.4) 0px, transparent 50%);
+  }
+
+  .dark .gradient-mesh {
+    background-color: #0f172a;
+    background-image:
+      radial-gradient(at 40% 20%, oklch(0.3 0.1 160 / 0.4) 0px, transparent 50%),
+      radial-gradient(at 80% 0%, oklch(0.25 0.08 180 / 0.3) 0px, transparent 50%),
+      radial-gradient(at 0% 50%, oklch(0.28 0.1 200 / 0.3) 0px, transparent 50%),
+      radial-gradient(at 80% 100%, oklch(0.26 0.08 150 / 0.3) 0px, transparent 50%);
+  }
+
+  /* Animated Gradient Border */
+  @keyframes gradient-rotate {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  .gradient-border {
+    position: relative;
+    background: transparent;
+  }
+
+  .gradient-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 2px;
+    background: linear-gradient(
+      90deg,
+      oklch(0.65 0.2 160),
+      oklch(0.6 0.18 180),
+      oklch(0.65 0.2 200),
+      oklch(0.65 0.2 160)
+    );
+    background-size: 300% 300%;
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+
+  .gradient-border:hover::before {
+    opacity: 1;
+    animation: gradient-rotate 4s linear infinite;
+  }
+
+  /* Blob Animation */
+  @keyframes blob-morph {
+    0%, 100% {
+      border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+    }
+    25% {
+      border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%;
+    }
+    50% {
+      border-radius: 50% 60% 30% 60% / 30% 60% 70% 40%;
+    }
+    75% {
+      border-radius: 60% 40% 60% 30% / 70% 30% 50% 60%;
+    }
+  }
+
+  .blob {
+    animation: blob-morph 8s ease-in-out infinite;
+    will-change: border-radius;
+  }
+
+  .blob-slow {
+    animation: blob-morph 12s ease-in-out infinite;
+    will-change: border-radius;
+  }
+
+  /* Floating Animation */
+  @keyframes float-gentle {
+    0%, 100% {
+      transform: translateY(0) translateX(0);
+    }
+    25% {
+      transform: translateY(-8px) translateX(4px);
+    }
+    50% {
+      transform: translateY(-4px) translateX(-4px);
+    }
+    75% {
+      transform: translateY(-12px) translateX(2px);
+    }
+  }
+
+  .float-gentle {
+    animation: float-gentle 6s ease-in-out infinite;
+    will-change: transform;
+  }
+
+  .float-gentle-slow {
+    animation: float-gentle 10s ease-in-out infinite;
+    will-change: transform;
+  }
+
+  /* Glow Effects */
+  .glow-emerald {
+    box-shadow: 0 0 40px oklch(0.65 0.2 160 / 0.3);
+  }
+
+  .glow-emerald-strong {
+    box-shadow: 0 0 60px oklch(0.65 0.2 160 / 0.4);
+  }
+
+  .hover\:glow-emerald:hover {
+    box-shadow: 0 0 40px oklch(0.65 0.2 160 / 0.3);
+  }
+
+  /* Card Depth Effect */
+  .card-depth {
+    transform-style: preserve-3d;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .card-depth:hover {
+    transform: translateY(-4px) translateZ(10px);
+    box-shadow:
+      0 20px 25px -5px rgb(0 0 0 / 0.08),
+      0 8px 10px -6px rgb(0 0 0 / 0.08);
+  }
+
+  /* Custom Cursor Styles */
+  .cursor-none {
+    cursor: none;
+  }
+
+  /* Reduced Motion Override for Web 3.0 Effects */
+  @media (prefers-reduced-motion: reduce) {
+    .blob,
+    .blob-slow,
+    .float-gentle,
+    .float-gentle-slow {
+      animation: none !important;
+    }
+
+    .gradient-border::before {
+      animation: none !important;
+    }
+  }
 }

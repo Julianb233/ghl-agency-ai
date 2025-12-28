@@ -6,6 +6,8 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { TourProvider } from "./components/tour/TourProvider";
 import { SkipNavLink } from "./components/SkipNavLink";
 import { NotificationProvider } from "./components/notifications";
+import { CustomCursor } from "./components/ui/CustomCursor";
+import { CookieConsent } from "./components/CookieConsent";
 import { trpc } from "@/lib/trpc";
 
 // Lazy load heavy components for better initial bundle size
@@ -17,6 +19,9 @@ const LoginScreen = lazy(() => import('./components/LoginScreen').then(m => ({ d
 const OnboardingFlow = lazy(() => import('./components/OnboardingFlow').then(m => ({ default: m.OnboardingFlow })));
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy').then(m => ({ default: m.PrivacyPolicy })));
 const TermsOfService = lazy(() => import('./pages/TermsOfService').then(m => ({ default: m.TermsOfService })));
+const Blog = lazy(() => import('./pages/Blog').then(m => ({ default: m.Blog })));
+const BlogPost = lazy(() => import('./pages/BlogPost').then(m => ({ default: m.BlogPost })));
+const VoiceTranscriptDemo = lazy(() => import('./pages/VoiceTranscriptDemo'));
 
 // Loading spinner component
 const LoadingSpinner = () => (
@@ -28,7 +33,7 @@ const LoadingSpinner = () => (
   </div>
 );
 
-type ViewState = 'LANDING' | 'LOGIN' | 'ONBOARDING' | 'DASHBOARD' | 'ALEX_RAMOZY' | 'PRIVACY' | 'TERMS' | 'FEATURES';
+type ViewState = 'LANDING' | 'LOGIN' | 'ONBOARDING' | 'DASHBOARD' | 'ALEX_RAMOZY' | 'PRIVACY' | 'TERMS' | 'FEATURES' | 'BLOG' | 'BLOG_POST' | 'VOICE_DEMO';
 type UserTier = 'STARTER' | 'GROWTH' | 'WHITELABEL';
 
 // Admin email for preview access
@@ -40,6 +45,7 @@ function App() {
   const [userTier, setUserTier] = useState<UserTier>('STARTER'); // Default tier for new users
   const [credits, setCredits] = useState(100); // Default credits for new users
   const [isAdminPreview, setIsAdminPreview] = useState(false);
+  const [blogPostSlug, setBlogPostSlug] = useState<string>('');
 
   // Check for active session
   const { data: user, isLoading: isAuthLoading, error: authError, refetch: refetchUser } = trpc.auth.me.useQuery(undefined, {
@@ -106,7 +112,9 @@ function App() {
               isDashboardActive={currentView === 'DASHBOARD'}
             >
               <SkipNavLink />
+              <CustomCursor />
               <Toaster />
+              <CookieConsent />
 
             {/* Admin Preview Toggle - Only visible for admin user */}
             {isAdmin && (
@@ -139,6 +147,7 @@ function App() {
                     }
                   }}
                   onNavigateToFeatures={() => setCurrentView('FEATURES')}
+                  onNavigateToBlog={() => setCurrentView('BLOG')}
                 />
               )}
 
@@ -183,6 +192,31 @@ function App() {
 
               {currentView === 'TERMS' && (
                 <TermsOfService onBack={() => setCurrentView('LANDING')} />
+              )}
+
+              {currentView === 'BLOG' && (
+                <Blog
+                  onBack={() => setCurrentView('LANDING')}
+                  onPostClick={(slug) => {
+                    setBlogPostSlug(slug);
+                    setCurrentView('BLOG_POST');
+                  }}
+                />
+              )}
+
+              {currentView === 'BLOG_POST' && blogPostSlug && (
+                <BlogPost
+                  slug={blogPostSlug}
+                  onBack={() => setCurrentView('BLOG')}
+                  onPostClick={(slug) => {
+                    setBlogPostSlug(slug);
+                    // View stays at BLOG_POST, just updates slug
+                  }}
+                />
+              )}
+
+              {currentView === 'VOICE_DEMO' && (
+                <VoiceTranscriptDemo />
               )}
             </Suspense>
             </TourProvider>

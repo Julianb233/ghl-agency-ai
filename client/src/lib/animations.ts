@@ -1,4 +1,10 @@
 // Animation variants for Framer Motion
+// Re-exports from the animations directory for backward compatibility
+
+// Re-export all Web 3.0 animation variants
+export * from './animations/variants';
+
+// Legacy exports for backward compatibility
 export const fadeIn = {
   initial: { opacity: 0 },
   animate: { opacity: 1 },

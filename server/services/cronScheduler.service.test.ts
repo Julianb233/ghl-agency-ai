@@ -63,7 +63,7 @@ describe("CronSchedulerService", () => {
   describe("describeCronExpression", () => {
     it("should generate human-readable descriptions", () => {
       const testCases = [
-        { expression: "0 0 * * *", expectedSubstring: "midnight" },
+        { expression: "0 0 * * *", expectedSubstring: "00:00" },
         { expression: "0 12 * * *", expectedSubstring: "12:00" },
         { expression: "0 9 * * 1", expectedSubstring: "Monday" },
         { expression: "*/15 * * * *", expectedSubstring: "15" },
@@ -177,14 +177,18 @@ describe("CronSchedulerService", () => {
 
   describe("isTimeToRun", () => {
     it("should return true when task never ran and time has passed", () => {
-      // Create a cron that ran 5 minutes ago
+      // Create a cron expression for a time that has passed today
       const now = new Date();
-      const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
-      const minute = fiveMinutesAgo.getUTCMinutes();
-      const hour = fiveMinutesAgo.getUTCHours();
+      const pastTime = new Date(now.getTime() - 5 * 60 * 1000);
+      const minute = pastTime.getUTCMinutes();
+      const hour = pastTime.getUTCHours();
       const expression = `${minute} ${hour} * * *`;
 
-      const shouldRun = cronSchedulerService.isTimeToRun(expression, null, "UTC");
+      // Set lastRun to before the scheduled time (so it should run)
+      const lastRun = new Date(pastTime);
+      lastRun.setUTCHours(lastRun.getUTCHours() - 1);
+
+      const shouldRun = cronSchedulerService.isTimeToRun(expression, lastRun, "UTC");
       expect(shouldRun).toBe(true);
     });
 

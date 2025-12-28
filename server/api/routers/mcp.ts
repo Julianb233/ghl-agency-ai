@@ -275,6 +275,354 @@ export const mcpRouter = router({
   }),
 
   /**
+   * Resources operations
+   */
+  resources: router({
+    /**
+     * List all available resources
+     */
+    list: protectedProcedure.query(async ({ ctx }) => {
+      try {
+        const server = await getMCPServer();
+        const registry = (server as any).resourceRegistry;
+
+        if (!registry) {
+          throw new Error('Resource registry not initialized');
+        }
+
+        const resources = await registry.listResources({
+          sessionId: ctx.session?.user?.id,
+          userId: ctx.session?.user?.id,
+        });
+
+        return {
+          resources,
+          count: resources.length,
+        };
+      } catch (error) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error instanceof Error ? error.message : 'Failed to list resources',
+        });
+      }
+    }),
+
+    /**
+     * Read a resource
+     */
+    read: protectedProcedure
+      .input(
+        z.object({
+          uri: z.string().describe('Resource URI to read'),
+        })
+      )
+      .query(async ({ input, ctx }) => {
+        try {
+          const server = await getMCPServer();
+          const registry = (server as any).resourceRegistry;
+
+          if (!registry) {
+            throw new Error('Resource registry not initialized');
+          }
+
+          const content = await registry.readResource(input.uri, {
+            sessionId: ctx.session?.user?.id,
+            userId: ctx.session?.user?.id,
+          });
+
+          return content;
+        } catch (error) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: error instanceof Error ? error.message : 'Failed to read resource',
+          });
+        }
+      }),
+
+    /**
+     * Check if resource exists
+     */
+    exists: protectedProcedure
+      .input(
+        z.object({
+          uri: z.string().describe('Resource URI to check'),
+        })
+      )
+      .query(async ({ input, ctx }) => {
+        try {
+          const server = await getMCPServer();
+          const registry = (server as any).resourceRegistry;
+
+          if (!registry) {
+            throw new Error('Resource registry not initialized');
+          }
+
+          const exists = await registry.hasResource(input.uri, {
+            sessionId: ctx.session?.user?.id,
+            userId: ctx.session?.user?.id,
+          });
+
+          return { exists };
+        } catch (error) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: error instanceof Error ? error.message : 'Failed to check resource',
+          });
+        }
+      }),
+  }),
+
+  /**
+   * Prompts operations
+   */
+  prompts: router({
+    /**
+     * List all available prompts
+     */
+    list: protectedProcedure.query(async () => {
+      try {
+        const server = await getMCPServer();
+        const registry = (server as any).promptRegistry;
+
+        if (!registry) {
+          throw new Error('Prompt registry not initialized');
+        }
+
+        const prompts = registry.listPrompts();
+
+        return {
+          prompts,
+          count: prompts.length,
+        };
+      } catch (error) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error instanceof Error ? error.message : 'Failed to list prompts',
+        });
+      }
+    }),
+
+    /**
+     * Get a prompt with arguments
+     */
+    get: protectedProcedure
+      .input(
+        z.object({
+          name: z.string().describe('Prompt name'),
+          arguments: z.record(z.string(), z.string()).optional().describe('Prompt arguments'),
+        })
+      )
+      .query(async ({ input, ctx }) => {
+        try {
+          const server = await getMCPServer();
+          const registry = (server as any).promptRegistry;
+
+          if (!registry) {
+            throw new Error('Prompt registry not initialized');
+          }
+
+          const result = await registry.getPromptWithArguments(
+            input.name,
+            input.arguments || {},
+            {
+              sessionId: ctx.session?.user?.id,
+              userId: ctx.session?.user?.id,
+            }
+          );
+
+          return result;
+        } catch (error) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: error instanceof Error ? error.message : 'Failed to get prompt',
+          });
+        }
+      }),
+  }),
+
+  /**
+   * Tenant Memory operations
+   */
+  memory: router({
+    /**
+     * Set a value in tenant memory
+     */
+    set: protectedProcedure
+      .input(
+        z.object({
+          namespace: z.string().describe('Memory namespace'),
+          key: z.string().describe('Memory key'),
+          value: z.unknown().describe('Value to store'),
+          ttl: z.number().optional().describe('Time to live in seconds'),
+          metadata: z.record(z.string(), z.unknown()).optional(),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        try {
+          const { getTenantMemoryService } = await import('../../../server/mcp/tenant-memory');
+          const memoryService = getTenantMemoryService();
+
+          await memoryService.set(input.namespace, input.key, input.value, {
+            ttl: input.ttl,
+            metadata: input.metadata,
+          });
+
+          return {
+            success: true,
+            namespace: input.namespace,
+            key: input.key,
+          };
+        } catch (error) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: error instanceof Error ? error.message : 'Failed to set memory value',
+          });
+        }
+      }),
+
+    /**
+     * Get a value from tenant memory
+     */
+    get: protectedProcedure
+      .input(
+        z.object({
+          namespace: z.string().describe('Memory namespace'),
+          key: z.string().describe('Memory key'),
+        })
+      )
+      .query(async ({ input, ctx }) => {
+        try {
+          const { getTenantMemoryService } = await import('../../../server/mcp/tenant-memory');
+          const memoryService = getTenantMemoryService();
+
+          const value = await memoryService.get(input.namespace, input.key);
+
+          return {
+            value,
+            found: value !== null,
+          };
+        } catch (error) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: error instanceof Error ? error.message : 'Failed to get memory value',
+          });
+        }
+      }),
+
+    /**
+     * Delete a value from tenant memory
+     */
+    delete: protectedProcedure
+      .input(
+        z.object({
+          namespace: z.string().describe('Memory namespace'),
+          key: z.string().describe('Memory key'),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        try {
+          const { getTenantMemoryService } = await import('../../../server/mcp/tenant-memory');
+          const memoryService = getTenantMemoryService();
+
+          const deleted = await memoryService.delete(input.namespace, input.key);
+
+          return {
+            success: deleted,
+            namespace: input.namespace,
+            key: input.key,
+          };
+        } catch (error) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: error instanceof Error ? error.message : 'Failed to delete memory value',
+          });
+        }
+      }),
+
+    /**
+     * List keys in a namespace
+     */
+    list: protectedProcedure
+      .input(
+        z.object({
+          namespace: z.string().describe('Memory namespace'),
+          limit: z.number().optional().describe('Maximum number of keys to return'),
+          offset: z.number().optional().describe('Offset for pagination'),
+        })
+      )
+      .query(async ({ input, ctx }) => {
+        try {
+          const { getTenantMemoryService } = await import('../../../server/mcp/tenant-memory');
+          const memoryService = getTenantMemoryService();
+
+          const keys = await memoryService.list(input.namespace, {
+            limit: input.limit,
+            offset: input.offset,
+          });
+
+          return {
+            keys,
+            count: keys.length,
+            namespace: input.namespace,
+          };
+        } catch (error) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: error instanceof Error ? error.message : 'Failed to list memory keys',
+          });
+        }
+      }),
+
+    /**
+     * Clear all keys in a namespace
+     */
+    clear: protectedProcedure
+      .input(
+        z.object({
+          namespace: z.string().describe('Memory namespace to clear'),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        try {
+          const { getTenantMemoryService } = await import('../../../server/mcp/tenant-memory');
+          const memoryService = getTenantMemoryService();
+
+          const deletedCount = await memoryService.clear(input.namespace);
+
+          return {
+            success: true,
+            namespace: input.namespace,
+            deletedCount,
+          };
+        } catch (error) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: error instanceof Error ? error.message : 'Failed to clear namespace',
+          });
+        }
+      }),
+
+    /**
+     * Get usage statistics
+     */
+    usage: protectedProcedure.query(async ({ ctx }) => {
+      try {
+        const { getTenantMemoryService } = await import('../../../server/mcp/tenant-memory');
+        const memoryService = getTenantMemoryService();
+
+        const usage = await memoryService.getUsage();
+
+        return usage;
+      } catch (error) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error instanceof Error ? error.message : 'Failed to get usage statistics',
+        });
+      }
+    }),
+  }),
+
+  /**
    * Database operations
    */
   database: router({

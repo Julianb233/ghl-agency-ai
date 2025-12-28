@@ -5,7 +5,25 @@
  * and knowledge text formatting
  */
 
+// Set API key BEFORE any imports to prevent module-level check failure
+process.env.OPENAI_API_KEY = "test-api-key-for-unit-tests";
+
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+
+// Create mock function at module scope for access in tests
+const mockEmbeddingsCreate = vi.fn();
+
+// Mock OpenAI before importing embeddings module
+vi.mock("openai", () => {
+  return {
+    default: class OpenAI {
+      embeddings = {
+        create: mockEmbeddingsCreate,
+      };
+    },
+  };
+});
+
 import {
   generateEmbedding,
   generateEmbeddings,
@@ -19,27 +37,10 @@ import {
   EMBEDDING_DIMENSIONS,
 } from "./embeddings";
 
-// Mock OpenAI
-vi.mock("openai", () => {
-  const mockEmbeddings = {
-    create: vi.fn(),
-  };
-
-  return {
-    default: class {
-      embeddings = mockEmbeddings;
-    },
-  };
-});
-
 describe("RAG Embeddings Service", () => {
-  let mockCreate: any;
-
   beforeEach(() => {
     vi.clearAllMocks();
-    const OpenAI = require("openai").default;
-    const instance = new OpenAI();
-    mockCreate = instance.embeddings.create;
+    mockEmbeddingsCreate.mockReset();
   });
 
   afterEach(() => {
@@ -53,7 +54,7 @@ describe("RAG Embeddings Service", () => {
   describe("generateEmbedding", () => {
     it("should generate embedding for valid text", async () => {
       const mockEmbedding = Array(EMBEDDING_DIMENSIONS).fill(0.5);
-      mockCreate.mockResolvedValueOnce({
+      mockEmbeddingsCreate.mockResolvedValueOnce({
         data: [{ embedding: mockEmbedding }],
       });
 
@@ -61,7 +62,7 @@ describe("RAG Embeddings Service", () => {
 
       expect(result).toEqual(mockEmbedding);
       expect(result.length).toBe(EMBEDDING_DIMENSIONS);
-      expect(mockCreate).toHaveBeenCalledWith({
+      expect(mockEmbeddingsCreate).toHaveBeenCalledWith({
         model: "text-embedding-3-small",
         input: "Test text for embedding",
         dimensions: EMBEDDING_DIMENSIONS,
@@ -72,7 +73,7 @@ describe("RAG Embeddings Service", () => {
       await expect(generateEmbedding("")).rejects.toThrow(
         "Cannot generate embedding for empty text"
       );
-      expect(mockCreate).not.toHaveBeenCalled();
+      expect(mockEmbeddingsCreate).not.toHaveBeenCalled();
     });
 
     it("should reject whitespace-only text", async () => {
@@ -83,7 +84,7 @@ describe("RAG Embeddings Service", () => {
 
     it("should truncate text exceeding max length", async () => {
       const mockEmbedding = Array(EMBEDDING_DIMENSIONS).fill(0.5);
-      mockCreate.mockResolvedValueOnce({
+      mockEmbeddingsCreate.mockResolvedValueOnce({
         data: [{ embedding: mockEmbedding }],
       });
 
@@ -92,18 +93,18 @@ describe("RAG Embeddings Service", () => {
       const result = await generateEmbedding(longText);
 
       expect(result).toEqual(mockEmbedding);
-      expect(mockCreate).toHaveBeenCalledWith(
+      expect(mockEmbeddingsCreate).toHaveBeenCalledWith(
         expect.objectContaining({
           input: expect.any(String),
         })
       );
 
-      const [callArgs] = mockCreate.mock.calls[0];
+      const [callArgs] = mockEmbeddingsCreate.mock.calls[0];
       expect(callArgs.input.length).toBeLessThanOrEqual(32764);
     });
 
     it("should handle API errors gracefully", async () => {
-      mockCreate.mockRejectedValueOnce(new Error("API rate limit exceeded"));
+      mockEmbeddingsCreate.mockRejectedValueOnce(new Error("API rate limit exceeded"));
 
       await expect(generateEmbedding("Test text")).rejects.toThrow(
         "API rate limit exceeded"
@@ -122,7 +123,7 @@ describe("RAG Embeddings Service", () => {
         Array(EMBEDDING_DIMENSIONS).fill(0.6),
         Array(EMBEDDING_DIMENSIONS).fill(0.7),
       ];
-      mockCreate.mockResolvedValueOnce({
+      mockEmbeddingsCreate.mockResolvedValueOnce({
         data: mockEmbeddings.map((embedding) => ({ embedding })),
       });
 
@@ -132,7 +133,7 @@ describe("RAG Embeddings Service", () => {
       expect(result).toHaveLength(3);
       expect(result[0]).toEqual(mockEmbeddings[0]);
       expect(result[2]).toEqual(mockEmbeddings[2]);
-      expect(mockCreate).toHaveBeenCalledWith({
+      expect(mockEmbeddingsCreate).toHaveBeenCalledWith({
         model: "text-embedding-3-small",
         input: texts,
         dimensions: EMBEDDING_DIMENSIONS,
@@ -143,7 +144,7 @@ describe("RAG Embeddings Service", () => {
       const result = await generateEmbeddings([]);
 
       expect(result).toEqual([]);
-      expect(mockCreate).not.toHaveBeenCalled();
+      expect(mockEmbeddingsCreate).not.toHaveBeenCalled();
     });
 
     it("should filter out empty texts", async () => {
@@ -151,7 +152,7 @@ describe("RAG Embeddings Service", () => {
         Array(EMBEDDING_DIMENSIONS).fill(0.5),
         Array(EMBEDDING_DIMENSIONS).fill(0.6),
       ];
-      mockCreate.mockResolvedValueOnce({
+      mockEmbeddingsCreate.mockResolvedValueOnce({
         data: mockEmbeddings.map((embedding) => ({ embedding })),
       });
 
@@ -159,7 +160,7 @@ describe("RAG Embeddings Service", () => {
       const result = await generateEmbeddings(texts);
 
       expect(result).toHaveLength(2);
-      expect(mockCreate).toHaveBeenCalledWith(
+      expect(mockEmbeddingsCreate).toHaveBeenCalledWith(
         expect.objectContaining({
           input: ["Text 1", "Text 2"],
         })
@@ -170,11 +171,11 @@ describe("RAG Embeddings Service", () => {
       const result = await generateEmbeddings(["", "   ", null as any]);
 
       expect(result).toEqual([]);
-      expect(mockCreate).not.toHaveBeenCalled();
+      expect(mockEmbeddingsCreate).not.toHaveBeenCalled();
     });
 
     it("should handle batch API errors", async () => {
-      mockCreate.mockRejectedValueOnce(
+      mockEmbeddingsCreate.mockRejectedValueOnce(
         new Error("Batch processing failed")
       );
 
@@ -545,7 +546,7 @@ Fourth paragraph to test chunking.`;
       const mockEmbedding1 = Array(EMBEDDING_DIMENSIONS).fill(0.7);
       const mockEmbedding2 = Array(EMBEDDING_DIMENSIONS).fill(0.7);
 
-      mockCreate.mockResolvedValueOnce({
+      mockEmbeddingsCreate.mockResolvedValueOnce({
         data: [{ embedding: mockEmbedding1 }],
       });
 

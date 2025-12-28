@@ -129,11 +129,11 @@ export function createRestApi(): Express {
   // ERROR HANDLING
   // ========================================
 
-  // 404 handler for undefined routes
-  app.use(notFoundHandler);
+  // 404 handler for undefined /api/v1/* routes only
+  app.use("/api/v1", notFoundHandler);
 
   // Global error handler (must be last)
-  app.use(errorHandler);
+  app.use("/api/v1", errorHandler);
 
   return app;
 }

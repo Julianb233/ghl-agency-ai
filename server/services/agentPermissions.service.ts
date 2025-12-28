@@ -18,7 +18,8 @@
 import type { User } from "../../drizzle/schema";
 import { getDb } from "../db";
 import { users, userSubscriptions, subscriptionTiers, apiKeys } from "../../drizzle/schema";
-import { eq } from "drizzle-orm";
+import { agencyTasks, taskExecutions } from "../../drizzle/schema-webhooks";
+import { eq, and, gte, inArray, sql } from "drizzle-orm";
 
 // ========================================
 // PERMISSION TYPES
@@ -366,10 +367,39 @@ export class AgentPermissionsService {
     }
 
     // Get current active executions count
-    // Note: This would need to query taskExecutions table with status filters
-    // For now, using placeholder values
-    const currentActive = 0; // TODO: Query actual active executions
-    const monthlyUsed = 0; // TODO: Query executions this month
+    // Query actual active executions for this user
+    const activeStatuses = ["started", "running", "needs_input"];
+
+    const activeExecutions = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(taskExecutions)
+      .innerJoin(agencyTasks, eq(taskExecutions.taskId, agencyTasks.id))
+      .where(
+        and(
+          eq(agencyTasks.userId, userId),
+          inArray(taskExecutions.status, activeStatuses)
+        )
+      );
+
+    const currentActive = Number(activeExecutions[0]?.count || 0);
+
+    // Get monthly execution count for this user
+    // Calculate start of current month (UTC)
+    const now = new Date();
+    const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+
+    const monthlyExecutions = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(taskExecutions)
+      .innerJoin(agencyTasks, eq(taskExecutions.taskId, agencyTasks.id))
+      .where(
+        and(
+          eq(agencyTasks.userId, userId),
+          gte(taskExecutions.startedAt, monthStart)
+        )
+      );
+
+    const monthlyUsed = Number(monthlyExecutions[0]?.count || 0);
 
     const limits = {
       maxConcurrent: context.subscriptionTier.maxConcurrentAgents,
@@ -419,6 +449,92 @@ export class AgentPermissionsService {
         result.toolCategory
       );
     }
+  }
+
+  /**
+   * Verify that a task belongs to the specified user (tenant isolation)
+   * CRITICAL: Must be called before any task operations to prevent cross-tenant access
+   */
+  async verifyTaskOwnership(taskId: number, userId: number): Promise<boolean> {
+    const db = await getDb();
+    if (!db) {
+      throw new Error("Database not initialized");
+    }
+
+    const [task] = await db
+      .select({ userId: agencyTasks.userId })
+      .from(agencyTasks)
+      .where(eq(agencyTasks.id, taskId))
+      .limit(1);
+
+    if (!task) {
+      return false;
+    }
+
+    return task.userId === userId;
+  }
+
+  /**
+   * Verify that an execution belongs to the specified user (tenant isolation)
+   * CRITICAL: Must be called before any execution operations to prevent cross-tenant access
+   */
+  async verifyExecutionOwnership(executionId: number, userId: number): Promise<boolean> {
+    const db = await getDb();
+    if (!db) {
+      throw new Error("Database not initialized");
+    }
+
+    // Join through agencyTasks to verify ownership
+    const [execution] = await db
+      .select({ taskUserId: agencyTasks.userId })
+      .from(taskExecutions)
+      .innerJoin(agencyTasks, eq(taskExecutions.taskId, agencyTasks.id))
+      .where(eq(taskExecutions.id, executionId))
+      .limit(1);
+
+    if (!execution) {
+      return false;
+    }
+
+    return execution.taskUserId === userId;
+  }
+
+  /**
+   * Verify that a user can execute a specific task (combines ownership + permission checks)
+   * CRITICAL: Use this for complete authorization before task execution
+   */
+  async canExecuteTask(taskId: number, userId: number, toolName: string): Promise<{
+    allowed: boolean;
+    reason?: string;
+  }> {
+    // First verify task ownership (tenant isolation)
+    const ownsTask = await this.verifyTaskOwnership(taskId, userId);
+    if (!ownsTask) {
+      return {
+        allowed: false,
+        reason: "Task not found or access denied",
+      };
+    }
+
+    // Check execution limits
+    const limitsCheck = await this.checkExecutionLimits(userId);
+    if (!limitsCheck.canExecute) {
+      return {
+        allowed: false,
+        reason: limitsCheck.reason,
+      };
+    }
+
+    // Check tool permission
+    const permissionCheck = await this.checkToolExecutionPermission(userId, toolName);
+    if (!permissionCheck.allowed) {
+      return {
+        allowed: false,
+        reason: permissionCheck.reason,
+      };
+    }
+
+    return { allowed: true };
   }
 
   /**

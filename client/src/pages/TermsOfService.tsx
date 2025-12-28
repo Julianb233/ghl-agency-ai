@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowLeft, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { SEOHead, BreadcrumbSchema, BREADCRUMB_PATHS } from '@/components/seo';
 
 interface TermsOfServiceProps {
   onBack: () => void;
@@ -9,6 +10,16 @@ interface TermsOfServiceProps {
 export const TermsOfService: React.FC<TermsOfServiceProps> = ({ onBack }) => {
   return (
     <div className="min-h-screen bg-white">
+      {/* SEO Meta Tags */}
+      <SEOHead
+        title="Terms of Service"
+        description="Bottleneck Bot's terms of service outline the rules and guidelines for using our AI-powered automation platform for GoHighLevel agencies."
+        keywords={['terms of service', 'terms and conditions', 'user agreement', 'service terms']}
+        canonicalUrl="https://bottleneckbot.com/terms"
+        type="website"
+      />
+      <BreadcrumbSchema items={BREADCRUMB_PATHS.terms} />
+
       {/* Header */}
       <header className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-12 sm:py-16">
         <div className="container mx-auto px-4 sm:px-6">

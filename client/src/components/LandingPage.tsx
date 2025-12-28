@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { Button } from './ui/button';
 import { ArrowRight, CheckCircle2, Zap, Globe, Mail, Phone, BarChart3, Shield, Users, Clock, DollarSign, TrendingUp, Target, Sparkles, Crown, Rocket, Brain, Play, Menu, X } from 'lucide-react';
 import { SkipLink } from './SkipLink';
@@ -8,6 +9,19 @@ import { CountdownTimer } from './CountdownTimer';
 import { TrustBadges, TrustBadgesInline } from './TrustBadges';
 import { LiveChat } from './LiveChat';
 import { useConversionTracking } from '@/hooks/useConversionTracking';
+
+// Web 3.0 Components
+import { BlobBackground } from './ui/BlobBackground';
+import { FloatingElement } from './animations/FloatingElement';
+import { ScrollReveal, StaggerReveal } from './animations/ScrollReveal';
+import { Card3D } from './3d/Card3D';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
+
+// SEO Components
+import { SEOHead, FAQSchema, BreadcrumbSchema, BOTTLENECK_BOT_FAQS, BREADCRUMB_PATHS } from './seo';
+
+// Marketing Components
+import { FAQSection, HowItWorks } from './marketing';
 
 
 // Optimized image component with lazy loading and CLS prevention
@@ -34,11 +48,13 @@ const OptimizedImage: React.FC<{
 interface LandingPageProps {
   onLogin: () => void;
   onNavigateToFeatures?: () => void;
+  onNavigateToBlog?: () => void;
 }
 
-export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onNavigateToFeatures }) => {
+export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onNavigateToFeatures, onNavigateToBlog }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { trackCTAClick, trackPricingView } = useConversionTracking();
+  const prefersReducedMotion = useReducedMotion();
 
   const scrollToSection = (e: React.MouseEvent<HTMLAnchorElement>, sectionId: string) => {
     e.preventDefault();
@@ -62,14 +78,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onNavigateToF
 
   return (
     <div className="min-h-screen bg-white flex flex-col font-sans text-gray-900">
+      {/* SEO Meta Tags */}
+      <SEOHead
+        title="AI-Powered Automation for GoHighLevel Agencies"
+        description="Bottleneck Bot helps GHL agency owners automate lead follow-up, appointment scheduling, and campaign management with intelligent AI agents. Save 15-20 hours per week."
+        keywords={['GoHighLevel automation', 'GHL AI', 'agency automation', 'lead follow-up automation', 'AI agents', 'marketing automation', 'SaaS for agencies']}
+        canonicalUrl="https://bottleneckbot.com"
+        type="website"
+      />
+      <BreadcrumbSchema items={BREADCRUMB_PATHS.home} />
+      <FAQSchema faqs={BOTTLENECK_BOT_FAQS} />
+
       {/* Exit Intent Popup */}
       <ExitIntentPopup onSignUp={onLogin} />
 
       {/* Skip Navigation Link for Accessibility */}
       <SkipLink />
 
-      {/* Navigation */}
-      <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-xl border-b border-gray-200 shadow-sm" role="navigation" aria-label="Main navigation">
+      {/* Navigation - Glassmorphism */}
+      <nav className="sticky top-0 z-50 glass-nav" role="navigation" aria-label="Main navigation">
         <div className="container mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="w-8 h-8 sm:w-12 sm:h-12 bg-gradient-to-br from-emerald-600 via-green-500 to-teal-500 rounded-2xl flex items-center justify-center shadow-md relative overflow-hidden">
@@ -91,6 +118,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onNavigateToF
             <a href="#solution" onClick={(e) => scrollToSection(e, 'solution')} className="hover:text-emerald-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 rounded-md px-2 py-1">The Solution</a>
             <a href="#proof" onClick={(e) => scrollToSection(e, 'proof')} className="hover:text-emerald-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 rounded-md px-2 py-1">Proof</a>
             <a href="#pricing" onClick={(e) => scrollToSection(e, 'pricing')} className="hover:text-emerald-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 rounded-md px-2 py-1">Investment</a>
+            {onNavigateToBlog && (
+              <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToBlog(); }} className="hover:text-emerald-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2 rounded-md px-2 py-1">Blog</a>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -142,6 +172,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onNavigateToF
               <a href="#solution" onClick={(e) => scrollToSection(e, 'solution')} className="text-sm font-medium text-gray-700 hover:text-emerald-600 py-3 px-4 min-h-[44px] flex items-center rounded-md hover:bg-gray-50 transition-colors">The Solution</a>
               <a href="#proof" onClick={(e) => scrollToSection(e, 'proof')} className="text-sm font-medium text-gray-700 hover:text-emerald-600 py-3 px-4 min-h-[44px] flex items-center rounded-md hover:bg-gray-50 transition-colors">Proof</a>
               <a href="#pricing" onClick={(e) => scrollToSection(e, 'pricing')} className="text-sm font-medium text-gray-700 hover:text-emerald-600 py-3 px-4 min-h-[44px] flex items-center rounded-md hover:bg-gray-50 transition-colors">Investment</a>
+              {onNavigateToBlog && (
+                <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToBlog(); setIsMobileMenuOpen(false); }} className="text-sm font-medium text-gray-700 hover:text-emerald-600 py-3 px-4 min-h-[44px] flex items-center rounded-md hover:bg-gray-50 transition-colors">Blog</a>
+              )}
               <hr className="border-gray-200" />
               <Button variant="ghost" onClick={() => handleCTAClick('mobile_menu_login')} className="font-semibold text-sm text-gray-700 hover:text-emerald-600 justify-start">
                 Log In
@@ -154,50 +187,65 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onNavigateToF
         )}
       </nav>
 
-      {/* Hero Section - Direct Response Style */}
-      <header id="main-content" className="relative pt-12 sm:pt-20 pb-12 sm:pb-16 overflow-hidden bg-gradient-to-b from-gray-50 to-white" role="banner">
-        {/* Animated background gradient */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-emerald-50/80 via-green-50/40 to-transparent opacity-60"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-teal-50/60 via-transparent to-transparent opacity-40"></div>
+      {/* Hero Section - Direct Response Style with Web 3.0 Effects */}
+      <header id="main-content" className="relative pt-12 sm:pt-20 pb-12 sm:pb-16 overflow-hidden gradient-mesh" role="banner">
+        {/* Animated Blob Background */}
+        <BlobBackground variant="hero" className="opacity-70" />
 
-        {/* Floating elements */}
-        <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-emerald-200/30 to-green-200/30 rounded-full blur-3xl animate-float"></div>
-        <div className="absolute bottom-20 right-10 w-40 h-40 bg-gradient-to-br from-teal-200/30 to-emerald-200/30 rounded-full blur-3xl animate-float-delayed"></div>
+        {/* Floating elements with Web 3.0 animation */}
+        <FloatingElement duration={6} distance={15} className="absolute top-20 left-10 w-32 h-32 pointer-events-none">
+          <div className="w-full h-full bg-gradient-to-br from-emerald-200/40 to-green-200/40 rounded-full blur-3xl" />
+        </FloatingElement>
+        <FloatingElement duration={8} distance={20} delay={1} className="absolute bottom-20 right-10 w-40 h-40 pointer-events-none">
+          <div className="w-full h-full bg-gradient-to-br from-teal-200/40 to-emerald-200/40 rounded-full blur-3xl" />
+        </FloatingElement>
+        <FloatingElement duration={7} distance={12} delay={2} horizontal className="absolute top-40 right-1/4 w-24 h-24 pointer-events-none">
+          <div className="w-full h-full bg-gradient-to-br from-green-200/30 to-teal-200/30 rounded-full blur-2xl" />
+        </FloatingElement>
 
         <div className="container mx-auto px-4 sm:px-6 relative z-10">
           {/* Attention-grabbing badge */}
-          <div className="text-center mb-6 sm:mb-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div className="inline-flex items-center gap-2 sm:gap-3 bg-white border border-emerald-200 rounded-full px-3 sm:px-6 py-2 sm:py-2.5 shadow-sm">
-              <Crown className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
-              <span className="text-xs sm:text-sm font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent uppercase tracking-wide">
-                For Agency Owners Who Are Done Being Babysitters
-              </span>
+          <ScrollReveal variant="fadeInUp" delay={100}>
+            <div className="text-center mb-6 sm:mb-8">
+              <div className="inline-flex items-center gap-2 sm:gap-3 glass-card border border-emerald-200 rounded-full px-3 sm:px-6 py-2 sm:py-2.5 shadow-sm">
+                <Crown className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
+                <span className="text-xs sm:text-sm font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent uppercase tracking-wide">
+                  For Agency Owners Who Are Done Being Babysitters
+                </span>
+              </div>
             </div>
-          </div>
+          </ScrollReveal>
 
           {/* Big Promise Headline - Alex Hormozi Style */}
-          <h1 className="text-3xl sm:text-5xl md:text-7xl font-black tracking-tight text-gray-900 mb-4 sm:mb-6 max-w-5xl mx-auto leading-[1.1] text-center animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
-            Stop Managing.
-            <span className="block sm:inline"> Start Living.</span>
-            <br className="hidden sm:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-green-500 to-teal-600">
-              Buy Back Your Time, Peace, and Freedom.
-            </span>
-          </h1>
+          <ScrollReveal variant="fadeInUp" delay={200}>
+            <h1 className="text-3xl sm:text-5xl md:text-7xl font-black tracking-tight text-gray-900 mb-4 sm:mb-6 max-w-5xl mx-auto leading-[1.1] text-center">
+              Stop Managing.
+              <span className="block sm:inline"> Start Living.</span>
+              <br className="hidden sm:block" />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-green-500 to-teal-600">
+                Buy Back Your Time, Peace, and Freedom.
+              </span>
+            </h1>
+          </ScrollReveal>
 
           {/* Subheadline - The Big Claim */}
-          <p className="text-base sm:text-xl md:text-2xl text-gray-700 mb-4 sm:mb-6 max-w-4xl mx-auto leading-relaxed text-center font-semibold animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
-            Finally. An AI workforce that actually shows up, delivers what it promised, and gives you your evenings and weekends back.
-          </p>
+          <ScrollReveal variant="fadeInUp" delay={300}>
+            <p className="text-base sm:text-xl md:text-2xl text-gray-700 mb-4 sm:mb-6 max-w-4xl mx-auto leading-relaxed text-center font-semibold">
+              Finally. An AI workforce that actually shows up, delivers what it promised, and gives you your evenings and weekends back.
+            </p>
+          </ScrollReveal>
 
           {/* Objection Handler / Proof Element */}
-          <p className="text-sm sm:text-lg text-gray-600 mb-8 sm:mb-12 max-w-3xl mx-auto text-center animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
-            <span className="font-bold text-gray-900">Real talk:</span> This isn't another chatbot that "sounds smart but does nothing." This is the AI workforce that handles your fulfillment while you're at dinner with your family. <span className="underline decoration-emerald-400 decoration-2">No more 2am emergency Slack messages.</span>
-          </p>
+          <ScrollReveal variant="fadeIn" delay={400}>
+            <p className="text-sm sm:text-lg text-gray-600 mb-8 sm:mb-12 max-w-3xl mx-auto text-center">
+              <span className="font-bold text-gray-900">Real talk:</span> This isn't another chatbot that "sounds smart but does nothing." This is the AI workforce that handles your fulfillment while you're at dinner with your family. <span className="underline decoration-emerald-400 decoration-2">No more 2am emergency Slack messages.</span>
+            </p>
+          </ScrollReveal>
 
           {/* CTA Buttons - Classic Direct Response */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-4 sm:mb-6 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-400 px-4">
-            <Button
+          <ScrollReveal variant="scaleIn" delay={500}>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-4 sm:mb-6 px-4">
+              <Button
               onClick={() => handleCTAClick('hero_claim_freedom')}
               size="lg"
               className="w-full sm:w-auto bg-gradient-to-r from-emerald-600 via-green-500 to-teal-500 hover:from-emerald-700 hover:via-green-600 hover:to-teal-600 text-white shadow-lg hover:shadow-xl rounded-full px-6 sm:px-10 h-12 sm:h-16 text-base sm:text-xl font-black relative overflow-hidden group animate-gradient animate-bounce-subtle active:scale-95 transition-transform"
@@ -220,10 +268,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onNavigateToF
               <Play className="w-5 h-5 sm:w-6 sm:h-6 mr-2" />
               See The Magic
             </Button>
-          </div>
+            </div>
+          </ScrollReveal>
 
           {/* Social Proof Element */}
-          <div className="text-center text-xs sm:text-sm text-gray-600 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-500 px-4">
+          <ScrollReveal variant="fadeIn" delay={600}>
+            <div className="text-center text-xs sm:text-sm text-gray-600 px-4">
             <div className="flex items-center justify-center gap-1 sm:gap-2 mb-2">
               {[...Array(5)].map((_, i) => (
                 <span key={i} className="text-yellow-400 text-base sm:text-lg">★</span>
@@ -233,20 +283,32 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onNavigateToF
             <p className="font-medium">
               <span className="font-bold text-emerald-600">487 agency owners</span> have reclaimed their time and sanity
             </p>
-          </div>
-
-          {/* Hero Dashboard Preview */}
-          <div className="mt-12 sm:mt-20 relative max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-600 px-4">
-            <div className="absolute -inset-4 sm:-inset-6 bg-gradient-to-r from-emerald-200/40 via-green-200/40 to-teal-200/40 rounded-2xl sm:rounded-3xl blur-3xl"></div>
-            <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border border-gray-200 bg-white">
-              <OptimizedImage
-                src="/assets/demo/global_ops_view_1763563925931.png"
-                alt="Live AI Agent Dashboard - Real-time operations view"
-                className="w-full"
-                priority
-              />
             </div>
-          </div>
+          </ScrollReveal>
+
+          {/* Hero Dashboard Preview with 3D Effect */}
+          <ScrollReveal variant="scaleIn" delay={700}>
+            <div className="mt-12 sm:mt-20 relative max-w-6xl mx-auto px-4">
+              <div className="absolute -inset-4 sm:-inset-6 bg-gradient-to-r from-emerald-200/40 via-green-200/40 to-teal-200/40 rounded-2xl sm:rounded-3xl blur-3xl"></div>
+              <Card3D
+                rotationStrength={4}
+                hoverScale={1.01}
+                glowOnHover
+                borderRadius="1rem"
+                background="white"
+                className="relative"
+              >
+                <div className="rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border border-gray-200">
+                  <OptimizedImage
+                    src="/assets/demo/global_ops_view_1763563925931.png"
+                    alt="Live AI Agent Dashboard - Real-time operations view"
+                    className="w-full"
+                    priority
+                  />
+                </div>
+              </Card3D>
+            </div>
+          </ScrollReveal>
         </div>
       </header>
 
@@ -303,20 +365,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onNavigateToF
         <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-br from-emerald-100/40 to-teal-100/40 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
 
         <div className="container mx-auto px-4 sm:px-6 relative z-10">
-          <div className="max-w-4xl mx-auto text-center mb-12 sm:mb-16">
-            <div className="inline-flex items-center gap-2 bg-rose-50 border border-rose-200 rounded-full px-4 py-1.5 mb-6">
-              <span className="text-xs font-bold text-rose-700 uppercase tracking-wide">The Daily Struggle</span>
+          <ScrollReveal variant="fadeInUp">
+            <div className="max-w-4xl mx-auto text-center mb-12 sm:mb-16">
+              <div className="inline-flex items-center gap-2 bg-rose-50 border border-rose-200 rounded-full px-4 py-1.5 mb-6">
+                <span className="text-xs font-bold text-rose-700 uppercase tracking-wide">The Daily Struggle</span>
+              </div>
+              <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-gray-900 mb-4 sm:mb-6">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-600 via-orange-500 to-amber-500">Remember Why You Started</span> Your Agency?
+              </h2>
+              <p className="text-base sm:text-xl text-gray-700 leading-relaxed">
+                You mastered <span className="font-bold text-emerald-600">GoHighLevel</span>, <span className="font-bold text-blue-600">Facebook Ads</span>, and <span className="font-bold text-purple-600">client funnels</span>—only to become a <span className="font-bold text-rose-600">babysitter for VAs who ghost you</span>.
+              </p>
             </div>
-            <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-gray-900 mb-4 sm:mb-6">
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-600 via-orange-500 to-amber-500">Remember Why You Started</span> Your Agency?
-            </h2>
-            <p className="text-base sm:text-xl text-gray-700 leading-relaxed">
-              You mastered <span className="font-bold text-emerald-600">GoHighLevel</span>, <span className="font-bold text-blue-600">Facebook Ads</span>, and <span className="font-bold text-purple-600">client funnels</span>—only to become a <span className="font-bold text-rose-600">babysitter for VAs who ghost you</span>.
-            </p>
-          </div>
+          </ScrollReveal>
 
-          {/* Pain Points Grid - Centered Icons with Color */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
+          {/* Pain Points Grid - Centered Icons with Color and 3D Cards */}
+          <StaggerReveal stagger={0.1} className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
             {[
               { icon: Globe, title: "GHL Sub-Account Chaos", pain: "Logging into 50+ sub-accounts daily. Checking automations. Fixing broken workflows. Your VAs can't keep up and you're drowning in the weeds.", color: "from-blue-500 to-cyan-500", bgColor: "bg-blue-50", borderColor: "border-blue-200", textColor: "text-blue-700" },
               { icon: BarChart3, title: "Meta Ads on Fire", pain: "You wake up to ROAS tanking at 3am. By the time your VA sees it, you've burned $500. Who's actually watching your ad accounts?", color: "from-indigo-500 to-purple-500", bgColor: "bg-indigo-50", borderColor: "border-indigo-200", textColor: "text-indigo-700" },
@@ -325,31 +389,34 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onNavigateToF
               { icon: Users, title: "Client Reporting Nightmare", pain: "Pulling data from GHL, Facebook, Google—manually. Creating reports until midnight. Your clients want weekly updates and it's crushing you.", color: "from-rose-500 to-pink-500", bgColor: "bg-rose-50", borderColor: "border-rose-200", textColor: "text-rose-700" },
               { icon: Zap, title: "Zapier Breaks at 2AM", pain: "Your automation failed. 200 leads didn't get tagged. The follow-up sequence never fired. Now you're in damage control mode. Again.", color: "from-violet-500 to-purple-500", bgColor: "bg-violet-50", borderColor: "border-violet-200", textColor: "text-violet-700" }
             ].map((item, i) => (
-              <div
+              <Card3D
                 key={i}
-                className={`group ${item.bgColor} p-6 sm:p-8 rounded-2xl border-2 ${item.borderColor} hover:shadow-xl transition-all duration-300 text-center`}
-                style={{ animationDelay: `${i * 100}ms` }}
+                rotationStrength={6}
+                hoverScale={1.03}
+                className={`${item.bgColor} p-6 sm:p-8 rounded-2xl border-2 ${item.borderColor} text-center`}
               >
                 <div className={`w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br ${item.color} rounded-2xl flex items-center justify-center text-white mx-auto mb-4 sm:mb-5 group-hover:scale-110 transition-transform shadow-lg`}>
                   <item.icon className="w-8 h-8 sm:w-10 sm:h-10" />
                 </div>
                 <h3 className={`text-lg sm:text-xl font-bold ${item.textColor} mb-3`}>{item.title}</h3>
                 <p className="text-sm sm:text-base text-gray-600 leading-relaxed">{item.pain}</p>
-              </div>
+              </Card3D>
             ))}
-          </div>
+          </StaggerReveal>
 
           {/* Transition statement */}
-          <div className="mt-12 sm:mt-20 text-center max-w-3xl mx-auto">
-            <div className="bg-white/80 backdrop-blur-sm p-8 sm:p-10 rounded-3xl border border-emerald-200 shadow-lg">
-              <p className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">
-                What if your <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600">GHL, Meta Ads, and lead follow-up ran themselves</span>...
-              </p>
-              <p className="text-base sm:text-xl text-gray-700">
-                ...24/7, without VAs, without Zapier breaking, without checking your phone at dinner?
-              </p>
+          <ScrollReveal variant="scaleIn" delay={200}>
+            <div className="mt-12 sm:mt-20 text-center max-w-3xl mx-auto">
+              <div className="glass-card p-8 sm:p-10 rounded-3xl border border-emerald-200 shadow-lg">
+                <p className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">
+                  What if your <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600">GHL, Meta Ads, and lead follow-up ran themselves</span>...
+                </p>
+                <p className="text-base sm:text-xl text-gray-700">
+                  ...24/7, without VAs, without Zapier breaking, without checking your phone at dinner?
+                </p>
+              </div>
             </div>
-          </div>
+          </ScrollReveal>
         </div>
       </section>
 
@@ -358,21 +425,23 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onNavigateToF
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5"></div>
 
         <div className="container mx-auto px-4 sm:px-6 relative z-10">
-          <div className="text-center mb-12 sm:mb-20">
-            <div className="inline-block bg-white border border-emerald-200 rounded-full px-4 sm:px-6 py-1.5 sm:py-2 mb-4 sm:mb-6 shadow-sm">
-              <span className="text-xs sm:text-sm font-bold text-emerald-700 uppercase tracking-wide">The Freedom Machine</span>
+          <ScrollReveal variant="fadeInUp">
+            <div className="text-center mb-12 sm:mb-20">
+              <div className="inline-block glass-card border border-emerald-200 rounded-full px-4 sm:px-6 py-1.5 sm:py-2 mb-4 sm:mb-6 shadow-sm">
+                <span className="text-xs sm:text-sm font-bold text-emerald-700 uppercase tracking-wide">The Freedom Machine</span>
+              </div>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-900 mb-4 sm:mb-6 max-w-4xl mx-auto leading-tight">
+                Get Your Life Back.
+                <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-green-500 to-teal-600">
+                  Sleep Through The Night. Take Real Vacations.
+                </span>
+              </h2>
+              <p className="text-base sm:text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
+                An AI workforce that works 24/7, never complains, never ghosts, and <span className="font-bold">actually gives you the freedom you started your agency for.</span>
+              </p>
             </div>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-gray-900 mb-4 sm:mb-6 max-w-4xl mx-auto leading-tight">
-              Get Your Life Back.
-              <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-green-500 to-teal-600">
-                Sleep Through The Night. Take Real Vacations.
-              </span>
-            </h2>
-            <p className="text-base sm:text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed">
-              An AI workforce that works 24/7, never complains, never ghosts, and <span className="font-bold">actually gives you the freedom you started your agency for.</span>
-            </p>
-          </div>
+          </ScrollReveal>
 
           {/* Feature Showcase with Images */}
           <div className="space-y-16 sm:space-y-32 max-w-7xl mx-auto">
@@ -1145,6 +1214,21 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onNavigateToF
           </div>
         </div>
       </section>
+
+      {/* How It Works Section */}
+      <HowItWorks
+        variant="light"
+        ctaText="Start Your Free Trial"
+        onCtaClick={() => handleCTAClick('how_it_works_section')}
+      />
+
+      {/* FAQ Section */}
+      <FAQSection
+        variant="light"
+        heading="Frequently Asked Questions"
+        subheading="Everything you need to know about automating your GHL agency"
+        includeSchema={false}
+      />
 
       {/* Footer */}
       <footer className="bg-gray-100 text-gray-600 py-8 sm:py-12 border-t border-gray-200">

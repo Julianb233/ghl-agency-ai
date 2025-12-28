@@ -3,6 +3,8 @@ import { Button } from './ui/button';
 import { ArrowRight, Zap, Brain, Globe, Database, Shield, Activity, Code, Lock, CheckCircle2, Sparkles, Menu, X } from 'lucide-react';
 import { SkipLink } from './SkipLink';
 import { useState } from 'react';
+import { SEOHead, BreadcrumbSchema, BREADCRUMB_PATHS } from './seo';
+import { FAQSection } from './marketing';
 
 interface FeaturesPageProps {
   onGetStarted: () => void;
@@ -151,6 +153,16 @@ export const FeaturesPage: React.FC<FeaturesPageProps> = ({ onGetStarted, onNavi
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-white flex flex-col font-sans">
+      {/* SEO Meta Tags */}
+      <SEOHead
+        title="Features - AI-Powered Automation Tools"
+        description="Explore Bottleneck Bot's powerful features: AI agents, multi-agent swarms, browser automation, real-time dashboards, and smart workflow management for GoHighLevel agencies."
+        keywords={['GHL features', 'AI automation features', 'agency automation tools', 'multi-agent swarms', 'browser automation', 'workflow automation']}
+        canonicalUrl="https://bottleneckbot.com/features"
+        type="website"
+      />
+      <BreadcrumbSchema items={BREADCRUMB_PATHS.features} />
+
       {/* Skip Navigation Link for Accessibility */}
       <SkipLink />
 
@@ -369,6 +381,13 @@ export const FeaturesPage: React.FC<FeaturesPageProps> = ({ onGetStarted, onNavi
           </p>
         </div>
       </section>
+
+      {/* FAQ Section */}
+      <FAQSection
+        variant="dark"
+        heading="Questions About Our Features"
+        subheading="Learn more about how Bottleneck Bot can transform your agency"
+      />
 
       {/* Footer */}
       <footer className="bg-gray-900 text-gray-400 py-8 sm:py-12 border-t border-gray-800">

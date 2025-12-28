@@ -8,6 +8,9 @@ export { MCPError } from './errors';
 export * from './transport';
 export * from './registry';
 export * from './server';
+export * from './resources';
+export * from './prompts';
+export * from './tenant-memory';
 
 // Tool exports
 export { getFileTools } from './tools/file';
@@ -21,6 +24,9 @@ import { getFileTools } from './tools/file';
 import { getShellTools } from './tools/shell';
 import { getWebTools } from './tools/web';
 import { getDatabaseTools } from './tools/database';
+import { FileResourceProvider, TemplateResourceProvider, DataResourceProvider } from './resources';
+import { getBuiltInPrompts } from './prompts';
+import { join } from 'path';
 
 /**
  * Create and configure MCP server with all tools
@@ -58,6 +64,27 @@ export async function createMCPServer(config: Partial<MCPConfig> = {}): Promise<
       version: '1.0.0',
       tags: [category],
     });
+  }
+
+  // Register resource providers
+  const basePath = process.cwd();
+
+  // File resources - expose docs and templates
+  const fileProvider = new FileResourceProvider(basePath, ['docs', 'templates']);
+  (server as any).resourceRegistry?.registerProvider(fileProvider);
+
+  // Template resources - common templates
+  const templateProvider = new TemplateResourceProvider();
+  (server as any).resourceRegistry?.registerProvider(templateProvider);
+
+  // Data resources - for structured data exports
+  const dataProvider = new DataResourceProvider();
+  (server as any).resourceRegistry?.registerProvider(dataProvider);
+
+  // Register built-in prompts
+  const builtInPrompts = getBuiltInPrompts();
+  for (const prompt of builtInPrompts) {
+    (server as any).promptRegistry?.register(prompt);
   }
 
   return server;

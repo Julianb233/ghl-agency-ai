@@ -31,13 +31,15 @@ server/mcp/
 
 ## Features
 
-### 1. File Operations
+### 1. Tools (Execute Operations)
+
+#### File Operations
 - **file/read**: Read file contents with multiple encodings
 - **file/write**: Write files with automatic directory creation
 - **file/list**: List directory contents recursively
 - **file/delete**: Delete files and directories safely
 
-### 2. Shell Execution
+#### Shell Execution
 - **shell/execute**: Sandboxed command execution with whitelisting
 - Security features:
   - Command whitelist (npm, git, ls, etc.)
@@ -45,15 +47,77 @@ server/mcp/
   - Timeout protection
   - Output size limits
 
-### 3. Web Operations
+#### Web Operations
 - **web/request**: Make HTTP requests (GET, POST, PUT, DELETE, PATCH)
 - **web/fetch**: Fetch webpage content with text extraction
 
-### 4. Database Operations
+#### Database Operations
 - **database/query**: Execute read-only SQL queries
 - **database/tables**: List all database tables
 - **database/schema**: Get table schema information
 - Security: SELECT-only queries with parameter binding
+
+### 2. Resources (Read-Only Data) - NEW
+
+Access read-only data and content via URI schemes:
+
+#### File Resources
+- **Scheme**: `file:///path/to/file`
+- **Purpose**: Expose documentation, templates, configuration files
+- **Security**: Path restrictions prevent access outside allowed directories
+- **Example**: `file:///docs/README.md`, `file:///templates/email.html`
+
+#### Template Resources
+- **Scheme**: `template:///name`
+- **Purpose**: Reusable text templates for common patterns
+- **Example**: `template:///api-response`, `template:///email-welcome`
+
+#### Data Resources
+- **Scheme**: `data:///name`
+- **Purpose**: Structured JSON data exports
+- **Example**: `data:///user-stats`, `data:///system-config`
+
+### 3. Prompts (AI Templates) - NEW
+
+Pre-defined AI prompt templates for common tasks:
+
+- **code-review**: Review code for quality, security, and best practices
+- **explain-code**: Explain code in plain language
+- **debug-help**: Help debug errors and issues
+- **write-tests**: Generate comprehensive unit tests
+- **refactor**: Suggest refactoring improvements
+- **optimize-performance**: Performance optimization suggestions
+- **generate-docs**: Generate documentation
+- **api-design**: Design or review API architecture
+
+Each prompt supports parameterization with `{{variable}}` syntax.
+
+### 4. Tenant Memory (Isolated Storage) - NEW
+
+Per-tenant memory storage with resource quotas:
+
+#### Features
+- **Namespace Isolation**: Separate memory per tenant and namespace
+- **Resource Quotas**: Storage limits, rate limits, entry limits
+- **Usage Tracking**: Monitor storage, operations, namespaces
+- **Automatic Cleanup**: TTL-based expiration
+- **Premium Tiers**: Different quota levels (Standard/Premium)
+
+#### Standard Tier Quotas
+- Storage: 100 MB
+- Entries per namespace: 10,000
+- Entry size: 1 MB max
+- Operations: 100/min, 5,000/hour, 50,000/day
+- Namespaces: 50 max
+- TTL: 30 days max
+
+#### Premium Tier Quotas
+- Storage: 1 GB
+- Entries per namespace: 100,000
+- Entry size: 10 MB max
+- Operations: 500/min, 25,000/hour, 250,000/day
+- Namespaces: 200 max
+- TTL: 90 days max
 
 ## Usage
 
@@ -212,6 +276,23 @@ server.registerTool(customTool, {
 - `mcp.database.tables`: List database tables
 - `mcp.database.schema`: Get table schema
 
+#### Resource Operations - NEW
+- `mcp.resources.list`: List all available resources
+- `mcp.resources.read`: Read a resource by URI
+- `mcp.resources.exists`: Check if resource exists
+
+#### Prompt Operations - NEW
+- `mcp.prompts.list`: List all available prompts
+- `mcp.prompts.get`: Get and render a prompt with arguments
+
+#### Tenant Memory Operations - NEW
+- `mcp.memory.set`: Store value in tenant memory
+- `mcp.memory.get`: Retrieve value from tenant memory
+- `mcp.memory.delete`: Delete value from tenant memory
+- `mcp.memory.list`: List keys in a namespace
+- `mcp.memory.clear`: Clear all keys in a namespace
+- `mcp.memory.usage`: Get usage statistics and quotas
+
 ## Security Considerations
 
 ### Shell Execution
@@ -261,7 +342,110 @@ MCP_TRANSPORT=http             # Transport type: http | stdio (default: http)
 MCP_ENABLE_METRICS=true        # Enable metrics tracking (default: true)
 ```
 
-## Example: Building a Custom Workflow
+## Examples
+
+### Using Resources
+
+```typescript
+import { trpc } from '@/lib/trpc';
+
+// List all available resources
+const { resources } = await trpc.mcp.resources.list.query();
+console.log('Available resources:', resources);
+
+// Read a documentation file
+const content = await trpc.mcp.resources.read.query({
+  uri: 'file:///docs/API.md'
+});
+console.log('Content:', content.text);
+
+// Read a template
+const template = await trpc.mcp.resources.read.query({
+  uri: 'template:///email-welcome'
+});
+
+// Read structured data
+const data = await trpc.mcp.resources.read.query({
+  uri: 'data:///system-config'
+});
+const config = JSON.parse(data.text);
+```
+
+### Using Prompts
+
+```typescript
+import { trpc } from '@/lib/trpc';
+
+// List available prompts
+const { prompts } = await trpc.mcp.prompts.list.query();
+console.log('Available prompts:', prompts);
+
+// Get a code review prompt
+const codeReview = await trpc.mcp.prompts.get.query({
+  name: 'code-review',
+  arguments: {
+    code: `
+      function calculateTotal(items) {
+        let total = 0;
+        for (let i = 0; i < items.length; i++) {
+          total += items[i].price * items[i].quantity;
+        }
+        return total;
+      }
+    `,
+    language: 'javascript'
+  }
+});
+
+// Use the rendered messages with Claude
+// codeReview.messages contains system + user messages ready to send
+```
+
+### Using Tenant Memory
+
+```typescript
+import { trpc } from '@/lib/trpc';
+
+// Store user preferences
+await trpc.mcp.memory.set.mutate({
+  namespace: 'user-preferences',
+  key: 'theme-settings',
+  value: {
+    theme: 'dark',
+    fontSize: 14,
+    language: 'en'
+  },
+  ttl: 86400 // 1 day
+});
+
+// Retrieve preferences
+const { value, found } = await trpc.mcp.memory.get.query({
+  namespace: 'user-preferences',
+  key: 'theme-settings'
+});
+
+if (found) {
+  console.log('User theme:', value.theme);
+}
+
+// List all keys in namespace
+const { keys } = await trpc.mcp.memory.list.query({
+  namespace: 'user-preferences',
+  limit: 100
+});
+
+// Check usage
+const usage = await trpc.mcp.memory.usage.query();
+console.log('Storage used:', usage.currentStorageBytes, '/', usage.quota.maxStorageBytes);
+console.log('Operations this hour:', usage.operationsThisHour, '/', usage.quota.maxOperationsPerHour);
+
+// Clear namespace when done
+await trpc.mcp.memory.clear.mutate({
+  namespace: 'user-preferences'
+});
+```
+
+### Complete Workflow Example
 
 ```typescript
 import { trpc } from '@/lib/trpc';
@@ -284,24 +468,39 @@ async function analyzeProject(projectPath: string) {
     cwd: projectPath,
   });
 
-  // 4. Check for outdated dependencies
-  const outdated = await trpc.mcp.shell.execute.mutate({
-    command: 'npm outdated --json',
-    cwd: projectPath,
+  // 4. Store results in tenant memory
+  await trpc.mcp.memory.set.mutate({
+    namespace: 'project-analysis',
+    key: `analysis-${Date.now()}`,
+    value: {
+      path: projectPath,
+      fileCount: files.count,
+      testsPassing: testResult.exitCode === 0,
+      timestamp: new Date().toISOString()
+    },
+    ttl: 3600 // 1 hour
   });
 
-  // 5. Query database for project stats
-  const stats = await trpc.mcp.database.query.mutate({
-    query: 'SELECT * FROM project_stats WHERE path = $1',
-    params: [projectPath],
+  // 5. Get code review prompt
+  const review = await trpc.mcp.prompts.get.query({
+    name: 'code-review',
+    arguments: {
+      code: packageJson.content,
+      language: 'json'
+    }
+  });
+
+  // 6. Read project docs as resource
+  const readme = await trpc.mcp.resources.read.query({
+    uri: `file:///${projectPath}/README.md`
   });
 
   return {
     files: files.files,
     package: JSON.parse(packageJson.content),
     testsPassing: testResult.exitCode === 0,
-    outdatedDeps: JSON.parse(outdated.stdout),
-    databaseStats: stats.rows,
+    reviewPrompt: review.messages,
+    documentation: readme.text
   };
 }
 ```

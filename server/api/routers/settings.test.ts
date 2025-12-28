@@ -4,6 +4,11 @@
  * Tests API key management, OAuth flows, webhooks, and user preferences
  */
 
+// Set ENCRYPTION_KEY BEFORE importing settings module (module loads env vars at import time)
+process.env.ENCRYPTION_KEY = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
+process.env.GOOGLE_CLIENT_ID = "test-google-client-id";
+process.env.GOOGLE_CLIENT_SECRET = "test-google-secret";
+
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { TRPCError } from "@trpc/server";
 import { settingsRouter } from "./settings";

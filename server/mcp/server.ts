@@ -19,6 +19,8 @@ import type {
 import { MCPError as MCPErrorClass, MCPMethodNotFoundError, MCPNotInitializedError } from './errors';
 import { ToolRegistry } from './registry';
 import { HttpTransport, StdioTransport } from './transport';
+import { ResourceRegistry } from './resources';
+import { PromptRegistry } from './prompts';
 import { platform, arch } from 'node:os';
 import { performance } from 'node:perf_hooks';
 
@@ -37,6 +39,8 @@ export interface IMCPServer {
 export class MCPServer implements IMCPServer {
   private transport: ITransport;
   private toolRegistry: ToolRegistry;
+  private resourceRegistry: ResourceRegistry;
+  private promptRegistry: PromptRegistry;
   private running = false;
   private currentSession?: MCPSession;
   private sessions = new Map<string, MCPSession>();
@@ -60,11 +64,11 @@ export class MCPServer implements IMCPServer {
       listChanged: true,
     },
     resources: {
-      listChanged: false,
+      listChanged: true,
       subscribe: false,
     },
     prompts: {
-      listChanged: false,
+      listChanged: true,
     },
   };
 
@@ -79,8 +83,10 @@ export class MCPServer implements IMCPServer {
     // Initialize transport
     this.transport = this.createTransport();
 
-    // Initialize tool registry
+    // Initialize registries
     this.toolRegistry = new ToolRegistry();
+    this.resourceRegistry = new ResourceRegistry();
+    this.promptRegistry = new PromptRegistry();
   }
 
   async start(): Promise<void> {
@@ -228,6 +234,22 @@ export class MCPServer implements IMCPServer {
 
         case 'tools/call':
           result = await this.handleToolCall(request);
+          break;
+
+        case 'resources/list':
+          result = { resources: await this.resourceRegistry.listResources(this.createContext(session)) };
+          break;
+
+        case 'resources/read':
+          result = await this.handleResourceRead(request, session);
+          break;
+
+        case 'prompts/list':
+          result = { prompts: this.promptRegistry.listPrompts() };
+          break;
+
+        case 'prompts/get':
+          result = await this.handlePromptGet(request, session);
           break;
 
         case 'ping':
@@ -424,6 +446,44 @@ export class MCPServer implements IMCPServer {
         return this.toolRegistry.listTools();
       },
     });
+  }
+
+  private async handleResourceRead(request: MCPRequest, session: MCPSession): Promise<unknown> {
+    const params = request.params as any;
+
+    if (!params || !params.uri) {
+      throw new MCPErrorClass('Resource URI is required', -32602);
+    }
+
+    const content = await this.resourceRegistry.readResource(
+      params.uri,
+      this.createContext(session)
+    );
+
+    return content;
+  }
+
+  private async handlePromptGet(request: MCPRequest, session: MCPSession): Promise<unknown> {
+    const params = request.params as any;
+
+    if (!params || !params.name) {
+      throw new MCPErrorClass('Prompt name is required', -32602);
+    }
+
+    const result = await this.promptRegistry.getPromptWithArguments(
+      params.name,
+      params.arguments || {},
+      this.createContext(session)
+    );
+
+    return result;
+  }
+
+  private createContext(session: MCPSession): any {
+    return {
+      sessionId: session.id,
+      clientInfo: session.clientInfo,
+    };
   }
 
   private errorToMCPError(error: unknown): MCPError {

@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowLeft, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { SEOHead, BreadcrumbSchema, BREADCRUMB_PATHS } from '@/components/seo';
 
 interface PrivacyPolicyProps {
   onBack: () => void;
@@ -9,6 +10,16 @@ interface PrivacyPolicyProps {
 export const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onBack }) => {
   return (
     <div className="min-h-screen bg-white">
+      {/* SEO Meta Tags */}
+      <SEOHead
+        title="Privacy Policy"
+        description="Bottleneck Bot's privacy policy explains how we collect, use, and protect your personal information. GDPR and CCPA compliant data handling practices."
+        keywords={['privacy policy', 'data protection', 'GDPR', 'CCPA', 'personal data']}
+        canonicalUrl="https://bottleneckbot.com/privacy"
+        type="website"
+      />
+      <BreadcrumbSchema items={BREADCRUMB_PATHS.privacy} />
+
       {/* Header */}
       <header className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-12 sm:py-16">
         <div className="container mx-auto px-4 sm:px-6">
