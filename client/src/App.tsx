@@ -6,7 +6,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { TourProvider } from "./components/tour/TourProvider";
 import { SkipNavLink } from "./components/SkipNavLink";
 import { NotificationProvider } from "./components/notifications";
-import { CustomCursor } from "./components/ui/CustomCursor";
+// CustomCursor removed - using normal system cursor
 import { CookieConsent } from "./components/CookieConsent";
 import { trpc } from "@/lib/trpc";
 
@@ -113,7 +113,6 @@ function App() {
               isDashboardActive={currentView === 'DASHBOARD'}
             >
               <SkipNavLink />
-              <CustomCursor />
               <Toaster />
               <CookieConsent />
 
