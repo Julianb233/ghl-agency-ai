@@ -4,6 +4,30 @@
   "installCommand": "pnpm install",
   "buildCommand": "pnpm build",
   "outputDirectory": "dist/public",
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "ghlagencyai.com"
+        }
+      ],
+      "destination": "https://bottleneckbots.com/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.ghlagencyai.com"
+        }
+      ],
+      "destination": "https://bottleneckbots.com/:path*",
+      "permanent": true
+    }
+  ],
   "functions": {
     "api/**/*.ts": {
       "maxDuration": 60,
