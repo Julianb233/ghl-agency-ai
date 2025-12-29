@@ -58,12 +58,13 @@ function App() {
 
   useEffect(() => {
     if (user) {
-      // User is logged in - check if onboarding is completed
+      // User is logged in - only redirect to onboarding if not completed
+      // Keep landing page as default so visitors always see the sales page first
       if (user.onboardingCompleted === false) {
         setCurrentView('ONBOARDING');
-      } else {
-        setCurrentView('DASHBOARD');
       }
+      // NOTE: Removed automatic redirect to DASHBOARD
+      // Users stay on LANDING by default, can navigate to dashboard via button
     }
   }, [user]);
 
@@ -141,6 +142,9 @@ function App() {
                     if (isAdminPreview && isAdmin) {
                       // Admin in preview mode - go back to dashboard
                       setIsAdminPreview(false);
+                      setCurrentView('DASHBOARD');
+                    } else if (user) {
+                      // User is already logged in - go directly to dashboard
                       setCurrentView('DASHBOARD');
                     } else {
                       setCurrentView('LOGIN');
