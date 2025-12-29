@@ -12,7 +12,7 @@ import {
   type VoiceTranscriptData,
   type TranscriptSegment
 } from '@/components/leads';
-import { VoiceCallsCard } from '@/components/dashboard';
+import { VoiceCallsCard } from '@/components/dashboard/index';
 
 // Mock data for demonstrations
 const mockTranscriptSegments: TranscriptSegment[] = [
@@ -413,7 +413,7 @@ export default function VoiceTranscriptDemo() {
   type VoiceTranscriptData
 } from '@/components/leads';
 
-import { VoiceCallsCard } from '@/components/dashboard';`}
+import { VoiceCallsCard } from '@/components/dashboard/index';`}
             </pre>
           </div>
 

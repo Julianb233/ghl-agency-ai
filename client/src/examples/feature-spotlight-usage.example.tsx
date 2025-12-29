@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { FeatureSpotlight, useFeatureSpotlight } from '@/components/dashboard';
+import { FeatureSpotlight, useFeatureSpotlight } from '@/components/dashboard/index';
 import { Button } from '@/components/ui/button';
 import { Search, Zap } from 'lucide-react';
 

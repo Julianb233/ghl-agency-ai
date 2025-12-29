@@ -6,7 +6,7 @@ import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { Activity, Calendar, Settings, Users, Plus, Zap, FileText, ArrowUpRight, TrendingUp } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { SubscriptionUsageCard, UpgradeModal, ExecutionPacksModal } from '@/components/subscription';
-import { SetupChecklist } from '@/components/dashboard';
+import { SetupChecklist } from '@/components/dashboard/index';
 
 export default function DashboardHome() {
   const [, setLocation] = useLocation();
