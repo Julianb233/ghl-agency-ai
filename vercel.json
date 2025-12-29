@@ -6,25 +6,27 @@
   "outputDirectory": "dist/public",
   "redirects": [
     {
-      "source": "/:path*",
+      "source": "/:path(.*)",
       "has": [
         {
-          "type": "host",
+          "type": "header",
+          "key": "host",
           "value": "ghlagencyai.com"
         }
       ],
-      "destination": "https://bottleneckbots.com/:path*",
+      "destination": "https://bottleneckbots.com/:path",
       "permanent": true
     },
     {
-      "source": "/:path*",
+      "source": "/:path(.*)",
       "has": [
         {
-          "type": "host",
+          "type": "header",
+          "key": "host",
           "value": "www.ghlagencyai.com"
         }
       ],
-      "destination": "https://bottleneckbots.com/:path*",
+      "destination": "https://bottleneckbots.com/:path",
       "permanent": true
     }
   ],
