@@ -174,7 +174,7 @@ export const FeaturesPage: React.FC<FeaturesPageProps> = ({ onGetStarted, onNavi
         title="Features - AI-Powered Automation Tools"
         description="Explore Bottleneck Bot's powerful features: AI agents, multi-agent swarms, browser automation, real-time dashboards, and smart workflow management for GoHighLevel agencies."
         keywords={['GHL features', 'AI automation features', 'agency automation tools', 'multi-agent swarms', 'browser automation', 'workflow automation']}
-        canonicalUrl="https://bottleneckbot.com/features"
+        canonicalUrl="https://bottleneckbots.com/features"
         type="website"
       />
       <BreadcrumbSchema items={BREADCRUMB_PATHS.features} />

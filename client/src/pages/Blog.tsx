@@ -83,8 +83,8 @@ export function Blog({ onBack, onPostClick }: BlogProps) {
   // Breadcrumb data
   const breadcrumbs = useMemo(
     () => [
-      { name: "Home", url: "https://bottleneckbot.com" },
-      { name: "Blog", url: "https://bottleneckbot.com/blog" },
+      { name: "Home", url: "https://bottleneckbots.com" },
+      { name: "Blog", url: "https://bottleneckbots.com/blog" },
     ],
     []
   );
@@ -102,7 +102,7 @@ export function Blog({ onBack, onPostClick }: BlogProps) {
           "CRM automation",
           "lead follow-up automation",
         ]}
-        canonicalUrl="https://bottleneckbot.com/blog"
+        canonicalUrl="https://bottleneckbots.com/blog"
         type="website"
       />
       <BreadcrumbSchema items={breadcrumbs} />

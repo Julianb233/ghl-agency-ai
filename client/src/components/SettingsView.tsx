@@ -116,7 +116,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ userRole }) => {
                                         </div>
                                         <Badge variant="outline" className="text-slate-500">Not Connected</Badge>
                                     </div>
-                                    <Button variant="outline" className="w-full">Connect GHL Agency</Button>
+                                    <Button variant="outline" className="w-full">Connect GoHighLevel</Button>
                                 </div>
 
                                 <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">

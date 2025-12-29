@@ -27,7 +27,7 @@ export interface SEOProps {
 
 const SITE_NAME = 'Bottleneck Bot';
 const DEFAULT_OG_IMAGE = '/og-image.png';
-const SITE_URL = 'https://bottleneckbot.com';
+const SITE_URL = 'https://bottleneckbots.com';
 const TWITTER_HANDLE = '@bottleneckbot';
 
 /**

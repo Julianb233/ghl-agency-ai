@@ -15,7 +15,7 @@ export const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onBack }) => {
         title="Privacy Policy"
         description="Bottleneck Bot's privacy policy explains how we collect, use, and protect your personal information. GDPR and CCPA compliant data handling practices."
         keywords={['privacy policy', 'data protection', 'GDPR', 'CCPA', 'personal data']}
-        canonicalUrl="https://bottleneckbot.com/privacy"
+        canonicalUrl="https://bottleneckbots.com/privacy"
         type="website"
       />
       <BreadcrumbSchema items={BREADCRUMB_PATHS.privacy} />
@@ -137,7 +137,7 @@ export const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onBack }) => {
               <li>Object to processing</li>
               <li>Withdraw consent</li>
             </ul>
-            <p className="text-slate-600">To exercise these rights, contact us at support@bottleneckbot.com</p>
+            <p className="text-slate-600">To exercise these rights, contact us at support@bottleneckbots.com</p>
           </section>
 
           <section className="mb-8">
@@ -169,8 +169,8 @@ export const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onBack }) => {
             <div className="bg-slate-50 p-4 rounded-lg">
               <p className="text-slate-700">
                 <strong>Bottleneck Bot</strong><br />
-                Email: support@bottleneckbot.com<br />
-                Website: https://www.bottleneckbot.com
+                Email: support@bottleneckbots.com<br />
+                Website: https://www.bottleneckbots.com
               </p>
             </div>
           </section>

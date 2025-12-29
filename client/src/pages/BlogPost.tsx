@@ -70,9 +70,9 @@ export function BlogPost({ slug, onBack, onPostClick }: BlogPostProps) {
   // Breadcrumbs
   const breadcrumbs = useMemo(
     () => [
-      { name: "Home", url: "https://bottleneckbot.com" },
-      { name: "Blog", url: "https://bottleneckbot.com/blog" },
-      ...(post ? [{ name: post.title, url: `https://bottleneckbot.com/blog/${post.slug}` }] : []),
+      { name: "Home", url: "https://bottleneckbots.com" },
+      { name: "Blog", url: "https://bottleneckbots.com/blog" },
+      ...(post ? [{ name: post.title, url: `https://bottleneckbots.com/blog/${post.slug}` }] : []),
     ],
     [post]
   );
@@ -99,12 +99,12 @@ export function BlogPost({ slug, onBack, onPostClick }: BlogPostProps) {
         name: "Bottleneck Bot",
         logo: {
           "@type": "ImageObject",
-          url: "https://bottleneckbot.com/logo.png",
+          url: "https://bottleneckbots.com/logo.png",
         },
       },
       mainEntityOfPage: {
         "@type": "WebPage",
-        "@id": `https://bottleneckbot.com/blog/${post.slug}`,
+        "@id": `https://bottleneckbots.com/blog/${post.slug}`,
       },
     };
   }, [post]);
@@ -175,7 +175,7 @@ export function BlogPost({ slug, onBack, onPostClick }: BlogPostProps) {
         description={post.excerpt}
         keywords={post.tags.map((tag) => tag.name)}
         ogImage={post.featuredImage}
-        canonicalUrl={`https://bottleneckbot.com/blog/${post.slug}`}
+        canonicalUrl={`https://bottleneckbots.com/blog/${post.slug}`}
         type="article"
         author={post.author?.name}
         publishedTime={post.publishDate}
@@ -202,7 +202,7 @@ export function BlogPost({ slug, onBack, onPostClick }: BlogPostProps) {
           </div>
           <ShareButtons
             title={post.title}
-            url={`https://bottleneckbot.com/blog/${post.slug}`}
+            url={`https://bottleneckbots.com/blog/${post.slug}`}
             description={post.excerpt}
             variant="compact"
           />
@@ -299,7 +299,7 @@ export function BlogPost({ slug, onBack, onPostClick }: BlogPostProps) {
             <p className="text-muted-foreground">Found this helpful? Share it!</p>
             <ShareButtons
               title={post.title}
-              url={`https://bottleneckbot.com/blog/${post.slug}`}
+              url={`https://bottleneckbots.com/blog/${post.slug}`}
               description={post.excerpt}
             />
           </div>

@@ -146,7 +146,7 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ children }) => {
               <Zap className="w-4 h-4 text-white" />
             </div>
             {!isMobile && !sidebarCollapsed && (
-              <span className="font-semibold text-sm">GHL Agency AI</span>
+              <span className="font-semibold text-sm">Bottleneck Bots</span>
             )}
           </div>
         </div>

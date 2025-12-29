@@ -23,12 +23,12 @@ const docsContent: Record<string, {
     content: (
       <>
         <p className="text-lg text-slate-300 mb-6">
-          Welcome to GHL Agency AI – the all-in-one AI automation platform designed specifically for agencies using GoHighLevel.
+          Welcome to Bottleneck Bots – the all-in-one AI automation platform designed specifically for agencies using GoHighLevel.
         </p>
 
-        <h2 className="text-2xl font-bold text-white mt-8 mb-4">What is GHL Agency AI?</h2>
+        <h2 className="text-2xl font-bold text-white mt-8 mb-4">What is Bottleneck Bots?</h2>
         <p className="text-slate-400 mb-4">
-          GHL Agency AI is a powerful automation platform that connects with your GoHighLevel account to automate repetitive tasks, manage client workflows, and scale your agency operations without adding headcount.
+          Bottleneck Bots is a powerful automation platform that connects with your GoHighLevel account to automate repetitive tasks, manage client workflows, and scale your agency operations without adding headcount.
         </p>
 
         <h2 className="text-2xl font-bold text-white mt-8 mb-4">Key Features</h2>

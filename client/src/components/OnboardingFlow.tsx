@@ -478,7 +478,7 @@ export const OnboardingFlow: React.FC<OnboardingFlowProps> = ({ onComplete }) =>
                 <div className="space-y-6">
                   <div>
                     <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
-                      GHL Agency API Key <span className="text-slate-300 font-normal">(Optional)</span>
+                      GoHighLevel API Key <span className="text-slate-300 font-normal">(Optional)</span>
                     </label>
                     <div className="relative">
                       <input

@@ -369,13 +369,13 @@ export const AdminDashboard: React.FC = () => {
       environment: 'Production',
       status: 'ready',
       lastDeployment: new Date(Date.now() - 3600000),
-      url: 'https://bottleneckbot.com'
+      url: 'https://bottleneckbots.com'
     },
     {
       environment: 'Preview',
       status: 'ready',
       lastDeployment: new Date(Date.now() - 1800000),
-      url: 'https://preview.bottleneckbot.com'
+      url: 'https://preview.bottleneckbots.com'
     },
   ];
 

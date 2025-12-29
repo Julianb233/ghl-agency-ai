@@ -15,7 +15,7 @@ export const TermsOfService: React.FC<TermsOfServiceProps> = ({ onBack }) => {
         title="Terms of Service"
         description="Bottleneck Bot's terms of service outline the rules and guidelines for using our AI-powered automation platform for GoHighLevel agencies."
         keywords={['terms of service', 'terms and conditions', 'user agreement', 'service terms']}
-        canonicalUrl="https://bottleneckbot.com/terms"
+        canonicalUrl="https://bottleneckbots.com/terms"
         type="website"
       />
       <BreadcrumbSchema items={BREADCRUMB_PATHS.terms} />
@@ -202,8 +202,8 @@ export const TermsOfService: React.FC<TermsOfServiceProps> = ({ onBack }) => {
             <div className="bg-slate-50 p-4 rounded-lg">
               <p className="text-slate-700">
                 <strong>Bottleneck Bot</strong><br />
-                Email: support@bottleneckbot.com<br />
-                Website: https://www.bottleneckbot.com
+                Email: support@bottleneckbots.com<br />
+                Website: https://www.bottleneckbots.com
               </p>
             </div>
           </section>

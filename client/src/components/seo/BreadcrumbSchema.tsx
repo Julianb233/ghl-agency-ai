@@ -12,7 +12,7 @@ export interface BreadcrumbSchemaProps {
   items: BreadcrumbItem[];
 }
 
-const SITE_URL = 'https://bottleneckbot.com';
+const SITE_URL = 'https://bottleneckbots.com';
 
 /**
  * BreadcrumbSchema - JSON-LD BreadcrumbList for navigation hierarchy
