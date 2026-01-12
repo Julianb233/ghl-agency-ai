@@ -30,7 +30,8 @@
     "test:load:smoke": "k6 run tests/load/api-smoke.test.js",
     "test:load": "k6 run tests/load/api-load.test.js",
     "test:load:stress": "k6 run tests/load/api-stress.test.js",
-    "test:load:spike": "k6 run tests/load/api-spike.test.js"
+    "test:load:spike": "k6 run tests/load/api-spike.test.js",
+    "verify-launch": "npx tsx scripts/verify-launch.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",
