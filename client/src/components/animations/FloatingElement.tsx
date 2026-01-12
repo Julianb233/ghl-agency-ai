@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, type Transition } from 'framer-motion';
 import { useReducedMotion } from '@/hooks/useReducedMotion';
 
 interface FloatingElementProps {
@@ -16,7 +16,7 @@ interface FloatingElementProps {
   /** Additional className */
   className?: string;
   /** Custom animation easing */
-  ease?: string;
+  ease?: Transition['ease'];
 }
 
 /**

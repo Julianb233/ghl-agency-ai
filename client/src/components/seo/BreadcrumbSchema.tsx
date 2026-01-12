@@ -9,7 +9,7 @@ export interface BreadcrumbItem {
 
 export interface BreadcrumbSchemaProps {
   /** Array of breadcrumb items in order */
-  items: BreadcrumbItem[];
+  items: readonly BreadcrumbItem[] | BreadcrumbItem[];
 }
 
 const SITE_URL = 'https://bottleneckbots.com';

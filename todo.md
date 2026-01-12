@@ -412,6 +412,53 @@ Merge three systems:
 
 ---
 
+## PHASE 2: Design System - Mobile & Accessibility (IN PROGRESS)
+
+**Started:** January 2026
+**PRD:** `docs/PHASE_2_DESIGN_SYSTEM_PRD.md`
+**Goal:** Fix P0/P1 issues from UI/UX audit - mobile responsiveness and WCAG compliance
+
+### P0: Critical Fixes (Week 1)
+- [ ] US-008: Fix mobile CTA visibility on Landing Page
+  - File: `client/src/components/LandingPage.tsx`
+  - Change `hidden sm:flex` to always visible, stack on mobile
+- [ ] US-009: Increase touch targets to 44px (WCAG 2.5.5)
+  - Files: `input.tsx`, `select.tsx`, `button.tsx`
+  - Change h-9 to h-11, add min-h-[44px]
+- [ ] US-010: Fix WCAG text size violations
+  - File: `client/src/components/LandingPage.tsx`
+  - Change `text-[10px]` to minimum `text-xs`
+- [ ] US-011: Add mobile bottom navigation
+  - Create bottom tab nav for mobile, hide sidebar on mobile
+- [ ] US-012: Add file upload progress indicator
+  - File: `client/src/components/FileUploader.tsx`
+  - Add progress bar and status text
+
+### P1: High Priority UX (Week 2)
+- [ ] US-013: Add Breadcrumb navigation component
+  - Create `client/src/components/ui/breadcrumb.tsx`
+  - Add to 11 pages that lack navigation context
+- [ ] US-014: Implement page transitions
+  - Create `client/src/components/PageTransition.tsx`
+  - Use Framer Motion for fade/slide animations
+- [ ] US-015: Add password visibility toggle
+  - File: `client/src/components/LoginScreen.tsx`
+  - Add eye icon toggle for password fields
+- [ ] US-016: Implement real-time form validation
+  - Update forms to use react-hook-form with mode: 'onChange'
+  - Show inline validation errors as user types
+- [ ] US-017: Add sticky headers on scroll
+  - Affected pages: LeadDetails, CampaignDetails, Settings
+
+### P2: Polish & Consistency (Week 3)
+- [ ] US-018: Create animation utility library
+- [ ] US-019: Standardize empty states across app
+- [ ] US-020: Add semantic color tokens (success, warning, info)
+- [ ] US-021: Mobile-responsive tables (card view)
+- [ ] US-022: Add skeleton shimmer effects
+
+---
+
 ## Reference Documents
 
 All specifications located in `/docs/specifications/`:

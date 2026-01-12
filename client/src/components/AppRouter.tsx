@@ -5,7 +5,7 @@ import { trpc } from '@/lib/trpc';
 // Lazy load pages
 const Login = lazy(() => import('@/pages/Login'));
 const Signup = lazy(() => import('@/pages/Signup'));
-const OnboardingFlow = lazy(() => import('./OnboardingFlow'));
+const OnboardingFlow = lazy(() => import('./OnboardingFlow').then(m => ({ default: m.OnboardingFlow })));
 const Dashboard = lazy(() => import('./Dashboard').then(m => ({ default: m.Dashboard })));
 const AgentsPage = lazy(() => import('@/pages/AgentsPage').then(m => ({ default: m.AgentsPage })));
 const LandingPage = lazy(() => import('./LandingPage').then(m => ({ default: m.LandingPage })));
@@ -82,24 +82,23 @@ export function AppRouter() {
   }
 
   // Redirect logic for authenticated users
+  const currentPath = location as string;
+  const isPublicAuthPage = ['/', '/landing', '/login', '/signup'].includes(currentPath);
+  
   if (user) {
     // If user is on landing or auth pages, redirect to dashboard or onboarding
-    if (location === '/' || location === '/landing' || location === '/login' || location === '/signup') {
+    if (isPublicAuthPage) {
       if (user.onboardingCompleted === false) {
-        if (location !== '/onboarding') {
-          setLocation('/onboarding');
-        }
+        setLocation('/onboarding');
       } else {
-        if (location !== '/dashboard') {
-          setLocation('/dashboard');
-        }
+        setLocation('/dashboard');
       }
     }
   } else {
     // If user is not authenticated and trying to access protected routes
     const protectedRoutes = ['/dashboard', '/onboarding'];
-    const isDashboardRoute = location === '/dashboard' || location.startsWith('/dashboard/');
-    if (protectedRoutes.some(route => location.startsWith(route)) || isDashboardRoute) {
+    const isDashboardRoute = currentPath === '/dashboard' || currentPath.startsWith('/dashboard/');
+    if (protectedRoutes.some(route => currentPath.startsWith(route)) || isDashboardRoute) {
       setLocation('/login');
     }
   }

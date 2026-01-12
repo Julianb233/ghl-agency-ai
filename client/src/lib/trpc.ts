@@ -10,6 +10,7 @@ export const trpcClient = createTRPCClient<AppRouter>({
   links: [
     httpBatchLink({
       url: '/api/trpc',
+      transformer: superjson,
       fetch(input, init) {
         return globalThis.fetch(input, {
           ...(init ?? {}),
@@ -18,5 +19,4 @@ export const trpcClient = createTRPCClient<AppRouter>({
       },
     }),
   ],
-  transformer: superjson,
 });

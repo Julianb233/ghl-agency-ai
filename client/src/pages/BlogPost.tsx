@@ -182,7 +182,7 @@ export function BlogPost({ slug, onBack, onPostClick }: BlogPostProps) {
         modifiedTime={post.lastEditedTime}
       />
       <BreadcrumbSchema items={breadcrumbs} />
-      {articleSchema && <JsonLD schema={articleSchema} />}
+      {articleSchema && <JsonLD data={articleSchema} />}
 
       {/* Navigation */}
       <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b">

@@ -4,13 +4,14 @@
  */
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'wouter';
 import { useKeyboardShortcuts } from './useKeyboardShortcuts';
 import { ShortcutOverlay, ShortcutHint } from '../components/ui/ShortcutOverlay';
 
 // Example: Main App Component with Global Shortcuts
 export function AppWithKeyboardShortcuts() {
-  const navigate = useNavigate();
+  const [, setLocation] = useLocation();
+  const navigate = (path: string) => setLocation(path);
 
   // Modal states
   const [showCommandPalette, setShowCommandPalette] = useState(false);
@@ -196,7 +197,8 @@ export function ConditionalShortcuts() {
 
 // Example: Navigation with shortcuts
 export function NavigationWithShortcuts() {
-  const navigate = useNavigate();
+  const [, setLocation] = useLocation();
+  const navigateTo = (path: string) => setLocation(path);
   const [currentSection, setCurrentSection] = useState(1);
 
   const { isMac } = useKeyboardShortcuts({
@@ -213,7 +215,7 @@ export function NavigationWithShortcuts() {
 
       const route = routes[section as keyof typeof routes];
       if (route) {
-        navigate(route);
+        navigateTo(route);
       }
     },
   });
