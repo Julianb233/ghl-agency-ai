@@ -38,6 +38,7 @@ export { useBrowserSessions } from './useBrowserSessions';
 
 // Forms & Validation
 export { useFormValidation } from './useFormValidation';
+export { useZodFormValidation } from './useZodFormValidation';
 export { useComposition } from './useComposition';
 
 // Data & Operations

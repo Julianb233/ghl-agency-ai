@@ -21,7 +21,7 @@ export const TeamPanel: React.FC<TeamPanelProps> = ({ users, activities, current
         headerAction={onInvite && (
           <button
             onClick={onInvite}
-            className="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-1 rounded hover:bg-indigo-100 transition font-bold uppercase tracking-wider"
+            className="text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded hover:bg-indigo-100 transition font-bold uppercase tracking-wider"
           >
             + Invite
           </button>
@@ -52,9 +52,9 @@ export const TeamPanel: React.FC<TeamPanelProps> = ({ users, activities, current
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
                   <p className={`text-sm font-bold ${currentUser.id === user.id ? 'text-indigo-900' : 'text-slate-700'}`}>
-                    {user.name} {currentUser.id === user.id && <span className="text-[10px] text-indigo-500 font-normal">(You)</span>}
+                    {user.name} {currentUser.id === user.id && <span className="text-xs text-indigo-500 font-normal">(You)</span>}
                   </p>
-                  <span className={`text-[9px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded
+                  <span className={`text-xs uppercase tracking-wider font-bold px-1.5 py-0.5 rounded
                      ${user.role === 'OWNER' ? 'bg-amber-50 text-amber-600' :
                       user.role === 'MANAGER' ? 'bg-blue-50 text-blue-600' :
                         'bg-slate-100 text-slate-500'}`}
@@ -62,7 +62,7 @@ export const TeamPanel: React.FC<TeamPanelProps> = ({ users, activities, current
                     {user.role}
                   </span>
                 </div>
-                <p className="text-[10px] text-slate-400 truncate">
+                <p className="text-xs text-slate-400 truncate">
                   {user.role === 'VA' ? 'Execution Only' : 'Full Access'}
                 </p>
               </div>
@@ -83,11 +83,11 @@ export const TeamPanel: React.FC<TeamPanelProps> = ({ users, activities, current
                   activity.type === 'execution' ? 'bg-indigo-400' : 'bg-slate-300'}`}
               />
               <div className="flex flex-col">
-                <span className="text-[10px] text-slate-400 font-mono">{activity.timestamp}</span>
+                <span className="text-xs text-slate-400 font-mono">{activity.timestamp}</span>
                 <p className="text-xs text-slate-700">
                   <span className="font-bold">{activity.userName}</span> {activity.action}
                 </p>
-                <p className="text-[10px] text-slate-500 bg-slate-50 px-2 py-1 rounded mt-1 inline-block w-fit border border-slate-100">
+                <p className="text-xs text-slate-500 bg-slate-50 px-2 py-1 rounded mt-1 inline-block w-fit border border-slate-100">
                   {activity.target}
                 </p>
               </div>

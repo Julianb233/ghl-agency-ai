@@ -240,7 +240,7 @@ export const CommandCenter: React.FC<CommandCenterProps> = ({ children }) => {
 
         {/* Main Content Area */}
         <main id="main-content" role="main" className="flex-1 overflow-auto">
-          <div className="p-6">
+          <div className="p-6 pb-20 md:pb-6">
             {/* Page Header */}
             <div className="mb-6">
               <h1 className="text-2xl font-bold">{getCurrentPageTitle()}</h1>

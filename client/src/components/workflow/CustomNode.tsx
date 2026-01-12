@@ -226,7 +226,7 @@ export const CustomNode: React.FC<NodeProps<WorkflowNodeData>> = ({ data, select
             id="false"
             className="!h-3 !w-3 !bg-red-500 !left-[70%]"
           />
-          <div className="absolute bottom-1 left-0 right-0 flex justify-around text-[10px] text-muted-foreground">
+          <div className="absolute bottom-1 left-0 right-0 flex justify-around text-xs text-muted-foreground">
             <span>True</span>
             <span>False</span>
           </div>

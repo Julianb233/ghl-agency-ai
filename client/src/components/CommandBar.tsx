@@ -178,7 +178,7 @@ export const CommandBar: React.FC<CommandBarProps> = ({ onSend, disabled, hasAct
                  isListening ? 'border-red-300 ring-2 ring-red-200' : 'border-white/60'
              }`}
            />
-           <div className="absolute bottom-2 right-2 text-[10px] text-slate-400 pointer-events-none font-mono">
+           <div className="absolute bottom-2 right-2 text-xs text-slate-400 pointer-events-none font-mono">
              AI.ARCHITECT
            </div>
         </div>

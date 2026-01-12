@@ -40,6 +40,7 @@
     "@browserbasehq/sdk": "^2.6.0",
     "@browserbasehq/stagehand": "^3.0.6",
     "@google/genai": "^1.33.0",
+    "@hookform/resolvers": "^5.2.2",
     "@microsoft/microsoft-graph-client": "^3.0.7",
     "@neondatabase/serverless": "^1.0.2",
     "@notionhq/client": "^5.6.0",

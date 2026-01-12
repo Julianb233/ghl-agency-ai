@@ -195,6 +195,11 @@
     font-size: 16px;
     line-height: 1.5;
   }
+  
+  /* Safe area inset for mobile navigation */
+  .safe-area-inset-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
   [type="button"]:not(:disabled),

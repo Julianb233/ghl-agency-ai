@@ -85,7 +85,7 @@ export const GlobalOps: React.FC<GlobalOpsProps> = ({ clients, agents, activitie
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
           </div>
           <div>
-            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Sub-accounts</p>
+            <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Sub-accounts</p>
             <p className="text-2xl font-bold text-slate-800">{clients.length}</p>
           </div>
         </GlassPane>
@@ -94,7 +94,7 @@ export const GlobalOps: React.FC<GlobalOpsProps> = ({ clients, agents, activitie
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
           </div>
           <div>
-            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Active Agents</p>
+            <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Active Agents</p>
             <p className="text-2xl font-bold text-slate-800">{agents.filter(a => a.status === AgentStatus.EXECUTING).length}</p>
           </div>
         </GlassPane>
@@ -103,7 +103,7 @@ export const GlobalOps: React.FC<GlobalOpsProps> = ({ clients, agents, activitie
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
           </div>
           <div>
-            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Tasks Pending</p>
+            <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Tasks Pending</p>
             <p className="text-2xl font-bold text-slate-800">12</p>
           </div>
         </GlassPane>
@@ -112,7 +112,7 @@ export const GlobalOps: React.FC<GlobalOpsProps> = ({ clients, agents, activitie
             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
           </div>
           <div>
-            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Issues</p>
+            <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Issues</p>
             <p className="text-2xl font-bold text-slate-800">1</p>
           </div>
         </GlassPane>
@@ -144,7 +144,7 @@ export const GlobalOps: React.FC<GlobalOpsProps> = ({ clients, agents, activitie
                     {client.name.charAt(0)}
                   </div>
                   {agent && (
-                    <span className={`text-[10px] font-bold px-2 py-1 rounded-lg border uppercase tracking-wider ${getStatusColor(agent.status)}`}>
+                    <span className={`text-xs font-bold px-2 py-1 rounded-lg border uppercase tracking-wider ${getStatusColor(agent.status)}`}>
                       {agent.status}
                     </span>
                   )}
@@ -166,7 +166,7 @@ export const GlobalOps: React.FC<GlobalOpsProps> = ({ clients, agents, activitie
                   </div>
 
                   <div className="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center">
-                    <span className="text-[10px] font-bold text-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-wide">Enter Terminal</span>
+                    <span className="text-xs font-bold text-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-wide">Enter Terminal</span>
                     <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                     </div>

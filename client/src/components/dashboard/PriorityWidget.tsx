@@ -179,7 +179,7 @@ export function PriorityWidget({ onViewAll, maxItems = 4 }: PriorityWidgetProps)
                         <div className="flex items-center gap-2 mt-1">
                           <Badge
                             variant="outline"
-                            className={cn('text-[10px]', config.color)}
+                            className={cn('text-xs', config.color)}
                           >
                             {config.label}
                           </Badge>

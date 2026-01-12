@@ -111,14 +111,14 @@ export const TicketQueue: React.FC<TicketQueueProps> = ({ tickets, onResolve }) 
                   }`}>
                     {getSourceIcon(ticket.source)}
                   </div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase">{ticket.timestamp}</span>
+                  <span className="text-xs font-bold text-slate-400 uppercase">{ticket.timestamp}</span>
                 </div>
-                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${getPriorityColor(ticket.priority)}`}>
+                <span className={`text-xs font-bold px-1.5 py-0.5 rounded border ${getPriorityColor(ticket.priority)}`}>
                   {ticket.priority}
                 </span>
               </div>
               <h4 className="text-xs font-bold text-slate-800 mb-1 line-clamp-1">{ticket.subject}</h4>
-              <p className="text-[10px] text-slate-500 line-clamp-2 leading-relaxed">{ticket.description}</p>
+              <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">{ticket.description}</p>
             </button>
           ))}
         </div>
@@ -126,7 +126,7 @@ export const TicketQueue: React.FC<TicketQueueProps> = ({ tickets, onResolve }) 
         {/* Triage Panel (Bottom overlay or embedded) */}
         {selectedTicket && activeTab === 'QUEUE' && (
           <div className="p-3 border-t border-slate-100 bg-slate-50/50">
-            <h4 className="text-[10px] font-bold text-slate-400 uppercase mb-2 flex items-center gap-2">
+            <h4 className="text-xs font-bold text-slate-400 uppercase mb-2 flex items-center gap-2">
               AI Receptionist Triage
               {isAnalyzing && <span className="loading loading-dots loading-xs text-indigo-500"></span>}
             </h4>
@@ -139,7 +139,7 @@ export const TicketQueue: React.FC<TicketQueueProps> = ({ tickets, onResolve }) 
             ) : aiRecommendation ? (
               <div className="space-y-3 animate-slide-in-bottom">
                 <div className="bg-white p-2 rounded border border-slate-200">
-                   <p className="text-[10px] text-slate-600 leading-relaxed">
+                   <p className="text-xs text-slate-600 leading-relaxed">
                      <span className="font-bold text-indigo-600">Analysis:</span> {aiRecommendation.analysis}
                    </p>
                 </div>
@@ -152,7 +152,7 @@ export const TicketQueue: React.FC<TicketQueueProps> = ({ tickets, onResolve }) 
                 </button>
               </div>
             ) : (
-              <div className="text-[10px] text-slate-400 italic">
+              <div className="text-xs text-slate-400 italic">
                 Select a ticket to run diagnostics.
               </div>
             )}

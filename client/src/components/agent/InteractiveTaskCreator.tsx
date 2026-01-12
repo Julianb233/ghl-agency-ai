@@ -389,7 +389,7 @@ export function InteractiveTaskCreator({
               >
                 <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-gradient-to-r from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30 text-purple-600 dark:text-purple-400">
                   <Bot className="w-3 h-3" />
-                  <span className="text-[10px] font-medium">AI-Powered</span>
+                  <span className="text-xs font-medium">AI-Powered</span>
                 </div>
               </motion.div>
             </div>
@@ -551,10 +551,10 @@ export function InteractiveTaskCreator({
                                     {template.description}
                                   </p>
                                   <div className="flex items-center gap-2 mt-2">
-                                    <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                                    <Badge variant="outline" className="text-xs px-1.5 py-0">
                                       {template.category}
                                     </Badge>
-                                    <span className="text-[10px] text-gray-400 flex items-center gap-1">
+                                    <span className="text-xs text-gray-400 flex items-center gap-1">
                                       <Clock className="w-3 h-3" />
                                       {template.estimatedTime}
                                     </span>
@@ -589,12 +589,12 @@ export function InteractiveTaskCreator({
                   <Eye className="w-4 h-4 text-blue-500" />
                   <CardTitle className="text-sm">Task Preview</CardTitle>
                   {preview.isValid ? (
-                    <Badge className="bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 text-[10px]">
+                    <Badge className="bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300 text-xs">
                       <CheckCircle2 className="w-3 h-3 mr-1" />
                       Ready
                     </Badge>
                   ) : (
-                    <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300 text-[10px]">
+                    <Badge className="bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300 text-xs">
                       <AlertCircle className="w-3 h-3 mr-1" />
                       Incomplete
                     </Badge>
@@ -626,7 +626,7 @@ export function InteractiveTaskCreator({
                         className="flex items-center gap-2"
                       >
                         <div className="w-5 h-5 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
-                          <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400">
+                          <span className="text-xs font-bold text-blue-600 dark:text-blue-400">
                             {index + 1}
                           </span>
                         </div>

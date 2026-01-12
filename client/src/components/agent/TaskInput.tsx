@@ -109,7 +109,7 @@ export function TaskInput({
                 </Button>
               )}
               <span className="text-xs text-gray-500">
-                <kbd className="px-1.5 py-0.5 bg-gray-100 rounded border border-gray-300 font-mono text-[10px]">Ctrl+Enter</kbd> to submit
+                <kbd className="px-1.5 py-0.5 bg-gray-100 rounded border border-gray-300 font-mono text-xs">Ctrl+Enter</kbd> to submit
               </span>
             </div>
 

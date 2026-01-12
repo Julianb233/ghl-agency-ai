@@ -345,7 +345,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                       return (
                         <div key={category} className="mb-2">
                           <div className="px-2 py-1.5">
-                            <span className="text-[10px] font-semibold tracking-wider text-slate-500 uppercase">
+                            <span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
                               {getCategoryLabel(category)}
                             </span>
                           </div>

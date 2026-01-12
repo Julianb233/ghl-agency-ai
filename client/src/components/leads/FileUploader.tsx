@@ -1,10 +1,19 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, File, X, AlertCircle } from 'lucide-react';
+import { Upload, File, X, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 import Papa from 'papaparse';
+
+type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';
+
+interface FileUploadState {
+  progress: number;
+  status: UploadStatus;
+  fileName?: string;
+  error?: string;
+}
 
 interface FileUploaderProps {
   onFileSelect: (data: any[], columns: string[], fileName: string) => void;
@@ -18,25 +27,35 @@ export function FileUploader({
   maxSize = 10
 }: FileUploaderProps) {
   const [file, setFile] = useState<File | null>(null);
-  const [error, setError] = useState<string>('');
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [isUploading, setIsUploading] = useState(false);
+  const [uploadState, setUploadState] = useState<FileUploadState>({
+    progress: 0,
+    status: 'idle'
+  });
+  const progressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const clearProgressInterval = useCallback(() => {
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current);
+      progressIntervalRef.current = null;
+    }
+  }, []);
+
+  const handleCancel = useCallback(() => {
+    clearProgressInterval();
+    setUploadState({ progress: 0, status: 'idle' });
+    setFile(null);
+  }, [clearProgressInterval]);
 
   const processFile = useCallback(async (file: File) => {
-    setIsProcessing(true);
-    setIsUploading(true);
-    setUploadProgress(0);
-    setError('');
+    setUploadState({ progress: 0, status: 'uploading', fileName: file.name });
 
-    // Simulate initial upload progress
-    const progressInterval = setInterval(() => {
-      setUploadProgress(prev => {
-        if (prev >= 90) {
-          clearInterval(progressInterval);
-          return 90;
+    progressIntervalRef.current = setInterval(() => {
+      setUploadState(prev => {
+        if (prev.progress >= 90) {
+          clearProgressInterval();
+          return { ...prev, progress: 90 };
         }
-        return prev + 10;
+        return { ...prev, progress: prev.progress + 10 };
       });
     }, 100);
 
@@ -48,67 +67,75 @@ export function FileUploader({
           header: true,
           skipEmptyLines: true,
           complete: (results) => {
-            clearInterval(progressInterval);
-            setUploadProgress(100);
+            clearProgressInterval();
+            setUploadState(prev => ({ ...prev, progress: 100 }));
 
             setTimeout(() => {
               if (results.data && results.data.length > 0) {
                 const columns = Object.keys(results.data[0] as any);
                 onFileSelect(results.data, columns, file.name);
+                setUploadState(prev => ({ ...prev, status: 'success' }));
               } else {
-                setError('CSV file is empty or invalid');
+                setUploadState(prev => ({ 
+                  ...prev, 
+                  status: 'error', 
+                  error: 'CSV file is empty or invalid' 
+                }));
               }
-              setIsProcessing(false);
-              setIsUploading(false);
-              setUploadProgress(0);
             }, 300);
           },
           error: (error) => {
-            clearInterval(progressInterval);
-            setError(`Error parsing CSV: ${error.message}`);
-            setIsProcessing(false);
-            setIsUploading(false);
-            setUploadProgress(0);
+            clearProgressInterval();
+            setUploadState(prev => ({ 
+              ...prev, 
+              status: 'error', 
+              error: `Error parsing CSV: ${error.message}`,
+              progress: 0
+            }));
           }
         });
       } else if (fileExtension === 'json') {
         const text = await file.text();
-        setUploadProgress(70);
+        setUploadState(prev => ({ ...prev, progress: 70 }));
 
         const data = JSON.parse(text);
-        setUploadProgress(90);
+        setUploadState(prev => ({ ...prev, progress: 90 }));
 
         const arrayData = Array.isArray(data) ? data : [data];
 
-        clearInterval(progressInterval);
-        setUploadProgress(100);
+        clearProgressInterval();
+        setUploadState(prev => ({ ...prev, progress: 100 }));
 
         setTimeout(() => {
           if (arrayData.length > 0) {
             const columns = Object.keys(arrayData[0]);
             onFileSelect(arrayData, columns, file.name);
+            setUploadState(prev => ({ ...prev, status: 'success' }));
           } else {
-            setError('JSON file is empty or invalid');
+            setUploadState(prev => ({ 
+              ...prev, 
+              status: 'error', 
+              error: 'JSON file is empty or invalid' 
+            }));
           }
-          setIsProcessing(false);
-          setIsUploading(false);
-          setUploadProgress(0);
         }, 300);
       } else {
-        clearInterval(progressInterval);
-        setError('Unsupported file format');
-        setIsProcessing(false);
-        setIsUploading(false);
-        setUploadProgress(0);
+        clearProgressInterval();
+        setUploadState({ 
+          progress: 0, 
+          status: 'error', 
+          error: 'Unsupported file format' 
+        });
       }
     } catch (err) {
-      clearInterval(progressInterval);
-      setError(err instanceof Error ? err.message : 'Error processing file');
-      setIsProcessing(false);
-      setIsUploading(false);
-      setUploadProgress(0);
+      clearProgressInterval();
+      setUploadState({ 
+        progress: 0, 
+        status: 'error', 
+        error: err instanceof Error ? err.message : 'Error processing file' 
+      });
     }
-  }, [onFileSelect]);
+  }, [onFileSelect, clearProgressInterval]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
@@ -116,7 +143,11 @@ export function FileUploader({
 
     const fileSizeMB = file.size / (1024 * 1024);
     if (fileSizeMB > maxSize) {
-      setError(`File size exceeds ${maxSize}MB limit`);
+      setUploadState({ 
+        progress: 0, 
+        status: 'error', 
+        error: `File size exceeds ${maxSize}MB limit` 
+      });
       return;
     }
 
@@ -129,15 +160,17 @@ export function FileUploader({
     accept: acceptedFormats.reduce((acc, format) => ({ ...acc, [format]: [] }), {}),
     maxFiles: 1,
     multiple: false,
-    disabled: isUploading
+    disabled: uploadState.status === 'uploading'
   });
 
   const removeFile = () => {
     setFile(null);
-    setError('');
-    setUploadProgress(0);
-    setIsUploading(false);
+    setUploadState({ progress: 0, status: 'idle' });
   };
+
+  const isUploading = uploadState.status === 'uploading';
+  const isSuccess = uploadState.status === 'success';
+  const isError = uploadState.status === 'error';
 
   return (
     <div className="space-y-4">
@@ -171,7 +204,7 @@ export function FileUploader({
               <p className="text-sm text-muted-foreground">
                 {(file.size / 1024).toFixed(2)} KB
               </p>
-              {isProcessing && (
+              {isUploading && (
                 <p className="text-sm text-primary">Processing file...</p>
               )}
             </div>
@@ -193,15 +226,31 @@ export function FileUploader({
 
       {isUploading && (
         <div className="w-full space-y-2 animate-fade-in">
-          <Progress value={uploadProgress} className="h-2" />
-          <div className="flex justify-between text-sm text-muted-foreground">
-            <span>Uploading...</span>
-            <span>{uploadProgress}%</span>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground truncate max-w-[200px]">
+              {uploadState.fileName}
+            </span>
+            <span className="text-muted-foreground">{uploadState.progress}%</span>
           </div>
+          <Progress value={uploadState.progress} className="h-2" />
+          <button
+            type="button"
+            onClick={handleCancel}
+            className="text-xs text-muted-foreground hover:text-destructive transition-colors"
+          >
+            Cancel
+          </button>
         </div>
       )}
 
-      {file && !isProcessing && (
+      {isSuccess && (
+        <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-950/20 text-green-600 dark:text-green-400 rounded-lg">
+          <CheckCircle2 className="h-5 w-5 flex-shrink-0" />
+          <span className="text-sm font-medium">Upload complete</span>
+        </div>
+      )}
+
+      {file && !isUploading && !isError && (
         <div className="flex items-center justify-between p-3 bg-accent rounded-lg">
           <div className="flex items-center gap-3">
             <File className="h-5 w-5 text-primary" />
@@ -223,10 +272,10 @@ export function FileUploader({
         </div>
       )}
 
-      {error && (
+      {isError && uploadState.error && (
         <div className="flex items-center gap-2 p-3 bg-destructive/10 text-destructive rounded-lg">
-          <AlertCircle className="h-5 w-5" />
-          <p className="text-sm font-medium">{error}</p>
+          <AlertCircle className="h-5 w-5 flex-shrink-0" />
+          <p className="text-sm font-medium">{uploadState.error}</p>
         </div>
       )}
     </div>

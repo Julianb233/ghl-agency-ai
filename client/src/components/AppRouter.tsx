@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import { Route, Switch, useLocation } from 'wouter';
 import { trpc } from '@/lib/trpc';
+import { PageTransitionWrapper } from '@/components/animations';
 
 // Lazy load pages
 const Login = lazy(() => import('@/pages/Login'));
@@ -105,89 +106,91 @@ export function AppRouter() {
 
   return (
     <Suspense fallback={<LoadingSpinner />}>
-      <Switch>
-        {/* Public routes */}
-        <Route path="/">
-          <LandingPage
-            onLogin={() => setLocation('/login')}
-            onNavigateToFeatures={() => setLocation('/features')}
-          />
-        </Route>
-        <Route path="/landing">
-          <LandingPage
-            onLogin={() => setLocation('/login')}
-            onNavigateToFeatures={() => setLocation('/features')}
-          />
-        </Route>
-        <Route path="/login" component={Login} />
-        <Route path="/signup" component={Signup} />
-        <Route path="/features">
-          <FeaturesPage
-            onGetStarted={() => user ? setLocation('/dashboard') : setLocation('/login')}
-            onNavigateHome={() => setLocation('/')}
-          />
-        </Route>
-        <Route path="/privacy">
-          <PrivacyPolicy onBack={() => setLocation('/')} />
-        </Route>
-        <Route path="/terms">
-          <TermsOfService onBack={() => setLocation('/')} />
-        </Route>
-        <Route path="/alex-ramozy">
-          <AlexRamozyPage onDemoClick={() => setLocation('/login')} />
-        </Route>
-        <Route path="/pricing" component={Pricing} />
-        <Route path="/use-cases" component={UseCases} />
-        <Route path="/about" component={About} />
-        <Route path="/docs" component={Docs} />
+      <PageTransitionWrapper locationKey={location}>
+        <Switch>
+          {/* Public routes */}
+          <Route path="/">
+            <LandingPage
+              onLogin={() => setLocation('/login')}
+              onNavigateToFeatures={() => setLocation('/features')}
+            />
+          </Route>
+          <Route path="/landing">
+            <LandingPage
+              onLogin={() => setLocation('/login')}
+              onNavigateToFeatures={() => setLocation('/features')}
+            />
+          </Route>
+          <Route path="/login" component={Login} />
+          <Route path="/signup" component={Signup} />
+          <Route path="/features">
+            <FeaturesPage
+              onGetStarted={() => user ? setLocation('/dashboard') : setLocation('/login')}
+              onNavigateHome={() => setLocation('/')}
+            />
+          </Route>
+          <Route path="/privacy">
+            <PrivacyPolicy onBack={() => setLocation('/')} />
+          </Route>
+          <Route path="/terms">
+            <TermsOfService onBack={() => setLocation('/')} />
+          </Route>
+          <Route path="/alex-ramozy">
+            <AlexRamozyPage onDemoClick={() => setLocation('/login')} />
+          </Route>
+          <Route path="/pricing" component={Pricing} />
+          <Route path="/use-cases" component={UseCases} />
+          <Route path="/about" component={About} />
+          <Route path="/docs" component={Docs} />
 
-        {/* Protected routes */}
-        <Route path="/onboarding">
-          {user ? (
-            <OnboardingFlow onComplete={() => setLocation('/dashboard')} />
-          ) : (
-            <div>Redirecting...</div>
-          )}
-        </Route>
+          {/* Protected routes */}
+          <Route path="/onboarding">
+            {user ? (
+              <OnboardingFlow onComplete={() => setLocation('/dashboard')} />
+            ) : (
+              <div>Redirecting...</div>
+            )}
+          </Route>
 
-        {/* Dashboard routes - handle all /dashboard/* paths */}
-        <Route path="/dashboard/:rest*">
-          {user ? (
-            <main id="main-content">
-              <DashboardRouter userTier="WHITELABEL" credits={1000} />
-            </main>
-          ) : (
-            <div>Redirecting...</div>
-          )}
-        </Route>
+          {/* Dashboard routes - handle all /dashboard/* paths */}
+          <Route path="/dashboard/:rest*">
+            {user ? (
+              <main id="main-content">
+                <DashboardRouter userTier="WHITELABEL" credits={1000} />
+              </main>
+            ) : (
+              <div>Redirecting...</div>
+            )}
+          </Route>
 
-        {/* Dashboard home route */}
-        <Route path="/dashboard">
-          {user ? (
-            <main id="main-content">
-              <DashboardRouter userTier="WHITELABEL" credits={1000} />
-            </main>
-          ) : (
-            <div>Redirecting...</div>
-          )}
-        </Route>
+          {/* Dashboard home route */}
+          <Route path="/dashboard">
+            {user ? (
+              <main id="main-content">
+                <DashboardRouter userTier="WHITELABEL" credits={1000} />
+              </main>
+            ) : (
+              <div>Redirecting...</div>
+            )}
+          </Route>
 
-        {/* 404 */}
-        <Route>
-          <div className="min-h-screen flex items-center justify-center">
-            <div className="text-center">
-              <h1 className="text-4xl font-bold mb-4">404</h1>
-              <p className="text-muted-foreground mb-4">Page not found</p>
-              <button
-                onClick={() => setLocation('/')}
-                className="text-primary hover:underline"
-              >
-                Go back home
-              </button>
+          {/* 404 */}
+          <Route>
+            <div className="min-h-screen flex items-center justify-center">
+              <div className="text-center">
+                <h1 className="text-4xl font-bold mb-4">404</h1>
+                <p className="text-muted-foreground mb-4">Page not found</p>
+                <button
+                  onClick={() => setLocation('/')}
+                  className="text-primary hover:underline"
+                >
+                  Go back home
+                </button>
+              </div>
             </div>
-          </div>
-        </Route>
-      </Switch>
+          </Route>
+        </Switch>
+      </PageTransitionWrapper>
     </Suspense>
   );
 }
