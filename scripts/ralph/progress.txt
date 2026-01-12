@@ -38,6 +38,21 @@ Started: 2026-01-12
 === Iteration 1/1 ===
 [2026-01-12T22:43:46.743Z] 🎉 All PRD tasks complete! Ralph finished.
 
+## 2026-01-12 - MCP-001, MCP-002, MCP-003, MCP-004
+Thread: https://ampcode.com/threads/T-019bb483-3a4d-715d-b46b-f7f38ea09b09
+- Verified MCP-001, MCP-002, MCP-003 were already implemented:
+  - agent.ts exists with 6 agent/memory tools (agent/execute, agent/status, memory/store, memory/retrieve, memory/list, memory/delete)
+  - notifications/initialized handler in server.ts
+  - logging/setLevel handler in server.ts  
+  - completion/complete handler in server.ts
+- MCP-004: Added agent tools documentation to server/mcp/README.md
+- Files changed: server/mcp/README.md, scripts/ralph/prd.json
+- **Learnings for future iterations:**
+  - MCP tools architecture: tools in server/mcp/tools/, registered via getXxxTools() functions in index.ts
+  - MCP server handlers are in the switch statement in handleRequest() in server.ts
+  - todo.md already had MCP marked complete (lines 136-140)
+---
+
 ## 2026-01-12 - MCP-004
 Thread: https://ampcode.com/threads/T-019bb483-2a2f-74bf-b4b7-33cb01868e61
 - Verified all MCP tasks (MCP-001, MCP-002, MCP-003, MCP-004) were already implemented
