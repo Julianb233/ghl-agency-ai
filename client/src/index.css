@@ -73,15 +73,21 @@
   --sidebar-primary: var(--color-blue-600);
   --sidebar-primary-foreground: var(--color-blue-50);
 
-  /* Semantic Colors */
-  --success: oklch(0.64 0.15 150); /* emerald-500 equivalent */
-  --success-foreground: oklch(0.98 0 0);
-  --warning: oklch(0.76 0.16 75); /* amber-500 equivalent */
-  --warning-foreground: oklch(0.2 0.015 65);
-  --error: oklch(0.63 0.24 30); /* red-500 equivalent */
+  /* Semantic Colors - Success */
+  --success: oklch(0.72 0.17 142);
+  --success-foreground: oklch(0.98 0.01 142);
+  
+  /* Semantic Colors - Warning */
+  --warning: oklch(0.80 0.16 85);
+  --warning-foreground: oklch(0.25 0.02 85);
+  
+  /* Semantic Colors - Info */
+  --info: oklch(0.65 0.15 250);
+  --info-foreground: oklch(0.98 0.01 250);
+  
+  /* Semantic Colors - Error */
+  --error: oklch(0.63 0.24 30);
   --error-foreground: oklch(0.98 0 0);
-  --info: oklch(0.63 0.21 260); /* blue-500 equivalent */
-  --info-foreground: oklch(0.98 0 0);
 
   /* Surface Colors */
   --surface: oklch(0.99 0 0);
@@ -135,15 +141,21 @@
   --sidebar-primary: oklch(0.50 0.23 265);
   --sidebar-primary-foreground: oklch(0.98 0.005 265);
 
-  /* Dark Theme Semantic Colors */
-  --success: oklch(0.64 0.15 150);
-  --success-foreground: oklch(0.98 0 0);
-  --warning: oklch(0.76 0.16 75);
-  --warning-foreground: oklch(0.15 0.015 65);
+  /* Semantic Colors - Success (Dark) */
+  --success: oklch(0.65 0.14 142);
+  --success-foreground: oklch(0.98 0.01 142);
+  
+  /* Semantic Colors - Warning (Dark) */
+  --warning: oklch(0.72 0.14 85);
+  --warning-foreground: oklch(0.15 0.01 85);
+  
+  /* Semantic Colors - Info (Dark) */
+  --info: oklch(0.60 0.12 250);
+  --info-foreground: oklch(0.98 0.01 250);
+  
+  /* Semantic Colors - Error (Dark) */
   --error: oklch(0.63 0.24 30);
   --error-foreground: oklch(0.98 0 0);
-  --info: oklch(0.63 0.21 260);
-  --info-foreground: oklch(0.98 0 0);
 
   /* Dark Surface Colors - Modern slate-900/slate-800 */
   --surface: oklch(0.21 0.006 285.885);
@@ -680,6 +692,39 @@
     border-color: var(--info);
   }
 
+  /* Semantic Foreground Utilities */
+  .bg-success-foreground {
+    background-color: var(--success-foreground);
+  }
+
+  .text-success-foreground {
+    color: var(--success-foreground);
+  }
+
+  .bg-warning-foreground {
+    background-color: var(--warning-foreground);
+  }
+
+  .text-warning-foreground {
+    color: var(--warning-foreground);
+  }
+
+  .bg-info-foreground {
+    background-color: var(--info-foreground);
+  }
+
+  .text-info-foreground {
+    color: var(--info-foreground);
+  }
+
+  .bg-error-foreground {
+    background-color: var(--error-foreground);
+  }
+
+  .text-error-foreground {
+    color: var(--error-foreground);
+  }
+
   /* Surface Utilities */
   .surface {
     background-color: var(--surface);
@@ -978,6 +1023,34 @@
     background-size: 200% auto;
   }
 
+  /* Skeleton shimmer animation for loading states */
+  @keyframes skeleton-shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  .animate-skeleton-shimmer {
+    animation: skeleton-shimmer 1.5s infinite linear;
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted)) 0%,
+      hsl(var(--muted-foreground) / 0.1) 50%,
+      hsl(var(--muted)) 100%
+    );
+    background-size: 200% 100%;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-skeleton-shimmer {
+      animation: none;
+      background: hsl(var(--muted));
+    }
+  }
+
   /* Gradient border animation */
   @keyframes gradient-border {
     0% {
@@ -1104,6 +1177,64 @@
                 0 0 60px rgba(139, 92, 246, 0.1);
   }
 
+  /* Fade animations */
+  .animate-fade-in {
+    animation: fadeIn 0.2s ease-out forwards;
+  }
+  .animate-fade-out {
+    animation: fadeOut 0.2s ease-out forwards;
+  }
+  
+  /* Slide animations */
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out forwards;
+  }
+  .animate-slide-down {
+    animation: slideDown 0.3s ease-out forwards;
+  }
+  .animate-slide-left {
+    animation: slideLeft 0.3s ease-out forwards;
+  }
+  .animate-slide-right {
+    animation: slideRight 0.3s ease-out forwards;
+  }
+  
+  /* Scale animations */
+  .animate-scale-in {
+    animation: scaleIn 0.2s ease-out forwards;
+  }
+  .animate-scale-out {
+    animation: scaleOut 0.2s ease-out forwards;
+  }
+  
+  /* Bounce animation */
+  .animate-bounce-in {
+    animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+  }
+  
+  /* Hover utilities */
+  .hover-lift {
+    @apply transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-md;
+  }
+  .hover-scale {
+    @apply transition-transform duration-200 hover:scale-105;
+  }
+  .hover-glow {
+    @apply transition-shadow duration-200 hover:shadow-lg hover:shadow-primary/20;
+  }
+  
+  /* Focus ring */
+  .focus-ring {
+    @apply focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none;
+  }
+  
+  /* Stagger delay utilities */
+  .stagger-1 { animation-delay: 50ms; }
+  .stagger-2 { animation-delay: 100ms; }
+  .stagger-3 { animation-delay: 150ms; }
+  .stagger-4 { animation-delay: 200ms; }
+  .stagger-5 { animation-delay: 250ms; }
+
   /* Floating animation */
   @keyframes float {
     0%, 100% {
@@ -1170,5 +1301,67 @@
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
     pointer-events: none;
     z-index: 1;
+  }
+}
+
+/* Animation Keyframes */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideLeft {
+  from { opacity: 0; transform: translateX(10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideRight {
+  from { opacity: 0; transform: translateX(-10px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes scaleOut {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(0.95); }
+}
+@keyframes bounceIn {
+  0% { opacity: 0; transform: scale(0.3); }
+  50% { transform: scale(1.05); }
+  70% { transform: scale(0.9); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  .animate-fade-out,
+  .animate-slide-up,
+  .animate-slide-down,
+  .animate-slide-left,
+  .animate-slide-right,
+  .animate-scale-in,
+  .animate-scale-out,
+  .animate-bounce-in {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  
+  .hover-lift,
+  .hover-scale {
+    transform: none !important;
   }
 }

@@ -44,6 +44,7 @@ import {
   Box,
   Archive,
 } from 'lucide-react';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 export function MemoryBrowser() {
   const [activeTab, setActiveTab] = useState('entries');
@@ -320,11 +321,12 @@ function MemoryEntriesView({
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         ) : entries.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground">
-            <Database className="h-12 w-12 mx-auto mb-3 opacity-50" />
-            <p>No memory entries found</p>
-            <p className="text-sm">Entries will appear here as agents store context</p>
-          </div>
+          <EmptyState
+            icon={Database}
+            title="No memory entries found"
+            description="Entries will appear here as agents store context."
+            size="md"
+          />
         ) : (
           <ScrollArea className="h-[400px]">
             <div className="space-y-2">

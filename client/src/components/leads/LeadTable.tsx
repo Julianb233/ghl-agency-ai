@@ -17,7 +17,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { MoreVertical } from 'lucide-react';
+import { MoreVertical, Users } from 'lucide-react';
+import { NoDataEmpty } from '@/components/ui/EmptyState';
 
 interface Lead {
   id: string;
@@ -150,9 +151,9 @@ export function LeadTable({
             <TableRow>
               <TableCell
                 colSpan={columns.length + (selectable ? 2 : 1)}
-                className="text-center py-8 text-muted-foreground"
+                className="p-0"
               >
-                No leads found
+                <NoDataEmpty resourceName="Leads" />
               </TableCell>
             </TableRow>
           ) : (
