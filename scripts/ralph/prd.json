@@ -1,0 +1,106 @@
+{
+  "name": "Asset Management & MCP Protocol",
+  "version": "1.0",
+  "created": "2026-01-12",
+  "status": "in-progress",
+  "repoURL": "https://github.com/Julianb233/ghl-agency-ai",
+  "description": "Complete the Asset Management System for client media storage and implement full MCP protocol support",
+  "tasks": [
+    {
+      "id": "AM-001",
+      "title": "Asset Management Database Schema",
+      "status": "completed",
+      "priority": "P0",
+      "effort": "1 hour",
+      "dependsOn": [],
+      "files": [
+        "drizzle/schema-assets.ts",
+        "drizzle/migrations/0007_asset_management.sql"
+      ],
+      "description": "Create database tables for client assets and folders.\n\n**What to do:**\n- Create `client_assets` table with: id, userId, clientProfileId, filename, mimeType, size, s3Key, s3Url, cdnUrl, category, tags, metadata, isPublic, timestamps\n- Create `asset_folders` table with nested folder support via parentId\n- Add indexes on userId, clientProfileId, category, tags\n\n**Acceptance criteria:**\n- Tables defined in drizzle/schema-assets.ts\n- Migration SQL in drizzle/migrations/0007_asset_management.sql\n- pnpm run check passes"
+    },
+    {
+      "id": "AM-002",
+      "title": "Asset Service Implementation",
+      "status": "completed",
+      "priority": "P0",
+      "effort": "2 hours",
+      "dependsOn": ["AM-001"],
+      "files": [
+        "server/services/asset.service.ts"
+      ],
+      "description": "Create the asset service with S3 and CDN integration.\n\n**What to do:**\n- uploadAsset(userId, clientProfileId, file, category, tags, folderId?)\n- getAssets(userId, clientProfileId?, filters?)\n- getAssetById(assetId)\n- updateAsset(assetId, updates)\n- deleteAsset(assetId) - also deletes from S3\n- moveAsset(assetId, folderId)\n- Folder CRUD operations\n- Integrate with existing S3StorageService and CDN service\n\n**Acceptance criteria:**\n- All methods implemented and typed\n- Uses existing S3 and CDN services\n- pnpm run check passes"
+    },
+    {
+      "id": "AM-003",
+      "title": "Asset tRPC Router",
+      "status": "completed",
+      "priority": "P0",
+      "effort": "2 hours",
+      "dependsOn": ["AM-002"],
+      "files": [
+        "server/api/routers/assets.ts",
+        "server/routers.ts"
+      ],
+      "description": "Create tRPC router for asset management endpoints.\n\n**What to do:**\n- assets.upload, assets.list, assets.get, assets.update, assets.delete, assets.move\n- folders.create, folders.list, folders.delete\n- Add Zod validation schemas\n- Register in server/routers.ts\n\n**Acceptance criteria:**\n- All endpoints implemented with Zod validation\n- Router registered in main routers file\n- pnpm run check passes"
+    },
+    {
+      "id": "MCP-001",
+      "title": "MCP Agent Tools",
+      "status": "completed",
+      "priority": "P1",
+      "effort": "2 hours",
+      "dependsOn": [],
+      "files": [
+        "server/mcp/tools/agent.ts"
+      ],
+      "description": "Add agent/AI tools to MCP server.\n\n**What to do:**\n- Create server/mcp/tools/agent.ts with:\n  - agent/execute - Execute an agent task using agentOrchestrator\n  - agent/status - Get agent execution status\n  - memory/store - Store to agent memory via agentMemory service\n  - memory/retrieve - Retrieve from agent memory\n- Follow pattern from existing tools (file.ts, shell.ts)\n\n**Acceptance criteria:**\n- All 4 tools implemented with proper schemas\n- Tools registered in MCP server\n- pnpm run check passes"
+    },
+    {
+      "id": "MCP-002",
+      "title": "MCP Logging and Notifications",
+      "status": "completed",
+      "priority": "P1",
+      "effort": "1 hour",
+      "dependsOn": ["MCP-001"],
+      "files": [
+        "server/mcp/server.ts"
+      ],
+      "description": "Add logging and notification handlers to MCP server.\n\n**What to do:**\n- Add handler for 'notifications/initialized'\n- Add handler for 'logging/setLevel'\n- Track log level in session\n- Emit logs based on configured level\n\n**Acceptance criteria:**\n- Both handlers implemented in handleRequest switch\n- Log level persisted in session\n- pnpm run check passes"
+    },
+    {
+      "id": "MCP-003",
+      "title": "MCP Completion Support",
+      "status": "completed",
+      "priority": "P2",
+      "effort": "1 hour",
+      "dependsOn": ["MCP-002"],
+      "files": [
+        "server/mcp/server.ts"
+      ],
+      "description": "Add completion/autocomplete support to MCP server.\n\n**What to do:**\n- Add handler for 'completion/complete'\n- Support completion for prompt names, resource URIs, and tool names\n- Return array of completion suggestions\n\n**Acceptance criteria:**\n- completion/complete handler implemented\n- Returns relevant suggestions based on context\n- pnpm run check passes"
+    },
+    {
+      "id": "MCP-004",
+      "title": "Register MCP Tools and Update Docs",
+      "status": "completed",
+      "priority": "P1",
+      "effort": "30 min",
+      "dependsOn": ["MCP-001", "MCP-002", "MCP-003"],
+      "files": [
+        "server/mcp/index.ts",
+        "todo.md"
+      ],
+      "description": "Register new MCP tools and mark todo.md complete.\n\n**What to do:**\n- Import and register agent tools in server/mcp/index.ts\n- Update todo.md to mark 'Implement full MCP protocol support' as complete\n- Add brief documentation to server/mcp/README.md\n\n**Acceptance criteria:**\n- Agent tools available via MCP\n- todo.md updated\n- pnpm run check passes"
+    }
+  ],
+  "technicalRequirements": [
+    "All code must pass pnpm run check",
+    "Follow existing patterns in codebase",
+    "Use existing services (S3, CDN, agentOrchestrator, agentMemory)"
+  ],
+  "successMetrics": {
+    "assetManagement": "Full CRUD for client assets via API",
+    "mcpProtocol": "All standard MCP methods implemented"
+  }
+}
