@@ -25,7 +25,8 @@ server/mcp/
 │   ├── file.ts        # File operations (read, write, list, delete)
 │   ├── shell.ts       # Sandboxed shell execution
 │   ├── web.ts         # HTTP requests and web scraping
-│   └── database.ts    # Database queries
+│   ├── database.ts    # Database queries
+│   └── agent.ts       # Agent execution and memory operations
 └── README.md          # This file
 ```
 
@@ -56,6 +57,19 @@ server/mcp/
 - **database/tables**: List all database tables
 - **database/schema**: Get table schema information
 - Security: SELECT-only queries with parameter binding
+
+#### Agent/AI Operations
+- **agent/execute**: Execute an agent task with optional context, returns task ID for tracking
+- **agent/status**: Get the current status of an agent task by its ID
+- **memory/store**: Store a value in agent memory with key and optional namespace
+- **memory/retrieve**: Retrieve a value from agent memory by key
+- **memory/list**: List all keys in agent memory, optionally filtered by namespace
+- **memory/delete**: Delete a value from agent memory by key
+- Features:
+  - Async and sync task execution modes
+  - TTL-based memory expiration
+  - Namespace isolation for memory entries
+  - Task status tracking (pending, running, completed, failed)
 
 ### 2. Resources (Read-Only Data) - NEW
 

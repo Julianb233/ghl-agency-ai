@@ -39,6 +39,100 @@ export interface MCPCapabilities {
   logging?: {
     level?: 'debug' | 'info' | 'warn' | 'error';
   };
+  sampling?: {
+    enabled?: boolean;
+  };
+  completion?: {
+    enabled?: boolean;
+  };
+}
+
+// ============================================================================
+// Sampling Types (LLM Sampling Support)
+// ============================================================================
+
+export type MCPSamplingRole = 'user' | 'assistant';
+
+export interface MCPSamplingMessage {
+  role: MCPSamplingRole;
+  content: {
+    type: 'text' | 'image';
+    text?: string;
+    data?: string;
+    mimeType?: string;
+  };
+}
+
+export interface MCPSamplingParams {
+  messages: MCPSamplingMessage[];
+  modelPreferences?: {
+    hints?: Array<{ name?: string }>;
+    costPriority?: number;
+    speedPriority?: number;
+    intelligencePriority?: number;
+  };
+  systemPrompt?: string;
+  includeContext?: 'none' | 'thisServer' | 'allServers';
+  temperature?: number;
+  maxTokens: number;
+  stopSequences?: string[];
+  metadata?: Record<string, unknown>;
+}
+
+export interface MCPSamplingResult {
+  role: MCPSamplingRole;
+  content: {
+    type: 'text' | 'image';
+    text?: string;
+    data?: string;
+    mimeType?: string;
+  };
+  model: string;
+  stopReason?: 'endTurn' | 'stopSequence' | 'maxTokens';
+}
+
+// ============================================================================
+// Completion Types (Auto-completion Support)
+// ============================================================================
+
+export interface MCPCompletionRef {
+  type: 'ref/prompt' | 'ref/resource';
+  name?: string;
+  uri?: string;
+}
+
+export interface MCPCompletionArgument {
+  name: string;
+  value: string;
+}
+
+export interface MCPCompletionParams {
+  ref: MCPCompletionRef;
+  argument: MCPCompletionArgument;
+}
+
+export interface MCPCompletionResult {
+  completion: {
+    values: string[];
+    total?: number;
+    hasMore?: boolean;
+  };
+}
+
+// ============================================================================
+// Logging Types
+// ============================================================================
+
+export type MCPLogLevel = 'debug' | 'info' | 'notice' | 'warning' | 'error' | 'critical' | 'alert' | 'emergency';
+
+export interface MCPLoggingParams {
+  level: MCPLogLevel;
+}
+
+export interface MCPLogMessage {
+  level: MCPLogLevel;
+  logger?: string;
+  data?: unknown;
 }
 
 // ============================================================================

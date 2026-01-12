@@ -700,3 +700,15 @@ export {
   type PasswordResetConfirm,
   type EmailVerificationRequest,
 } from "./schema-auth";
+
+// Asset Management
+export {
+  clientAssets,
+  assetFolders,
+  ASSET_CATEGORIES,
+  type ClientAsset,
+  type InsertClientAsset,
+  type AssetFolder,
+  type InsertAssetFolder,
+  type AssetCategory,
+} from "./schema-assets";
