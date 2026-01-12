@@ -1,15 +1,18 @@
 #!/usr/bin/env npx tsx
 /**
  * Ralph - Autonomous task execution agent
- * Runs Amp iterations to complete tasks from a parent task
+ * Runs Amp iterations to complete tasks from a PRD file
  */
 
-import { execSync, spawn } from 'child_process';
+import { spawn } from 'child_process';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
-import { join } from 'path';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 const RALPH_DIR = __dirname;
-const PARENT_TASK_FILE = join(RALPH_DIR, 'parent-task-id.txt');
+const PRD_FILE = join(RALPH_DIR, 'current-prd.txt');
 const PROGRESS_FILE = join(RALPH_DIR, 'progress.txt');
 
 function log(msg: string) {
@@ -25,32 +28,41 @@ function appendProgress(msg: string) {
   }
 }
 
-function getParentTaskId(): string {
-  if (!existsSync(PARENT_TASK_FILE)) {
-    throw new Error(`Parent task ID file not found: ${PARENT_TASK_FILE}`);
+function getPRDPath(): string {
+  if (!existsSync(PRD_FILE)) {
+    // Default to launch readiness PRD
+    return 'tasks/prd-launch-readiness.md';
   }
-  return readFileSync(PARENT_TASK_FILE, 'utf-8').trim();
+  return readFileSync(PRD_FILE, 'utf-8').trim();
 }
 
-async function runAmpIteration(parentId: string): Promise<{ complete: boolean; output: string }> {
+async function runAmpIteration(prdPath: string, iteration: number): Promise<{ complete: boolean; output: string }> {
   return new Promise((resolve, reject) => {
-    const prompt = `You are Ralph, an autonomous agent completing tasks.
+    const prompt = `You are Ralph, an autonomous agent completing PRD tasks.
 
-Parent task ID: ${parentId}
+PRD File: ${prdPath}
+Iteration: ${iteration}
 
 Instructions:
-1. Use \`amp task list --parentID ${parentId} --limit 5\` to find ready tasks
-2. Pick one task that has no incomplete dependencies
-3. Complete the task fully (implement, test, verify)
-4. Mark it complete with \`amp task update <id> --status completed\`
-5. If ALL subtasks are done, mark the parent complete and output: <promise>COMPLETE</promise>
+1. Read the PRD file at ${prdPath}
+2. Find the FIRST user story that is NOT marked with "✅ COMPLETE"
+3. Implement that story completely (create files, write code, test)
+4. Update the PRD to mark the story as complete with "✅ COMPLETE"
+5. Run \`pnpm run check\` to verify TypeScript passes
+6. If ALL stories in the PRD are complete, output exactly: RALPH_ALL_COMPLETE
 
-Run \`pnpm run check\` before marking any task complete.`;
+Be thorough. Complete one story fully before moving on.
+Do not ask questions - make reasonable decisions and proceed.`;
 
-    const amp = spawn('amp', ['--prompt', prompt], {
+    // Use echo to pipe prompt to amp with -x flag
+    const amp = spawn('amp', ['-x', '--dangerously-allow-all'], {
       cwd: process.cwd(),
       stdio: ['pipe', 'pipe', 'pipe'],
     });
+
+    // Write prompt to stdin
+    amp.stdin.write(prompt);
+    amp.stdin.end();
 
     let output = '';
     
@@ -67,7 +79,7 @@ Run \`pnpm run check\` before marking any task complete.`;
     });
 
     amp.on('close', (code) => {
-      const complete = output.includes('<promise>COMPLETE</promise>');
+      const complete = output.includes('RALPH_ALL_COMPLETE');
       resolve({ complete, output });
     });
 
@@ -80,17 +92,17 @@ async function main() {
   
   log(`Ralph starting with max ${maxIterations} iterations`);
   
-  const parentId = getParentTaskId();
-  log(`Parent task: ${parentId}`);
+  const prdPath = getPRDPath();
+  log(`PRD: ${prdPath}`);
 
   for (let i = 1; i <= maxIterations; i++) {
     log(`\n=== Iteration ${i}/${maxIterations} ===`);
     
     try {
-      const result = await runAmpIteration(parentId);
+      const result = await runAmpIteration(prdPath, i);
       
       if (result.complete) {
-        log('🎉 All tasks complete! Ralph finished.');
+        log('🎉 All PRD tasks complete! Ralph finished.');
         process.exit(0);
       }
     } catch (error) {
