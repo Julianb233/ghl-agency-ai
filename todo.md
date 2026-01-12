@@ -119,8 +119,8 @@ Merge three systems:
 
 ### 1.2 Dependency Management
 - [x] Core dependencies installed (@anthropic-ai/sdk, @browserbasehq/sdk, drizzle-orm, etc.)
-- [ ] Verify all dependency versions are compatible
-- [ ] Remove any duplicate dependencies
+- [x] Verify all dependency versions are compatible (verified Jan 2026 - no conflicts found)
+- [x] Remove any duplicate dependencies (verified Jan 2026 - no duplicates found)
 
 ---
 
@@ -221,7 +221,7 @@ Merge three systems:
 ### 5.3 Secrets Management
 - [x] 1Password integration researched
 - [ ] Build credential rotation system
-- [ ] Document authentication flow
+- [x] Document authentication flow (`docs/AUTHENTICATION_FLOW.md` - JWT, API keys, email/password)
 
 ---
 
