@@ -37,3 +37,16 @@ Started: 2026-01-12
 [2026-01-12T22:43:35.306Z] 
 === Iteration 1/1 ===
 [2026-01-12T22:43:46.743Z] 🎉 All PRD tasks complete! Ralph finished.
+
+## 2026-01-12 - MCP-004
+Thread: https://ampcode.com/threads/T-019bb483-2a2f-74bf-b4b7-33cb01868e61
+- Verified all MCP tasks (MCP-001, MCP-002, MCP-003, MCP-004) were already implemented
+- Agent tools already registered in `server/mcp/index.ts`
+- todo.md already marked "Implement full MCP protocol support" as complete
+- README.md already has comprehensive agent/memory tools documentation
+- Updated PRD to mark MCP-004 as completed
+- **Learnings for future iterations:**
+  - All MCP protocol features were already implemented prior to this PRD
+  - Check existing code thoroughly before implementing - may already be done
+  - The server/mcp/tools/agent.ts has 6 tools (agent/execute, agent/status, memory/store, memory/retrieve, memory/list, memory/delete)
+---
