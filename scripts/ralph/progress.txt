@@ -1,0 +1,15 @@
+# Ralph Progress Log
+Started: 2026-01-12
+
+## Codebase Patterns
+- Use `cn()` from `@/lib/utils` for className merging
+- Use Icons from `@/components/g3/Icons`
+- API responses: `{ success: boolean, data?, error?, field?, message? }`
+- Zod schemas in `src/lib/api/validation.ts`
+- Dashboard components in `src/components/dashboard/`
+- G3 Engine components in `src/components/g3/`
+- Use `class-variance-authority` for UI variants
+- Use `forwardRef` pattern for components
+- Use `wouter` for routing (NOT react-router-dom)
+- Run `pnpm run check` before commits
+---
