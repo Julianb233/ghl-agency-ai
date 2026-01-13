@@ -712,3 +712,13 @@ export {
   type InsertAssetFolder,
   type AssetCategory,
 } from "./schema-assets";
+
+// Credential Rotation
+export {
+  credentialPolicies,
+  credentialRotationLogs,
+  type CredentialPolicy,
+  type InsertCredentialPolicy,
+  type CredentialRotationLog,
+  type InsertCredentialRotationLog,
+} from "./schema-credentials";
