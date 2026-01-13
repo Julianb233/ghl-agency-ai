@@ -81,3 +81,88 @@ Thread: https://ampcode.com/threads/T-019bb5b0-0eaa-75af-a4d1-62921590003d
   - Use index() from drizzle for composite indexes in table definition callback
   - Migration naming: `NNNN_feature_name.sql`
 ---
+
+## 2026-01-13 - CR-002
+Thread: https://ampcode.com/threads/T-019bb5b2-1d0c-732c-9fa3-b2b1669f77b2
+- Implemented credential rotation service at `server/services/credentialRotation.service.ts`
+- Features implemented:
+  - createPolicy(userId, credentialType, intervalDays)
+  - getPolicy/getPolicies/getPolicyById for retrieving policies
+  - updatePolicy(policyId, userId, updates)
+  - deletePolicy(policyId, userId)
+  - checkRotationDue(policyId) - returns true if rotation needed
+  - rotateCredential(policyId, userId) - generates new credential, updates storage, logs rotation
+  - rotateApiKey/rotateWebhookSecret - type-specific rotation logic
+  - getRotationHistory(userId, limit)
+  - runScheduledRotations() - for cron job, finds and rotates all due credentials
+- Integrates with alertingService for rotation notifications
+- Logs all rotations to credential_rotation_logs table
+- Hashes credentials with SHA-256 before logging (last 4 chars only)
+- Files changed: server/services/credentialRotation.service.ts, scripts/ralph/prd.json
+- **Learnings for future iterations:**
+  - Service pattern: use object export `export const serviceName = { ... }` (like alerting.service.ts)
+  - getDb() is async and returns the drizzle db instance
+  - drizzle-orm uses eq(), and(), lte(), desc() for queries
+  - apiKeys table stores keyHash and keyPrefix, not the raw key
+  - alertingService.createNotification() for in-app notifications
+---
+
+## 2026-01-13 - CR-003
+Thread: https://ampcode.com/threads/T-019bb5b4-67ee-72fc-b734-c0624a54a619
+- Implemented tRPC router for credential rotation at `server/api/routers/credentialRotation.ts`
+- Endpoints implemented:
+  - getPolicies - list all policies for user
+  - getPolicy - get specific policy by credential type
+  - createPolicy - create new rotation policy with validation
+  - updatePolicy - update policy (interval, enabled)
+  - deletePolicy - delete a policy
+  - rotateNow - manual trigger rotation
+  - getHistory - get rotation history with limit
+- All endpoints use Zod validation with proper schemas
+- Proper auth checks (protectedProcedure ensures user can only access own policies)
+- Registered router in server/routers.ts under "Security & Credentials" section
+- Files changed: server/api/routers/credentialRotation.ts, server/routers.ts
+- **Learnings for future iterations:**
+  - tRPC router pattern: use `router` and `protectedProcedure` from `../../_core/trpc`
+  - Import TRPCError from `@trpc/server` for proper error handling
+  - Register routers in server/routers.ts with descriptive section comments
+  - Use z.enum() for restricted string values like credential types
+---
+## 2026-01-13 - CR-004
+Thread: https://ampcode.com/threads/T-019bb5b6-9668-719b-834d-453bced95e75
+- Added credential rotation to the scheduled jobs in `server/services/schedulerRunner.service.ts`
+- Features implemented:
+  - `startCredentialRotationCheck()` - starts daily credential rotation check interval
+  - `checkCredentialRotations()` - calls `credentialRotationService.runScheduledRotations()` 
+  - `runCredentialRotationsNow()` - manual trigger for credential rotation
+  - `getCredentialRotationStats()` - get last rotation stats
+  - Added `credentialRotationStats` to SchedulerStats interface
+- Rotation check runs immediately on scheduler start, then daily
+- Logs all rotation results to console
+- Properly cleans up interval on scheduler stop
+- Files changed: server/services/schedulerRunner.service.ts
+- **Learnings for future iterations:**
+  - SchedulerRunnerService is a singleton class pattern (exports instance)
+  - Use private class properties for interval IDs
+  - Import services at top level for scheduler integration
+  - Daily jobs can use simple setInterval with 24*60*60*1000 ms
+---
+
+## 2026-01-13 - CR-005
+Thread: https://ampcode.com/threads/T-019bb5b8-8600-775c-bf33-3306c4e57dca
+- Updated todo.md to mark "Build credential rotation system" as complete
+- Created comprehensive documentation at `docs/CREDENTIAL_ROTATION.md`:
+  - Overview of the rotation system
+  - Supported credential types (api_key, oauth_token, webhook_secret)
+  - Database schema reference
+  - API endpoints reference with TypeScript examples
+  - Scheduled rotation configuration
+  - Example usage code
+  - Security considerations
+  - File index
+- Files changed: todo.md, docs/CREDENTIAL_ROTATION.md, scripts/ralph/prd.json
+- **Learnings for future iterations:**
+  - Documentation location: `docs/FEATURE_NAME.md` for feature docs
+  - Use tables in markdown for schema/endpoint references
+  - Include TypeScript examples for API documentation
+---

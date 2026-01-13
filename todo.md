@@ -228,7 +228,12 @@ Merge three systems:
 
 ### 5.3 Secrets Management
 - [x] 1Password integration researched
-- [ ] Build credential rotation system
+- [x] Build credential rotation system (Jan 2026)
+  - `drizzle/schema-credentials.ts` - credential_policies and rotation_logs tables
+  - `server/services/credentialRotation.service.ts` - Full rotation service
+  - `server/api/routers/credentialRotation.ts` - 7 tRPC endpoints
+  - Scheduled daily rotation job in schedulerRunner service
+  - Docs: `docs/CREDENTIAL_ROTATION.md`
 - [x] Document authentication flow (`docs/AUTHENTICATION_FLOW.md` - JWT, API keys, email/password)
 
 ---

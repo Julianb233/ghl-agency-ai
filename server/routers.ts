@@ -44,6 +44,7 @@ import { costsRouter } from "./api/routers/costs";
 import { blogRouter } from "./api/routers/blog";
 import { securityRouter } from "./api/routers/security";
 import { assetsRouter } from "./api/routers/assets";
+import { credentialRotationRouter } from "./api/routers/credentialRotation";
 import { publicProcedure, router } from "./_core/trpc";
 
 export const appRouter = router({
@@ -98,6 +99,7 @@ export const appRouter = router({
 
   // Security & Credentials
   security: securityRouter,
+  credentialRotation: credentialRotationRouter,
 
   // Webhooks & Communication
   webhooks: webhooksRouter,
