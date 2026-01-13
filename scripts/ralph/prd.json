@@ -34,7 +34,7 @@
     {
       "id": "CR-003",
       "title": "Credential Rotation tRPC Router",
-      "status": "pending",
+      "status": "completed",
       "priority": "P0",
       "effort": "1.5 hours",
       "dependsOn": ["CR-002"],

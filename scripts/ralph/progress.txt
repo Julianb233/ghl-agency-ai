@@ -106,3 +106,25 @@ Thread: https://ampcode.com/threads/T-019bb5b2-1d0c-732c-9fa3-b2b1669f77b2
   - apiKeys table stores keyHash and keyPrefix, not the raw key
   - alertingService.createNotification() for in-app notifications
 ---
+
+## 2026-01-13 - CR-003
+Thread: https://ampcode.com/threads/T-019bb5b4-67ee-72fc-b734-c0624a54a619
+- Implemented tRPC router for credential rotation at `server/api/routers/credentialRotation.ts`
+- Endpoints implemented:
+  - getPolicies - list all policies for user
+  - getPolicy - get specific policy by credential type
+  - createPolicy - create new rotation policy with validation
+  - updatePolicy - update policy (interval, enabled)
+  - deletePolicy - delete a policy
+  - rotateNow - manual trigger rotation
+  - getHistory - get rotation history with limit
+- All endpoints use Zod validation with proper schemas
+- Proper auth checks (protectedProcedure ensures user can only access own policies)
+- Registered router in server/routers.ts under "Security & Credentials" section
+- Files changed: server/api/routers/credentialRotation.ts, server/routers.ts
+- **Learnings for future iterations:**
+  - tRPC router pattern: use `router` and `protectedProcedure` from `../../_core/trpc`
+  - Import TRPCError from `@trpc/server` for proper error handling
+  - Register routers in server/routers.ts with descriptive section comments
+  - Use z.enum() for restricted string values like credential types
+---
