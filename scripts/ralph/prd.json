@@ -47,7 +47,7 @@
     {
       "id": "CR-004",
       "title": "Scheduled Rotation Job",
-      "status": "pending",
+      "status": "completed",
       "priority": "P1",
       "effort": "1 hour",
       "dependsOn": ["CR-002"],

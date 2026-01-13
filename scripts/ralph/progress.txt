@@ -128,3 +128,22 @@ Thread: https://ampcode.com/threads/T-019bb5b4-67ee-72fc-b734-c0624a54a619
   - Register routers in server/routers.ts with descriptive section comments
   - Use z.enum() for restricted string values like credential types
 ---
+## 2026-01-13 - CR-004
+Thread: https://ampcode.com/threads/T-019bb5b6-9668-719b-834d-453bced95e75
+- Added credential rotation to the scheduled jobs in `server/services/schedulerRunner.service.ts`
+- Features implemented:
+  - `startCredentialRotationCheck()` - starts daily credential rotation check interval
+  - `checkCredentialRotations()` - calls `credentialRotationService.runScheduledRotations()` 
+  - `runCredentialRotationsNow()` - manual trigger for credential rotation
+  - `getCredentialRotationStats()` - get last rotation stats
+  - Added `credentialRotationStats` to SchedulerStats interface
+- Rotation check runs immediately on scheduler start, then daily
+- Logs all rotation results to console
+- Properly cleans up interval on scheduler stop
+- Files changed: server/services/schedulerRunner.service.ts
+- **Learnings for future iterations:**
+  - SchedulerRunnerService is a singleton class pattern (exports instance)
+  - Use private class properties for interval IDs
+  - Import services at top level for scheduler integration
+  - Daily jobs can use simple setInterval with 24*60*60*1000 ms
+---
