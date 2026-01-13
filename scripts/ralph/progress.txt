@@ -147,3 +147,22 @@ Thread: https://ampcode.com/threads/T-019bb5b6-9668-719b-834d-453bced95e75
   - Import services at top level for scheduler integration
   - Daily jobs can use simple setInterval with 24*60*60*1000 ms
 ---
+
+## 2026-01-13 - CR-005
+Thread: https://ampcode.com/threads/T-019bb5b8-8600-775c-bf33-3306c4e57dca
+- Updated todo.md to mark "Build credential rotation system" as complete
+- Created comprehensive documentation at `docs/CREDENTIAL_ROTATION.md`:
+  - Overview of the rotation system
+  - Supported credential types (api_key, oauth_token, webhook_secret)
+  - Database schema reference
+  - API endpoints reference with TypeScript examples
+  - Scheduled rotation configuration
+  - Example usage code
+  - Security considerations
+  - File index
+- Files changed: todo.md, docs/CREDENTIAL_ROTATION.md, scripts/ralph/prd.json
+- **Learnings for future iterations:**
+  - Documentation location: `docs/FEATURE_NAME.md` for feature docs
+  - Use tables in markdown for schema/endpoint references
+  - Include TypeScript examples for API documentation
+---

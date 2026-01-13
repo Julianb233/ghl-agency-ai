@@ -2,7 +2,7 @@
   "name": "Credential Rotation System",
   "version": "1.0",
   "created": "2026-01-13",
-  "status": "in-progress",
+  "status": "complete",
   "repoURL": "https://github.com/Julianb233/ghl-agency-ai",
   "description": "Build a credential rotation system for secure management of API keys and secrets with automatic rotation policies",
   "tasks": [
@@ -59,7 +59,7 @@
     {
       "id": "CR-005",
       "title": "Update todo.md and Documentation",
-      "status": "pending",
+      "status": "completed",
       "priority": "P2",
       "effort": "30 min",
       "dependsOn": ["CR-003", "CR-004"],
