@@ -81,3 +81,28 @@ Thread: https://ampcode.com/threads/T-019bb5b0-0eaa-75af-a4d1-62921590003d
   - Use index() from drizzle for composite indexes in table definition callback
   - Migration naming: `NNNN_feature_name.sql`
 ---
+
+## 2026-01-13 - CR-002
+Thread: https://ampcode.com/threads/T-019bb5b2-1d0c-732c-9fa3-b2b1669f77b2
+- Implemented credential rotation service at `server/services/credentialRotation.service.ts`
+- Features implemented:
+  - createPolicy(userId, credentialType, intervalDays)
+  - getPolicy/getPolicies/getPolicyById for retrieving policies
+  - updatePolicy(policyId, userId, updates)
+  - deletePolicy(policyId, userId)
+  - checkRotationDue(policyId) - returns true if rotation needed
+  - rotateCredential(policyId, userId) - generates new credential, updates storage, logs rotation
+  - rotateApiKey/rotateWebhookSecret - type-specific rotation logic
+  - getRotationHistory(userId, limit)
+  - runScheduledRotations() - for cron job, finds and rotates all due credentials
+- Integrates with alertingService for rotation notifications
+- Logs all rotations to credential_rotation_logs table
+- Hashes credentials with SHA-256 before logging (last 4 chars only)
+- Files changed: server/services/credentialRotation.service.ts, scripts/ralph/prd.json
+- **Learnings for future iterations:**
+  - Service pattern: use object export `export const serviceName = { ... }` (like alerting.service.ts)
+  - getDb() is async and returns the drizzle db instance
+  - drizzle-orm uses eq(), and(), lte(), desc() for queries
+  - apiKeys table stores keyHash and keyPrefix, not the raw key
+  - alertingService.createNotification() for in-app notifications
+---

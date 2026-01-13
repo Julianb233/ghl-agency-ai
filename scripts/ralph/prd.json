@@ -22,7 +22,7 @@
     {
       "id": "CR-002",
       "title": "Credential Rotation Service",
-      "status": "pending",
+      "status": "completed",
       "priority": "P0",
       "effort": "2 hours",
       "dependsOn": ["CR-001"],
