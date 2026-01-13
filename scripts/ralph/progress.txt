@@ -65,3 +65,19 @@ Thread: https://ampcode.com/threads/T-019bb483-2a2f-74bf-b4b7-33cb01868e61
   - Check existing code thoroughly before implementing - may already be done
   - The server/mcp/tools/agent.ts has 6 tools (agent/execute, agent/status, memory/store, memory/retrieve, memory/list, memory/delete)
 ---
+
+## 2026-01-13 - CR-001
+Thread: https://ampcode.com/threads/T-019bb5b0-0eaa-75af-a4d1-62921590003d
+- Implemented credential rotation database schema
+- Created `drizzle/schema-credentials.ts` with:
+  - `credential_policies` table (userId, credentialType, rotationIntervalDays, lastRotatedAt, nextRotationAt, isEnabled)
+  - `credential_rotation_logs` table (policyId, userId, credentialType, action, oldKeyHash, newKeyHash, reason)
+  - Indexes on userId, credentialType, nextRotationAt, policyId, createdAt
+- Created migration `drizzle/migrations/0008_credential_rotation.sql`
+- Exported types from `drizzle/schema.ts`
+- **Learnings for future iterations:**
+  - Schema files follow pattern `schema-{feature}.ts` in drizzle/
+  - Export new schema tables from main schema.ts at the bottom
+  - Use index() from drizzle for composite indexes in table definition callback
+  - Migration naming: `NNNN_feature_name.sql`
+---

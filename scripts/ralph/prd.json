@@ -9,7 +9,7 @@
     {
       "id": "CR-001",
       "title": "Credential Rotation Database Schema",
-      "status": "pending",
+      "status": "completed",
       "priority": "P0",
       "effort": "1 hour",
       "dependsOn": [],
