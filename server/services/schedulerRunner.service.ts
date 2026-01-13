@@ -7,6 +7,7 @@ import { getDb } from "../db";
 import { eq, and, lte, or } from "drizzle-orm";
 import { scheduledBrowserTasks, scheduledTaskExecutions } from "../../drizzle/schema-scheduled-tasks";
 import { cronSchedulerService } from "./cronScheduler.service";
+import { credentialRotationService } from "./credentialRotation.service";
 
 // ========================================
 // TYPES
@@ -19,6 +20,13 @@ export interface SchedulerStats {
   successCount: number;
   failureCount: number;
   lastCheckTime: Date;
+  credentialRotationStats?: {
+    processed: number;
+    rotated: number;
+    failed: number;
+    skipped: number;
+    lastRunTime: Date;
+  };
 }
 
 // ========================================
@@ -28,7 +36,9 @@ export interface SchedulerStats {
 class SchedulerRunnerService {
   private isRunning = false;
   private intervalId: NodeJS.Timeout | null = null;
+  private credentialRotationIntervalId: NodeJS.Timeout | null = null;
   private checkIntervalMs = 60000; // Check every minute
+  private credentialRotationIntervalMs = 24 * 60 * 60 * 1000; // Check daily
   private stats: SchedulerStats = {
     totalTasks: 0,
     activeTasks: 0,
@@ -59,6 +69,24 @@ class SchedulerRunnerService {
     this.intervalId = setInterval(() => {
       this.checkScheduledTasks();
     }, checkIntervalMs);
+
+    // Start credential rotation check (runs daily)
+    this.startCredentialRotationCheck();
+  }
+
+  /**
+   * Start the credential rotation check interval
+   */
+  private startCredentialRotationCheck(): void {
+    console.log(`Starting credential rotation check (running daily)`);
+
+    // Run immediately on start
+    this.checkCredentialRotations();
+
+    // Then run on interval (daily)
+    this.credentialRotationIntervalId = setInterval(() => {
+      this.checkCredentialRotations();
+    }, this.credentialRotationIntervalMs);
   }
 
   /**
@@ -75,8 +103,37 @@ class SchedulerRunnerService {
       this.intervalId = null;
     }
 
+    if (this.credentialRotationIntervalId) {
+      clearInterval(this.credentialRotationIntervalId);
+      this.credentialRotationIntervalId = null;
+    }
+
     this.isRunning = false;
     console.log("Scheduler runner stopped");
+  }
+
+  /**
+   * Check for credentials due for rotation
+   */
+  private async checkCredentialRotations(): Promise<void> {
+    try {
+      console.log("[SchedulerRunner] Checking credential rotations...");
+
+      const result = await credentialRotationService.runScheduledRotations();
+
+      this.stats.credentialRotationStats = {
+        ...result,
+        lastRunTime: new Date(),
+      };
+
+      if (result.processed > 0) {
+        console.log(
+          `[SchedulerRunner] Credential rotation complete: ${result.rotated} rotated, ${result.failed} failed, ${result.skipped} skipped`
+        );
+      }
+    } catch (error) {
+      console.error("[SchedulerRunner] Error checking credential rotations:", error);
+    }
   }
 
   /**
@@ -630,6 +687,34 @@ class SchedulerRunnerService {
     } else {
       this.checkIntervalMs = intervalMs;
     }
+  }
+
+  /**
+   * Manually trigger credential rotation check
+   * Returns the results of the rotation run
+   */
+  async runCredentialRotationsNow(): Promise<{
+    processed: number;
+    rotated: number;
+    failed: number;
+    skipped: number;
+  }> {
+    console.log("[SchedulerRunner] Manually triggering credential rotation check");
+    const result = await credentialRotationService.runScheduledRotations();
+
+    this.stats.credentialRotationStats = {
+      ...result,
+      lastRunTime: new Date(),
+    };
+
+    return result;
+  }
+
+  /**
+   * Get credential rotation stats
+   */
+  getCredentialRotationStats(): SchedulerStats["credentialRotationStats"] {
+    return this.stats.credentialRotationStats;
   }
 }
 
