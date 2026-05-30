@@ -108,7 +108,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </button>
           <button onClick={() => setActiveTab('BILLING')} className={`text-left px-4 py-3 rounded-xl text-sm font-bold transition-all flex justify-between items-center ${activeTab === 'BILLING' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/20' : 'text-slate-500 hover:bg-slate-100 hover:text-emerald-600'}`}>
             Billing & Usage
-            <span className="bg-white/20 px-1.5 rounded text-[10px]">${availableCredits.toFixed(0)}</span>
+            <span className="bg-white/20 px-1.5 rounded text-xs">${availableCredits.toFixed(0)}</span>
           </button>
           <button onClick={() => setActiveTab('ADDONS')} className={`text-left px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'ADDONS' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/20' : 'text-slate-500 hover:bg-slate-100 hover:text-emerald-600'}`}>
             Add-ons & Power-ups

@@ -17,6 +17,7 @@ export { getFileTools } from './tools/file';
 export { getShellTools } from './tools/shell';
 export { getWebTools } from './tools/web';
 export { getDatabaseTools } from './tools/database';
+export { getAgentTools } from './tools/agent';
 
 import { MCPServer } from './server';
 import type { MCPConfig } from './types';
@@ -24,6 +25,7 @@ import { getFileTools } from './tools/file';
 import { getShellTools } from './tools/shell';
 import { getWebTools } from './tools/web';
 import { getDatabaseTools } from './tools/database';
+import { getAgentTools } from './tools/agent';
 import { FileResourceProvider, TemplateResourceProvider, DataResourceProvider } from './resources';
 import { getBuiltInPrompts } from './prompts';
 import { join } from 'path';
@@ -53,6 +55,7 @@ export async function createMCPServer(config: Partial<MCPConfig> = {}): Promise<
     ...getShellTools(),
     ...getWebTools(),
     ...getDatabaseTools(),
+    ...getAgentTools(),
   ];
 
   for (const tool of allTools) {

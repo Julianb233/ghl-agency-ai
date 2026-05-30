@@ -15,6 +15,10 @@ import type {
   MCPCapabilities,
   MCPMetrics,
   ITransport,
+  MCPLogLevel,
+  MCPLoggingParams,
+  MCPCompletionParams,
+  MCPCompletionResult,
 } from './types';
 import { MCPError as MCPErrorClass, MCPMethodNotFoundError, MCPNotInitializedError } from './errors';
 import { ToolRegistry } from './registry';
@@ -70,7 +74,16 @@ export class MCPServer implements IMCPServer {
     prompts: {
       listChanged: true,
     },
+    sampling: {
+      enabled: true,
+    },
+    completion: {
+      enabled: true,
+    },
   };
+
+  private currentLogLevel: MCPLogLevel = 'info';
+  private isClientInitialized = false;
 
   private requestMetrics = {
     totalRequests: 0,
@@ -250,6 +263,18 @@ export class MCPServer implements IMCPServer {
 
         case 'prompts/get':
           result = await this.handlePromptGet(request, session);
+          break;
+
+        case 'notifications/initialized':
+          result = this.handleNotificationsInitialized();
+          break;
+
+        case 'logging/setLevel':
+          result = this.handleLoggingSetLevel(request);
+          break;
+
+        case 'completion/complete':
+          result = await this.handleCompletion(request, session);
           break;
 
         case 'ping':
@@ -484,6 +509,73 @@ export class MCPServer implements IMCPServer {
       sessionId: session.id,
       clientInfo: session.clientInfo,
     };
+  }
+
+  private handleNotificationsInitialized(): { acknowledged: boolean } {
+    this.isClientInitialized = true;
+    console.log('[MCP] Client initialization notification received');
+    return { acknowledged: true };
+  }
+
+  private handleLoggingSetLevel(request: MCPRequest): { level: MCPLogLevel } {
+    const params = request.params as MCPLoggingParams;
+
+    if (!params || !params.level) {
+      throw new MCPErrorClass('Log level is required', -32602);
+    }
+
+    const validLevels: MCPLogLevel[] = ['debug', 'info', 'notice', 'warning', 'error', 'critical', 'alert', 'emergency'];
+    if (!validLevels.includes(params.level)) {
+      throw new MCPErrorClass(`Invalid log level: ${params.level}`, -32602);
+    }
+
+    this.currentLogLevel = params.level;
+    console.log('[MCP] Log level set to', params.level);
+
+    return { level: this.currentLogLevel };
+  }
+
+  private async handleCompletion(request: MCPRequest, session: MCPSession): Promise<MCPCompletionResult> {
+    const params = request.params as MCPCompletionParams;
+
+    if (!params || !params.ref || !params.argument) {
+      throw new MCPErrorClass('Completion ref and argument are required', -32602);
+    }
+
+    const { ref, argument } = params;
+    let values: string[] = [];
+
+    if (ref.type === 'ref/prompt' && ref.name) {
+      const prompts = this.promptRegistry.listPrompts();
+      values = prompts
+        .filter(p => p.name.toLowerCase().includes(argument.value.toLowerCase()))
+        .map(p => p.name)
+        .slice(0, 10);
+    } else if (ref.type === 'ref/resource' && ref.uri) {
+      const resources = await this.resourceRegistry.listResources(this.createContext(session));
+      values = resources
+        .filter((r: any) => r.uri.toLowerCase().includes(argument.value.toLowerCase()))
+        .map((r: any) => r.uri)
+        .slice(0, 10);
+    }
+
+    return {
+      completion: {
+        values,
+        total: values.length,
+        hasMore: false,
+      },
+    };
+  }
+
+  public log(level: MCPLogLevel, message: string, data?: unknown): void {
+    const logLevels: MCPLogLevel[] = ['debug', 'info', 'notice', 'warning', 'error', 'critical', 'alert', 'emergency'];
+    const currentIndex = logLevels.indexOf(this.currentLogLevel);
+    const messageIndex = logLevels.indexOf(level);
+
+    if (messageIndex >= currentIndex) {
+      console.log(`[MCP:${level.toUpperCase()}] ${message}`, data ?? '');
+    }
   }
 
   private errorToMCPError(error: unknown): MCPError {

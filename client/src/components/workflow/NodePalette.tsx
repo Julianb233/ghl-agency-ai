@@ -80,7 +80,7 @@ export const NodePalette: React.FC<NodePaletteProps> = ({ onNodeSelect }) => {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="text-sm font-medium">{template.label}</span>
-                          <Badge variant="outline" className="text-[10px] px-1">
+                          <Badge variant="outline" className="text-xs px-1">
                             {template.category}
                           </Badge>
                         </div>

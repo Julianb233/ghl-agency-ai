@@ -1,6 +1,8 @@
 import React from 'react';
-import { motion, Variants } from 'framer-motion';
+import { motion, Variants, HTMLMotionProps } from 'framer-motion';
 import { useScrollAnimation } from '@/hooks/useScrollAnimation';
+
+type MotionTag = 'div' | 'section' | 'article' | 'main' | 'aside' | 'nav' | 'header' | 'footer' | 'ul' | 'ol' | 'li' | 'span' | 'p';
 import {
   fadeIn,
   fadeInUp,
@@ -49,7 +51,7 @@ interface ScrollRevealProps {
   /** Additional className */
   className?: string;
   /** HTML element to render as */
-  as?: keyof JSX.IntrinsicElements;
+  as?: MotionTag;
 }
 
 /**
@@ -75,10 +77,18 @@ export function ScrollReveal({
   });
 
   const variants = customVariants || variantMap[variant];
-  const Component = motion[as] as typeof motion.div;
+  
+  const MotionComponent = motion[as] as React.ComponentType<{
+    ref: React.Ref<HTMLElement>;
+    initial: string;
+    animate: string;
+    variants: Variants;
+    className?: string;
+    children?: React.ReactNode;
+  }>;
 
   return (
-    <Component
+    <MotionComponent
       ref={ref}
       initial="hidden"
       animate={isInView ? 'visible' : 'hidden'}
@@ -86,7 +96,7 @@ export function ScrollReveal({
       className={className}
     >
       {children}
-    </Component>
+    </MotionComponent>
   );
 }
 
@@ -102,7 +112,7 @@ interface StaggerRevealProps {
   /** Additional className for container */
   className?: string;
   /** HTML element for container */
-  as?: keyof JSX.IntrinsicElements;
+  as?: MotionTag;
 }
 
 /**
@@ -133,11 +143,18 @@ export function StaggerReveal({
     },
   };
 
-  const Component = motion[as] as typeof motion.div;
+  const MotionComponent = motion[as] as React.ComponentType<{
+    ref: React.Ref<HTMLElement>;
+    initial: string;
+    animate: string;
+    variants: Variants;
+    className?: string;
+    children?: React.ReactNode;
+  }>;
   const childVariants = variantMap[childVariant];
 
   return (
-    <Component
+    <MotionComponent
       ref={ref}
       initial="hidden"
       animate={isInView ? 'visible' : 'hidden'}
@@ -151,7 +168,7 @@ export function StaggerReveal({
           {child}
         </motion.div>
       ))}
-    </Component>
+    </MotionComponent>
   );
 }
 

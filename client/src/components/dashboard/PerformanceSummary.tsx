@@ -259,7 +259,7 @@ export function PerformanceSummary({ period = '7d' }: PerformanceSummaryProps) {
                   >
                     <div className="flex items-center gap-1 text-muted-foreground mb-1">
                       {metric.icon}
-                      <span className="text-[10px] font-medium uppercase tracking-wider">
+                      <span className="text-xs font-medium uppercase tracking-wider">
                         {metric.label}
                       </span>
                     </div>

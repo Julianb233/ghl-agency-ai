@@ -19,6 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { EmptyState, NoResultsEmpty } from '@/components/ui/EmptyState';
 import type {
   SOP,
   SOPFilters,
@@ -261,20 +262,23 @@ export const SOPList: React.FC<SOPListProps> = ({
       {/* SOP Grid/List */}
       {filteredSOPs.length === 0 ? (
         <Card className="py-12">
-          <CardContent className="flex flex-col items-center justify-center text-center">
-            <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No SOPs found</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              {filters.search || Object.keys(filters).length > 0
-                ? 'Try adjusting your filters or search query'
-                : 'Get started by creating your first SOP'
-              }
-            </p>
-            {!filters.search && Object.keys(filters).length === 0 && (
-              <Button onClick={onCreateNew} className="gap-2">
-                <Plus className="h-4 w-4" />
-                Create First SOP
-              </Button>
+          <CardContent>
+            {filters.search || Object.keys(filters).length > 0 ? (
+              <NoResultsEmpty
+                searchQuery={filters.search}
+                onClear={handleClearFilters}
+              />
+            ) : (
+              <EmptyState
+                icon={FileText}
+                title="No SOPs yet"
+                description="Get started by creating your first Standard Operating Procedure."
+                action={{
+                  label: 'Create First SOP',
+                  onClick: onCreateNew,
+                  icon: Plus,
+                }}
+              />
             )}
           </CardContent>
         </Card>

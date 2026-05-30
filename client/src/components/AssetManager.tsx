@@ -59,7 +59,7 @@ export const AssetManager: React.FC<AssetManagerProps> = ({ assets, seoConfig, o
       <GlassPane title="SEO Strategy Engine">
         <div className="p-4 space-y-4">
           <div>
-            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Global Page Title (H1 Context)</label>
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Global Page Title (H1 Context)</label>
             <input 
               type="text" 
               value={seoConfig.siteTitle}
@@ -70,7 +70,7 @@ export const AssetManager: React.FC<AssetManagerProps> = ({ assets, seoConfig, o
           </div>
           
           <div>
-            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Meta Description</label>
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Meta Description</label>
             <TextareaWithCount
               value={seoConfig.metaDescription}
               onChange={(e) => onSeoUpdate({...seoConfig, metaDescription: e.target.value})}
@@ -82,7 +82,7 @@ export const AssetManager: React.FC<AssetManagerProps> = ({ assets, seoConfig, o
           </div>
 
           <div>
-            <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Target Keywords</label>
+            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Target Keywords</label>
             <div className="flex flex-wrap gap-2">
               {seoConfig.keywords.map((kw, idx) => (
                 <span key={idx} className="bg-indigo-50 text-indigo-600 px-2 py-1 rounded-md text-xs border border-indigo-100 flex items-center gap-1">
@@ -143,12 +143,12 @@ export const AssetManager: React.FC<AssetManagerProps> = ({ assets, seoConfig, o
                   )}
 
                   <div className="absolute bottom-0 left-0 right-0 bg-black/60 backdrop-blur-sm p-1 translate-y-full group-hover:translate-y-0 transition-transform">
-                     <p className="text-[9px] text-white font-mono truncate text-center">{asset.contextTag}</p>
+                     <p className="text-xs text-white font-mono truncate text-center">{asset.contextTag}</p>
                   </div>
                </div>
                <div className="p-2">
-                  <p className="text-[10px] font-bold text-slate-700 truncate" title={asset.optimizedName}>{asset.optimizedName}</p>
-                  <p className="text-[9px] text-slate-400 truncate mt-0.5" title={asset.altText}>Alt: {asset.altText}</p>
+                  <p className="text-xs font-bold text-slate-700 truncate" title={asset.optimizedName}>{asset.optimizedName}</p>
+                  <p className="text-xs text-slate-400 truncate mt-0.5" title={asset.altText}>Alt: {asset.altText}</p>
                </div>
             </div>
           ))}

@@ -74,6 +74,7 @@ export const FeatureSpotlight: React.FC<FeatureSpotlightProps> = ({
       const timer = setTimeout(() => setIsVisible(true), 300);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [featureId, hasSeenFeature]);
 
   useEffect(() => {

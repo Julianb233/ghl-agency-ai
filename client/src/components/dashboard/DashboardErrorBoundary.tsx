@@ -34,7 +34,7 @@ export class DashboardErrorBoundary extends Component<Props, State> {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
+  override componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     console.error('Dashboard component error:', error, errorInfo);
     this.setState({
       error,
@@ -50,7 +50,7 @@ export class DashboardErrorBoundary extends Component<Props, State> {
     });
   };
 
-  render(): ReactNode {
+  override render(): ReactNode {
     if (this.state.hasError) {
       return (
         <Card className="border-red-200 dark:border-red-800">

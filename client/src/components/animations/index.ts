@@ -5,3 +5,4 @@
 
 export { FloatingElement } from "./FloatingElement";
 export { ScrollReveal } from "./ScrollReveal";
+export { PageTransition, PageTransitionWrapper } from "./PageTransition";

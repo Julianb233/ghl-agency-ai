@@ -28,7 +28,7 @@ export const BrowserPreview: React.FC<BrowserPreviewProps> = ({ currentStep, scr
         </div>
 
         {/* URL Bar */}
-        <div className="bg-slate-100/80 border border-slate-200 rounded-md px-2 sm:px-4 py-1.5 text-[10px] sm:text-xs text-slate-500 font-mono flex-1 text-center truncate flex items-center justify-center gap-2 shadow-inner max-w-[200px] sm:max-w-none mx-auto">
+        <div className="bg-slate-100/80 border border-slate-200 rounded-md px-2 sm:px-4 py-1.5 text-xs sm:text-xs text-slate-500 font-mono flex-1 text-center truncate flex items-center justify-center gap-2 shadow-inner max-w-[200px] sm:max-w-none mx-auto">
           <svg className="w-3 h-3 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
           <span className="truncate">{currentStep?.target || "app.gohighlevel.com"}</span>
         </div>
@@ -55,7 +55,7 @@ export const BrowserPreview: React.FC<BrowserPreviewProps> = ({ currentStep, scr
                   </>
                 )}
                 {sessionId && (
-                  <span className="text-[10px] text-slate-500 font-mono">ID: {sessionId.slice(0, 8)}</span>
+                  <span className="text-xs text-slate-500 font-mono">ID: {sessionId.slice(0, 8)}</span>
                 )}
               </div>
               <a
@@ -104,7 +104,7 @@ export const BrowserPreview: React.FC<BrowserPreviewProps> = ({ currentStep, scr
             <div className="absolute top-0 left-0 w-full h-1 bg-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.8)] animate-[scan_2s_ease-in-out_infinite]"></div>
 
             {/* Design Token extraction visual */}
-            <div className="absolute top-10 right-10 bg-black/80 backdrop-blur text-white text-[10px] font-mono p-2 rounded border border-white/20 shadow-xl animate-pulse">
+            <div className="absolute top-10 right-10 bg-black/80 backdrop-blur text-white text-xs font-mono p-2 rounded border border-white/20 shadow-xl animate-pulse">
               <p>Running UX Audit...</p>
               <p className="text-indigo-400">Found: H1 (Inter, 700)</p>
               <p className="text-emerald-400">Found: Primary Btn (#4F46E5)</p>
@@ -115,7 +115,7 @@ export const BrowserPreview: React.FC<BrowserPreviewProps> = ({ currentStep, scr
         {/* Builder Overlay */}
         {isBuilding && isProcessing && (
           <div className="absolute inset-0 z-10 pointer-events-none border-4 border-emerald-500/30 border-dashed animate-pulse">
-            <div className="absolute bottom-4 right-4 bg-emerald-600 text-white px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold shadow-lg flex items-center gap-2">
+            <div className="absolute bottom-4 right-4 bg-emerald-600 text-white px-2 sm:px-3 py-1 rounded-full text-xs sm:text-xs font-bold shadow-lg flex items-center gap-2">
               <svg className="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
               Building...
             </div>

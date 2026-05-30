@@ -30,6 +30,7 @@ import { ClientProfileModal } from './ClientProfileModal';
 import { AgentDashboard } from './agent/AgentDashboard';
 import { SubscriptionUsageCard, UpgradeModal, ExecutionPacksModal } from './subscription';
 import { SwarmView } from './swarm/SwarmView';
+import { MobileBottomNav } from './navigation/MobileBottomNav';
 import { Home, Terminal, Mail, Globe, Settings, Bot, Zap, Network } from 'lucide-react';
 
 // Demo data only loaded when VITE_DEMO_MODE=1 (disabled by default in production)
@@ -661,7 +662,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
                       <div className="p-4 space-y-4">
                         <div>
                           <div className="flex items-center justify-between mb-2">
-                            <label className="block text-[10px] font-bold text-slate-400 uppercase">Select Client Profile</label>
+                            <label className="block text-xs font-bold text-slate-400 uppercase">Select Client Profile</label>
                             <button
                               onClick={() => {
                                 setEditingClient(null);
@@ -874,6 +875,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ userTier, credits: initial
         isOpen={showPacksModal}
         onClose={() => setShowPacksModal(false)}
       />
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav />
     </CommandCenter>
   );
 };

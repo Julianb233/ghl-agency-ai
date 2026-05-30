@@ -1,11 +1,12 @@
 import React, { Suspense, lazy } from 'react';
 import { Route, Switch, useLocation } from 'wouter';
 import { trpc } from '@/lib/trpc';
+import { PageTransitionWrapper } from '@/components/animations';
 
 // Lazy load pages
 const Login = lazy(() => import('@/pages/Login'));
 const Signup = lazy(() => import('@/pages/Signup'));
-const OnboardingFlow = lazy(() => import('./OnboardingFlow'));
+const OnboardingFlow = lazy(() => import('./OnboardingFlow').then(m => ({ default: m.OnboardingFlow })));
 const Dashboard = lazy(() => import('./Dashboard').then(m => ({ default: m.Dashboard })));
 const AgentsPage = lazy(() => import('@/pages/AgentsPage').then(m => ({ default: m.AgentsPage })));
 const LandingPage = lazy(() => import('./LandingPage').then(m => ({ default: m.LandingPage })));
@@ -82,113 +83,114 @@ export function AppRouter() {
   }
 
   // Redirect logic for authenticated users
+  const currentPath = location as string;
+  const isPublicAuthPage = ['/', '/landing', '/login', '/signup'].includes(currentPath);
+  
   if (user) {
     // If user is on landing or auth pages, redirect to dashboard or onboarding
-    if (location === '/' || location === '/landing' || location === '/login' || location === '/signup') {
+    if (isPublicAuthPage) {
       if (user.onboardingCompleted === false) {
-        if (location !== '/onboarding') {
-          setLocation('/onboarding');
-        }
+        setLocation('/onboarding');
       } else {
-        if (location !== '/dashboard') {
-          setLocation('/dashboard');
-        }
+        setLocation('/dashboard');
       }
     }
   } else {
     // If user is not authenticated and trying to access protected routes
     const protectedRoutes = ['/dashboard', '/onboarding'];
-    const isDashboardRoute = location === '/dashboard' || location.startsWith('/dashboard/');
-    if (protectedRoutes.some(route => location.startsWith(route)) || isDashboardRoute) {
+    const isDashboardRoute = currentPath === '/dashboard' || currentPath.startsWith('/dashboard/');
+    if (protectedRoutes.some(route => currentPath.startsWith(route)) || isDashboardRoute) {
       setLocation('/login');
     }
   }
 
   return (
     <Suspense fallback={<LoadingSpinner />}>
-      <Switch>
-        {/* Public routes */}
-        <Route path="/">
-          <LandingPage
-            onLogin={() => setLocation('/login')}
-            onNavigateToFeatures={() => setLocation('/features')}
-          />
-        </Route>
-        <Route path="/landing">
-          <LandingPage
-            onLogin={() => setLocation('/login')}
-            onNavigateToFeatures={() => setLocation('/features')}
-          />
-        </Route>
-        <Route path="/login" component={Login} />
-        <Route path="/signup" component={Signup} />
-        <Route path="/features">
-          <FeaturesPage
-            onGetStarted={() => user ? setLocation('/dashboard') : setLocation('/login')}
-            onNavigateHome={() => setLocation('/')}
-          />
-        </Route>
-        <Route path="/privacy">
-          <PrivacyPolicy onBack={() => setLocation('/')} />
-        </Route>
-        <Route path="/terms">
-          <TermsOfService onBack={() => setLocation('/')} />
-        </Route>
-        <Route path="/alex-ramozy">
-          <AlexRamozyPage onDemoClick={() => setLocation('/login')} />
-        </Route>
-        <Route path="/pricing" component={Pricing} />
-        <Route path="/use-cases" component={UseCases} />
-        <Route path="/about" component={About} />
-        <Route path="/docs" component={Docs} />
+      <PageTransitionWrapper locationKey={location}>
+        <Switch>
+          {/* Public routes */}
+          <Route path="/">
+            <LandingPage
+              onLogin={() => setLocation('/login')}
+              onNavigateToFeatures={() => setLocation('/features')}
+            />
+          </Route>
+          <Route path="/landing">
+            <LandingPage
+              onLogin={() => setLocation('/login')}
+              onNavigateToFeatures={() => setLocation('/features')}
+            />
+          </Route>
+          <Route path="/login" component={Login} />
+          <Route path="/signup" component={Signup} />
+          <Route path="/features">
+            <FeaturesPage
+              onGetStarted={() => user ? setLocation('/dashboard') : setLocation('/login')}
+              onNavigateHome={() => setLocation('/')}
+            />
+          </Route>
+          <Route path="/privacy">
+            <PrivacyPolicy onBack={() => setLocation('/')} />
+          </Route>
+          <Route path="/terms">
+            <TermsOfService onBack={() => setLocation('/')} />
+          </Route>
+          <Route path="/alex-ramozy">
+            <AlexRamozyPage onDemoClick={() => setLocation('/login')} />
+          </Route>
+          <Route path="/pricing" component={Pricing} />
+          <Route path="/use-cases" component={UseCases} />
+          <Route path="/about" component={About} />
+          <Route path="/docs" component={Docs} />
 
-        {/* Protected routes */}
-        <Route path="/onboarding">
-          {user ? (
-            <OnboardingFlow onComplete={() => setLocation('/dashboard')} />
-          ) : (
-            <div>Redirecting...</div>
-          )}
-        </Route>
+          {/* Protected routes */}
+          <Route path="/onboarding">
+            {user ? (
+              <OnboardingFlow onComplete={() => setLocation('/dashboard')} />
+            ) : (
+              <div>Redirecting...</div>
+            )}
+          </Route>
 
-        {/* Dashboard routes - handle all /dashboard/* paths */}
-        <Route path="/dashboard/:rest*">
-          {user ? (
-            <main id="main-content">
-              <DashboardRouter userTier="WHITELABEL" credits={1000} />
-            </main>
-          ) : (
-            <div>Redirecting...</div>
-          )}
-        </Route>
+          {/* Dashboard routes - handle all /dashboard/* paths */}
+          <Route path="/dashboard/:rest*">
+            {user ? (
+              <main id="main-content">
+                <DashboardRouter userTier="WHITELABEL" credits={1000} />
+              </main>
+            ) : (
+              <div>Redirecting...</div>
+            )}
+          </Route>
 
-        {/* Dashboard home route */}
-        <Route path="/dashboard">
-          {user ? (
-            <main id="main-content">
-              <DashboardRouter userTier="WHITELABEL" credits={1000} />
-            </main>
-          ) : (
-            <div>Redirecting...</div>
-          )}
-        </Route>
+          {/* Dashboard home route */}
+          <Route path="/dashboard">
+            {user ? (
+              <main id="main-content">
+                <DashboardRouter userTier="WHITELABEL" credits={1000} />
+              </main>
+            ) : (
+              <div>Redirecting...</div>
+            )}
+          </Route>
 
-        {/* 404 */}
-        <Route>
-          <div className="min-h-screen flex items-center justify-center">
-            <div className="text-center">
-              <h1 className="text-4xl font-bold mb-4">404</h1>
-              <p className="text-muted-foreground mb-4">Page not found</p>
-              <button
-                onClick={() => setLocation('/')}
-                className="text-primary hover:underline"
-              >
-                Go back home
-              </button>
+          {/* 404 */}
+          <Route>
+            <div className="min-h-screen flex items-center justify-center">
+              <div className="text-center">
+                <h1 className="text-4xl font-bold mb-4">404</h1>
+                <p className="text-muted-foreground mb-4">Page not found</p>
+                <button
+                  onClick={() => setLocation('/')}
+                  className="text-primary hover:underline"
+                >
+                  Go back home
+                </button>
+              </div>
             </div>
-          </div>
-        </Route>
-      </Switch>
+          </Route>
+        </Switch>
+      </PageTransitionWrapper>
     </Suspense>
   );
 }

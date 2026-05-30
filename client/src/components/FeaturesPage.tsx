@@ -192,7 +192,7 @@ export const FeaturesPage: React.FC<FeaturesPageProps> = ({ onGetStarted, onNavi
             </div>
             <div>
               <span className="text-base sm:text-xl font-bold bg-gradient-to-r from-emerald-400 via-green-400 to-teal-400 bg-clip-text text-transparent">Bottleneck Bot</span>
-              <div className="hidden sm:block text-[11px] text-gray-400 font-semibold -mt-1">Powerful Features</div>
+              <div className="hidden sm:block text-xs text-gray-400 font-semibold -mt-1">Powerful Features</div>
             </div>
           </div>
 

@@ -1,0 +1,84 @@
+{
+  "name": "Credential Rotation System",
+  "version": "1.0",
+  "created": "2026-01-13",
+  "status": "complete",
+  "repoURL": "https://github.com/Julianb233/ghl-agency-ai",
+  "description": "Build a credential rotation system for secure management of API keys and secrets with automatic rotation policies",
+  "tasks": [
+    {
+      "id": "CR-001",
+      "title": "Credential Rotation Database Schema",
+      "status": "completed",
+      "priority": "P0",
+      "effort": "1 hour",
+      "dependsOn": [],
+      "files": [
+        "drizzle/schema-credentials.ts",
+        "drizzle/migrations/0008_credential_rotation.sql"
+      ],
+      "description": "Create database tables for credential rotation tracking.\n\n**What to do:**\n- Create `credential_policies` table: id, userId, credentialType (api_key, oauth_token, webhook_secret), rotationIntervalDays, lastRotatedAt, nextRotationAt, isEnabled, createdAt, updatedAt\n- Create `credential_rotation_logs` table: id, policyId, userId, credentialType, action (rotated, failed, skipped), oldKeyHash (last 4 chars), newKeyHash (last 4 chars), reason, createdAt\n- Add indexes on userId, credentialType, nextRotationAt\n\n**Acceptance criteria:**\n- Tables defined in drizzle/schema-credentials.ts\n- Migration SQL in drizzle/migrations/\n- pnpm run check passes"
+    },
+    {
+      "id": "CR-002",
+      "title": "Credential Rotation Service",
+      "status": "completed",
+      "priority": "P0",
+      "effort": "2 hours",
+      "dependsOn": ["CR-001"],
+      "files": [
+        "server/services/credentialRotation.service.ts"
+      ],
+      "description": "Create the credential rotation service.\n\n**What to do:**\n- createPolicy(userId, credentialType, intervalDays)\n- getPolicy(userId, credentialType)\n- updatePolicy(policyId, updates)\n- deletePolicy(policyId)\n- checkRotationDue(policyId) - returns true if rotation needed\n- rotateCredential(policyId) - generates new credential, updates storage, logs rotation\n- getRotationHistory(userId, limit)\n- runScheduledRotations() - for cron job to call\n\n**Integration:**\n- Use existing apiKeys router patterns\n- Hash credentials with SHA-256 before storing\n- Log rotations to credential_rotation_logs\n\n**Acceptance criteria:**\n- All methods implemented with proper error handling\n- Integrates with existing credential storage\n- pnpm run check passes"
+    },
+    {
+      "id": "CR-003",
+      "title": "Credential Rotation tRPC Router",
+      "status": "completed",
+      "priority": "P0",
+      "effort": "1.5 hours",
+      "dependsOn": ["CR-002"],
+      "files": [
+        "server/api/routers/credentialRotation.ts",
+        "server/routers.ts"
+      ],
+      "description": "Create tRPC router for credential rotation endpoints.\n\n**What to do:**\n- credentialRotation.createPolicy (mutation)\n- credentialRotation.getPolicy (query)\n- credentialRotation.updatePolicy (mutation)\n- credentialRotation.deletePolicy (mutation)\n- credentialRotation.rotateNow (mutation) - manual rotation trigger\n- credentialRotation.getHistory (query)\n- credentialRotation.getPolicies (query) - list all policies for user\n- Add Zod validation schemas\n- Register in server/routers.ts\n\n**Acceptance criteria:**\n- All endpoints with Zod validation\n- Proper auth checks (user can only access own policies)\n- Router registered\n- pnpm run check passes"
+    },
+    {
+      "id": "CR-004",
+      "title": "Scheduled Rotation Job",
+      "status": "completed",
+      "priority": "P1",
+      "effort": "1 hour",
+      "dependsOn": ["CR-002"],
+      "files": [
+        "server/services/schedulerRunner.service.ts"
+      ],
+      "description": "Add credential rotation to the scheduled jobs.\n\n**What to do:**\n- Add runScheduledRotations() to the existing scheduler runner\n- Run daily to check for credentials due for rotation\n- Log results to credential_rotation_logs\n- Send notification on rotation (use existing alerting service)\n\n**Acceptance criteria:**\n- Rotation job added to scheduler\n- Runs automatically on schedule\n- Logs all rotation attempts\n- pnpm run check passes"
+    },
+    {
+      "id": "CR-005",
+      "title": "Update todo.md and Documentation",
+      "status": "completed",
+      "priority": "P2",
+      "effort": "30 min",
+      "dependsOn": ["CR-003", "CR-004"],
+      "files": [
+        "todo.md",
+        "docs/CREDENTIAL_ROTATION.md"
+      ],
+      "description": "Update documentation and mark todo.md complete.\n\n**What to do:**\n- Mark 'Build credential rotation system' as complete in todo.md\n- Create docs/CREDENTIAL_ROTATION.md with:\n  - Overview of the rotation system\n  - API endpoints reference\n  - Configuration options\n  - Example usage\n\n**Acceptance criteria:**\n- todo.md updated\n- Documentation created\n- pnpm run check passes"
+    }
+  ],
+  "technicalRequirements": [
+    "All code must pass pnpm run check",
+    "Follow existing patterns in server/api/routers/",
+    "Use existing services (alerting, scheduler)",
+    "Hash all credentials before logging"
+  ],
+  "successMetrics": {
+    "policies": "Users can create rotation policies per credential type",
+    "automation": "Scheduled job rotates credentials automatically",
+    "auditTrail": "Full rotation history available"
+  }
+}

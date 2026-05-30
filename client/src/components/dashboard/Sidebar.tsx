@@ -71,7 +71,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 exit={{ opacity: 0 }}
                 className="px-4 mb-2"
               >
-                <span className="text-[10px] font-semibold tracking-wider text-slate-500 uppercase">
+                <span className="text-xs font-semibold tracking-wider text-slate-500 uppercase">
                   {section.section}
                 </span>
               </motion.div>
@@ -119,7 +119,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         className={cn(
-                          'px-1.5 py-0.5 rounded text-[10px] font-semibold',
+                          'px-1.5 py-0.5 rounded text-xs font-semibold',
                           getBadgeStyles(item.badgeColor)
                         )}
                       >

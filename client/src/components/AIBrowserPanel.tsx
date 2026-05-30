@@ -289,7 +289,7 @@ export const AIBrowserPanel: React.FC<AIBrowserPanelProps> = ({ onLog }) => {
                       ))}
                     </SelectContent>
                   </Select>
-                  <p className="text-[10px] text-slate-500">
+                  <p className="text-xs text-slate-500">
                     Choose where the browser should appear to be located
                   </p>
                 </div>
@@ -307,7 +307,7 @@ export const AIBrowserPanel: React.FC<AIBrowserPanelProps> = ({ onLog }) => {
                     placeholder="your@email.com"
                     className="text-sm h-9"
                   />
-                  <p className="text-[10px] text-blue-600">
+                  <p className="text-xs text-blue-600">
                     Connect your 1Password account to auto-fill credentials during browser automation
                   </p>
                 </div>
@@ -466,14 +466,14 @@ export const AIBrowserPanel: React.FC<AIBrowserPanelProps> = ({ onLog }) => {
                     {result.success && <div className="text-green-500">✓ {result.message || 'Action completed successfully'}</div>}
                     {result.error && <div className="text-red-500">✗ Error: {result.error}</div>}
                     {result.prompt && <div className="text-yellow-400">Prompt: {result.prompt}</div>}
-                    <div className="text-slate-500 text-[10px] mt-4">
+                    <div className="text-slate-500 text-xs mt-4">
                       Use the session ID above to view replay or check logs
                     </div>
                   </div>
                 ) : (
                   <div className="text-slate-500">
                     $ Waiting for browser action...
-                    <div className="mt-2 text-[10px]">
+                    <div className="mt-2 text-xs">
                       Execute an action to see terminal output here
                     </div>
                   </div>
@@ -592,7 +592,7 @@ export const AIBrowserPanel: React.FC<AIBrowserPanelProps> = ({ onLog }) => {
                           {session.status}
                         </Badge>
                       </div>
-                      <div className="text-[10px] text-slate-500">
+                      <div className="text-xs text-slate-500">
                         Click to load replay
                       </div>
                     </div>

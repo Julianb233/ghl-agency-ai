@@ -38,6 +38,7 @@ export { useBrowserSessions } from './useBrowserSessions';
 
 // Forms & Validation
 export { useFormValidation } from './useFormValidation';
+export { useZodFormValidation } from './useZodFormValidation';
 export { useComposition } from './useComposition';
 
 // Data & Operations
@@ -50,7 +51,7 @@ export { useCredits } from './useCredits';
 export { useConversionTracking } from './useConversionTracking';
 
 // UI & Interactions
-export { useMobile } from './useMobile';
+export { useIsMobile } from './useMobile';
 export { useNotifications } from './useNotifications';
 export { useTour } from './useTour';
 export { useQuiz } from './useQuiz';

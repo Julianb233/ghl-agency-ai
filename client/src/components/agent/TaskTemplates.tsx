@@ -463,13 +463,13 @@ export function TaskTemplates({
                         {template.description}
                       </p>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <Badge variant="secondary" className={cn('text-[10px]', categoryInfo.color)}>
+                        <Badge variant="secondary" className={cn('text-xs', categoryInfo.color)}>
                           {categoryInfo.label}
                         </Badge>
-                        <Badge variant="secondary" className={cn('text-[10px]', DIFFICULTY_COLORS[template.difficulty])}>
+                        <Badge variant="secondary" className={cn('text-xs', DIFFICULTY_COLORS[template.difficulty])}>
                           {template.difficulty}
                         </Badge>
-                        <span className="text-[10px] text-gray-400">
+                        <span className="text-xs text-gray-400">
                           ~{template.estimatedTime}
                         </span>
                       </div>
