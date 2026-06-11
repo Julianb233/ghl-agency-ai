@@ -110,3 +110,5 @@ temp/
 .env*.local
 mcp-server-browserbase/
 stagehand-nextjs-quickstart/
+.codex/
+.hermes/
